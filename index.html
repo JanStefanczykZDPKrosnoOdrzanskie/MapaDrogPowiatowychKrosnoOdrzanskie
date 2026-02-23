@@ -118,6 +118,16 @@ map.addLayer({
 
 console.log("✅ Road layers rendered");
 
+  // Wyłączenie warstw drogowych z Cloud
+["DK ", "DW", "DP", "S2", "S3", "S4", "S6"]
+  .forEach(id => {
+    if (map.getLayer(id)) {
+      map.setLayoutProperty(id, "visibility", "none");
+    }
+  });
+
+console.log("✅ Cloud road layers disabled");
+  
     // === MARKER PROJEKTU (migracja ready) ===
     window.ZDP_MAP_PROJECT = {
         version: "1.0",
@@ -210,5 +220,6 @@ window.ZDP_LOAD_GEO_SOURCES = ZDP_LOAD_GEO_SOURCES;
 
 </body>
 </html>
+
 
 
