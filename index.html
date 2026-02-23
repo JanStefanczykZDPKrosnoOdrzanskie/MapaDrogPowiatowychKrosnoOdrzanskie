@@ -1,225 +1,197 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZDP Krosno Odrzańskie Mapa z Legendą</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZDP Krosno Odrzańskie Mapa z Legendą</title>
 
-  <!-- MapTiler SDK JS i CSS -->
-  <script src="https://cdn.maptiler.com/maptiler-sdk-js/v3.10.2/maptiler-sdk.umd.min.js"></script>
-  <link href="https://cdn.maptiler.com/maptiler-sdk-js/v3.10.2/maptiler-sdk.css" rel="stylesheet" />
+<!-- MapLibre Open Source -->
+<link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
+<script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
 
-  <style>
-    body { margin: 0; padding: 0; }
-    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-    #legend {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1;
-      background: white;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.3);
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-    }
-    #legend h3 { margin: 0 0 5px 0; font-size: 16px; }
-    .legend-line {
-      display: inline-block;
-      width: 40px;
-      border-bottom: 3px solid black;
-      margin-right: 5px;
-      vertical-align: middle;
-    }
-  </style>
+<style>
+body { margin: 0; padding: 0; }
+
+#map {
+position: absolute;
+top: 0;
+bottom: 0;
+width: 100%;
+}
+
+#legend {
+position: absolute;
+top: 10px;
+left: 10px;
+z-index: 1;
+background: white;
+padding: 10px;
+border-radius: 5px;
+box-shadow: 0 0 5px rgba(0,0,0,0.3);
+font-family: Arial, sans-serif;
+font-size: 14px;
+}
+
+.legend-line {
+display: inline-block;
+width: 40px;
+border-bottom: 3px solid black;
+margin-right: 5px;
+vertical-align: middle;
+}
+</style>
+
 </head>
+
 <body>
 
-  <!-- Legenda -->
-  <div id="legend">
-    <h3>Legenda</h3>
-    <label>
-      <input type="checkbox" data-layers="DK ,DK Tekst" checked>
-      <span class="legend-line" style="border-color:#FF0000;"></span> Drogi krajowe
-    </label><br>
-    <label>
-      <input type="checkbox" data-layers="DW,DW Tekst" checked>
-      <span class="legend-line" style="border-color:#08FF00;"></span> Drogi wojewódzkie
-    </label><br>
-    <label>
-      <input type="checkbox" data-layers="DP,DPTekst" checked>
-      <span class="legend-line" style="border-color:#A500AD;"></span> Drogi powiatowe
-    </label><br>
-    <label>
-      <input type="checkbox" data-layers="S2" checked>
-      <span class="legend-line" style="border-color:#FFEE00;"></span> Standard 2
-    </label><br>
-    <label>
-      <input type="checkbox" data-layers="S3" checked>
-      <span class="legend-line" style="border-color:#00FFFF;"></span> Standard 3
-    </label><br>
-    <label>
-      <input type="checkbox" data-layers="S4" checked>
-      <span class="legend-line" style="border-color:#FA9EFF;"></span> Standard 4
-    </label><br>
-    <label>
-      <input type="checkbox" data-layers="S6" checked>
-      <span class="legend-line" style="border-color:#A1A1A1;"></span> Standard 6
-    </label>
-  </div>
+<div id="legend">
+<h3>Legenda</h3>
 
-  <!-- Kontener mapy -->
-  <div id="map"></div>
+<label>
+<input type="checkbox" data-layers="DK_i_DW_layer" checked>
+<span class="legend-line" style="border-color:#FF0000;"></span>
+Drogi krajowe / wojewódzkie
+</label><br>
+
+<label>
+<input type="checkbox" data-layers="DP_layer" checked>
+<span class="legend-line" style="border-color:#A500AD;"></span>
+Drogi powiatowe
+</label>
+
+</div>
+
+<div id="map"></div>
 
 <script>
-maptilersdk.config.apiKey = 'MkY8UMlOkg3TeVITMUWo';
 
-const map = new maptilersdk.Map({
-    container: 'map',
-    style: "019c6b38-777e-7462-a380-ae52d4431706",
+/* ===============================
+   MAP INITIALIZATION
+=============================== */
 
-    center: [15.1, 51.96],
-    zoom: 10,
+const map = new maplibregl.Map({
+container: 'map',
 
-    renderWorldCopies: false
+style: {
+version: 8,
+
+sources: {
+
+osm: {
+type: "raster",
+tiles: [
+"https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+],
+tileSize: 256,
+attribution: "© OpenStreetMap contributors"
+}
+
+},
+
+layers: [
+{
+id: "osm",
+type: "raster",
+source: "osm"
+}
+]
+
+},
+
+center: [15.1, 51.96],
+zoom: 10
 });
 
-map.on('load', async () => {
+/* ===============================
+   GEOJSON SOURCES
+=============================== */
+
+async function ZDP_LOAD_GEO_SOURCES(map){
+
+try{
+
+const roads_main = await fetch("DK_i_DW.geojson").then(r=>r.json());
+const roads_dp = await fetch("DP.geojson").then(r=>r.json());
+
+map.addSource("zdp_roads_main",{
+type:"geojson",
+data:roads_main
+});
+
+map.addSource("zdp_roads_dp",{
+type:"geojson",
+data:roads_dp
+});
+
+}catch(e){
+console.error(e);
+}
+
+}
+
+/* ===============================
+   LAYERS
+=============================== */
+
+map.on('load', async()=>{
 
 await ZDP_LOAD_GEO_SOURCES(map);
 
-// DK + DW layer
+/* DK + DW */
 map.addLayer({
-    id: "DK_i_DW_layer",
-    type: "line",
-    source: "zdp_roads_main",
-    paint: {
-        "line-color": [
-            "case",
-            ["==", ["get", "Adm"], 1], "#000000",
-            ["==", ["get", "Adm"], 2], "#08FF00",
-            "#FF0000"
-        ],
-        "line-width": 3
-    }
+id:"DK_i_DW_layer",
+type:"line",
+source:"zdp_roads_main",
+
+paint:{
+"line-color":[
+"case",
+["==",["get","Adm"],1],"#000000",
+["==",["get","Adm"],2],"#08FF00",
+"#FF0000"
+],
+"line-width":3
+}
 });
 
-// DP layer
+/* DP */
 map.addLayer({
-    id: "DP_layer",
-    type: "line",
-    source: "zdp_roads_dp",
-    paint: {
-        "line-color": "#A500AD",
-        "line-width": 3
-    }
+id:"DP_layer",
+type:"line",
+source:"zdp_roads_dp",
+
+paint:{
+"line-color":"#A500AD",
+"line-width":3
+}
 });
 
-console.log("✅ Road layers rendered");
+/* LEGEND CONTROL */
 
-  // Wyłączenie warstw drogowych z Cloud
-["DK ", "DW", "DP", "S2", "S3", "S4", "S6"]
-  .forEach(id => {
-    if (map.getLayer(id)) {
-      map.setLayoutProperty(id, "visibility", "none");
-    }
-  });
+document.querySelectorAll('#legend input').forEach(chk=>{
+chk.addEventListener('change',e=>{
 
-console.log("✅ Cloud road layers disabled");
-  
-    // === MARKER PROJEKTU (migracja ready) ===
-    window.ZDP_MAP_PROJECT = {
-        version: "1.0",
-        mode: "cloud-backend",
-        migrationReady: true
-    };
+const layers=e.target.dataset.layers.split(',');
 
-    // === LEGENDA ===
-    const legendChecks = document.querySelectorAll('#legend input[type="checkbox"]');
+layers.forEach(layerId=>{
 
-    legendChecks.forEach(chk => {
+if(!map.getLayer(layerId)) return;
 
-        chk.addEventListener('change', e => {
-
-            const layers = e.target.getAttribute('data-layers').split(',');
-
-            layers.forEach(layerId => {
-
-                if (!map.getLayer(layerId)) return;
-
-                map.setLayoutProperty(
-                    layerId,
-                    'visibility',
-                    e.target.checked ? 'visible' : 'none'
-                );
-
-            });
-
-        });
-
-    });
+map.setLayoutProperty(
+layerId,
+'visibility',
+e.target.checked ? 'visible':'none'
+);
 
 });
 
-// Testowy renderer Open Source (migracyjny)
+});
+});
 
-if (!window.ZDP_MAP_PROJECT) {
-    window.ZDP_MAP_PROJECT = {
-        version: "1.0",
-        migrationReady: true,
-        renderer: "cloud-first"
-    };
-}
-
-console.log("Migration layer ready:", window.ZDP_MAP_PROJECT);
-
-function ZDP_MIGRATION_PIPELINE_STATUS() {
-
-    return {
-        cloudRendererActive: true,
-        openSourceRendererReady: true,
-        geoLayerStrategy: "lazy-switch",
-        safetyMode: true
-    };
-
-}
-
-window.ZDP_MIGRATION_PIPELINE_STATUS = ZDP_MIGRATION_PIPELINE_STATUS;
-
-console.log("ZDP migration pipeline initialized");
-
-async function ZDP_LOAD_GEO_SOURCES(map) {
-
-    try {
-
-        // Ścieżki lokalne (ważne dla file:///)
-        const roads_main = await fetch("DK_i_DW.geojson").then(r => r.json());
-        const roads_dp = await fetch("DP.geojson").then(r => r.json());
-
-        map.addSource("zdp_roads_main", {
-            type: "geojson",
-            data: roads_main
-        });
-
-        map.addSource("zdp_roads_dp", {
-            type: "geojson",
-            data: roads_dp
-        });
-
-        console.log("✅ GeoJSON sources loaded");
-
-    } catch (e) {
-        console.error("❌ GeoJSON load error:", e);
-    }
-}
-
-window.ZDP_LOAD_GEO_SOURCES = ZDP_LOAD_GEO_SOURCES;
+});
 
 </script>
 
 </body>
 </html>
-
-
-
