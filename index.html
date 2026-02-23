@@ -5,40 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZDP Krosno Odrzańskie Mapa z Legendą</title>
 
-<!-- MapLibre Open Source -->
+<!-- MapLibre -->
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
 
+<!-- External Renderer -->
+<script src="road-style-render.js"></script>
+
 <style>
-body { margin: 0; padding: 0; }
 
-#map {
-position: absolute;
-top: 0;
-bottom: 0;
-width: 100%;
+body{
+margin:0;
+padding:0;
 }
 
-#legend {
-position: absolute;
-top: 10px;
-left: 10px;
-z-index: 1;
-background: white;
-padding: 10px;
-border-radius: 5px;
-box-shadow: 0 0 5px rgba(0,0,0,0.3);
-font-family: Arial, sans-serif;
-font-size: 14px;
+#map{
+position:absolute;
+top:0;
+bottom:0;
+width:100%;
 }
 
-.legend-line {
-display: inline-block;
-width: 40px;
-border-bottom: 3px solid black;
-margin-right: 5px;
-vertical-align: middle;
+#legend{
+position:absolute;
+top:10px;
+left:10px;
+z-index:1;
+background:white;
+padding:10px;
+border-radius:5px;
+box-shadow:0 0 5px rgba(0,0,0,0.3);
+font-family:Arial,sans-serif;
+font-size:14px;
 }
+
 </style>
 
 </head>
@@ -50,13 +50,11 @@ vertical-align: middle;
 
 <label>
 <input type="checkbox" data-layers="DK_i_DW_layer" checked>
-<span class="legend-line" style="border-color:#FF0000;"></span>
 Drogi krajowe / wojewódzkie
 </label><br>
 
 <label>
 <input type="checkbox" data-layers="DP_layer" checked>
-<span class="legend-line" style="border-color:#A500AD;"></span>
 Drogi powiatowe
 </label>
 
@@ -71,40 +69,40 @@ Drogi powiatowe
 =============================== */
 
 const map = new maplibregl.Map({
-container: 'map',
 
-style: {
-version: 8,
+container:'map',
 
-sources: {
+style:{
+version:8,
 
-osm: {
-type: "raster",
-tiles: [
+sources:{
+osm:{
+type:"raster",
+tiles:[
 "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 ],
-tileSize: 256,
-attribution: "© OpenStreetMap contributors"
+tileSize:256,
+attribution:"© OpenStreetMap contributors"
 }
-
 },
 
-layers: [
+layers:[
 {
-id: "osm",
-type: "raster",
-source: "osm"
+id:"osm",
+type:"raster",
+source:"osm"
 }
 ]
 
 },
 
-center: [15.1, 51.96],
-zoom: 10
+center:[15.1,51.96],
+zoom:10
+
 });
 
 /* ===============================
-   GEOJSON SOURCES
+   GEOJSON LOADER
 =============================== */
 
 async function ZDP_LOAD_GEO_SOURCES(map){
@@ -131,45 +129,21 @@ console.error(e);
 }
 
 /* ===============================
-   LAYERS
+   MAP LOAD PIPELINE
 =============================== */
 
 map.on('load', async()=>{
 
 await ZDP_LOAD_GEO_SOURCES(map);
 
-/* DK + DW */
-map.addLayer({
-id:"DK_i_DW_layer",
-type:"line",
-source:"zdp_roads_main",
-
-paint:{
-"line-color":[
-"case",
-["==",["get","Adm"],1],"#000000",
-["==",["get","Adm"],2],"#08FF00",
-"#FF0000"
-],
-"line-width":3
+/* External renderer */
+if(window.ZDP_RENDER_ROAD_STYLES){
+ZDP_RENDER_ROAD_STYLES(map);
 }
-});
 
-/* DP */
-map.addLayer({
-id:"DP_layer",
-type:"line",
-source:"zdp_roads_dp",
-
-paint:{
-"line-color":"#A500AD",
-"line-width":3
-}
-});
-
-/* LEGEND CONTROL */
-
+/* Legend control */
 document.querySelectorAll('#legend input').forEach(chk=>{
+
 chk.addEventListener('change',e=>{
 
 const layers=e.target.dataset.layers.split(',');
@@ -187,6 +161,7 @@ e.target.checked ? 'visible':'none'
 });
 
 });
+
 });
 
 });
