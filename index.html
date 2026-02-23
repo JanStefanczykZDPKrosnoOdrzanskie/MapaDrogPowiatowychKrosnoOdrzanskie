@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZDP Krosno Odrzańskie Mapa z Legendą</title>
+<title>ZDP Krosno Odrzańskie Mapa</title>
 
-<!-- MapLibre -->
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
 
-<!-- External Renderer -->
 <script src="road-style-render.js"></script>
+<script src="legend-control.js"></script>
 
 <style>
 
@@ -39,6 +38,15 @@ font-family:Arial,sans-serif;
 font-size:14px;
 }
 
+.legend-line{
+display:inline-block;
+width:40px;
+height:3px;
+background:currentColor;
+margin-right:5px;
+vertical-align:middle;
+}
+
 </style>
 
 </head>
@@ -50,11 +58,13 @@ font-size:14px;
 
 <label>
 <input type="checkbox" data-layers="DK_i_DW_layer" checked>
+<span class="legend-line" style="color:#FF0000"></span>
 Drogi krajowe / wojewódzkie
 </label><br>
 
 <label>
 <input type="checkbox" data-layers="DP_layer" checked>
+<span class="legend-line" style="color:#A500AD"></span>
 Drogi powiatowe
 </label>
 
@@ -64,11 +74,8 @@ Drogi powiatowe
 
 <script>
 
-/* ===============================
-   MAP INITIALIZATION
-=============================== */
-
-const map = new maplibregl.Map({
+/* expose map globally */
+window.map_instance = new maplibregl.Map({
 
 container:'map',
 
@@ -78,22 +85,16 @@ version:8,
 sources:{
 osm:{
 type:"raster",
-tiles:[
-"https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-],
-tileSize:256,
-attribution:"© OpenStreetMap contributors"
+tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+tileSize:256
 }
 },
 
-layers:[
-{
+layers:[{
 id:"osm",
 type:"raster",
 source:"osm"
-}
-]
-
+}]
 },
 
 center:[15.1,51.96],
@@ -101,68 +102,19 @@ zoom:10
 
 });
 
-/* ===============================
-   GEOJSON LOADER
-=============================== */
+/* pipeline load */
 
-async function ZDP_LOAD_GEO_SOURCES(map){
+window.map_instance.on('load', async()=>{
 
-try{
+await ZDP_LOAD_GEO_SOURCES(window.map_instance);
 
-const roads_main = await fetch("DK_i_DW.geojson").then(r=>r.json());
-const roads_dp = await fetch("DP.geojson").then(r=>r.json());
-
-map.addSource("zdp_roads_main",{
-type:"geojson",
-data:roads_main
-});
-
-map.addSource("zdp_roads_dp",{
-type:"geojson",
-data:roads_dp
-});
-
-}catch(e){
-console.error(e);
-}
-
-}
-
-/* ===============================
-   MAP LOAD PIPELINE
-=============================== */
-
-map.on('load', async()=>{
-
-await ZDP_LOAD_GEO_SOURCES(map);
-
-/* External renderer */
 if(window.ZDP_RENDER_ROAD_STYLES){
-ZDP_RENDER_ROAD_STYLES(map);
+ZDP_RENDER_ROAD_STYLES(window.map_instance);
 }
 
-/* Legend control */
-document.querySelectorAll('#legend input').forEach(chk=>{
-
-chk.addEventListener('change',e=>{
-
-const layers=e.target.dataset.layers.split(',');
-
-layers.forEach(layerId=>{
-
-if(!map.getLayer(layerId)) return;
-
-map.setLayoutProperty(
-layerId,
-'visibility',
-e.target.checked ? 'visible':'none'
-);
-
-});
-
-});
-
-});
+if(window.ZDP_LEGEND_INIT){
+ZDP_LEGEND_INIT();
+}
 
 });
 
