@@ -85,7 +85,7 @@ const map = new maptilersdk.Map({
     renderWorldCopies: false
 });
 
-map.on('load', () => {
+map.on('load', async () => {
 
 await ZDP_LOAD_GEO_SOURCES(map);
 
@@ -210,4 +210,5 @@ window.ZDP_LOAD_GEO_SOURCES = ZDP_LOAD_GEO_SOURCES;
 
 </body>
 </html>
+
 
