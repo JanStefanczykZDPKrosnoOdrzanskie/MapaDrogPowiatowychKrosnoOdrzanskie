@@ -87,6 +87,37 @@ const map = new maptilersdk.Map({
 
 map.on('load', () => {
 
+await ZDP_LOAD_GEO_SOURCES(map);
+
+// DK + DW layer
+map.addLayer({
+    id: "DK_i_DW_layer",
+    type: "line",
+    source: "zdp_roads_main",
+    paint: {
+        "line-color": [
+            "case",
+            ["==", ["get", "Adm"], 1], "#000000",
+            ["==", ["get", "Adm"], 2], "#08FF00",
+            "#FF0000"
+        ],
+        "line-width": 3
+    }
+});
+
+// DP layer
+map.addLayer({
+    id: "DP_layer",
+    type: "line",
+    source: "zdp_roads_dp",
+    paint: {
+        "line-color": "#A500AD",
+        "line-width": 3
+    }
+});
+
+console.log("✅ Road layers rendered");
+
     // === MARKER PROJEKTU (migracja ready) ===
     window.ZDP_MAP_PROJECT = {
         version: "1.0",
@@ -179,3 +210,4 @@ window.ZDP_LOAD_GEO_SOURCES = ZDP_LOAD_GEO_SOURCES;
 
 </body>
 </html>
+
