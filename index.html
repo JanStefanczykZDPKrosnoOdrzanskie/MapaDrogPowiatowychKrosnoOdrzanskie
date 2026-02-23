@@ -3,13 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZDP Krosno Odrzańskie Mapa</title>
+<title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
-
-<script src="road-style-render.js"></script>
-<script src="legend-control.js"></script>
 
 <style>
 
@@ -42,7 +39,6 @@ font-size:14px;
 display:inline-block;
 width:40px;
 height:3px;
-background:currentColor;
 margin-right:5px;
 vertical-align:middle;
 }
@@ -58,14 +54,14 @@ vertical-align:middle;
 
 <label>
 <input type="checkbox" data-layers="DK_i_DW_layer" checked>
-<span class="legend-line" style="color:#FF0000"></span>
+<span class="legend-line" style="background:#FF0000"></span>
 Drogi krajowe / wojewódzkie
 </label><br>
 
 <label>
 <input type="checkbox" data-layers="DP_layer" checked>
-<span class="legend-line" style="color:#A500AD"></span>
-Drogi powiatowe
+<span class="legend-line" style="background:#A500AD"></span>
+Drogi powiatowe + ZUD
 </label>
 
 </div>
@@ -74,7 +70,10 @@ Drogi powiatowe
 
 <script>
 
-/* expose map globally */
+/* ===============================
+MAP INSTANCE
+=============================== */
+
 window.map_instance = new maplibregl.Map({
 
 container:'map',
@@ -85,16 +84,22 @@ version:8,
 sources:{
 osm:{
 type:"raster",
-tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-tileSize:256
+tiles:[
+"https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+],
+tileSize:256,
+attribution:"© OpenStreetMap contributors"
 }
 },
 
-layers:[{
+layers:[
+{
 id:"osm",
 type:"raster",
 source:"osm"
-}]
+}
+]
+
 },
 
 center:[15.1,51.96],
@@ -102,19 +107,140 @@ zoom:10
 
 });
 
-/* pipeline load */
+/* ===============================
+GEOJSON LOADER
+=============================== */
+
+async function ZDP_LOAD_GEO_SOURCES(map){
+
+try{
+
+const roads_main = await fetch("DK_i_DW.geojson").then(r=>r.json());
+const roads_dp = await fetch("DP.geojson").then(r=>r.json());
+
+map.addSource("zdp_roads_main",{
+type:"geojson",
+data:roads_main
+});
+
+map.addSource("zdp_roads_dp",{
+type:"geojson",
+data:roads_dp
+});
+
+console.log("GeoJSON sources loaded");
+
+}catch(e){
+console.error(e);
+}
+
+}
+
+/* ===============================
+ROAD RENDERER
+=============================== */
+
+function ZDP_RENDER_ROAD_STYLES(map){
+
+if(!map.getLayer("DK_i_DW_layer")){
+
+map.addLayer({
+id:"DK_i_DW_layer",
+type:"line",
+source:"zdp_roads_main",
+
+paint:{
+"line-color":[
+"match",
+["get","Adm"],
+
+1,"#FF0000",
+2,"#08FF00",
+
+"#FF0000"
+],
+"line-width":3
+}
+});
+
+}
+
+if(!map.getLayer("DP_layer")){
+
+map.addLayer({
+id:"DP_layer",
+type:"line",
+source:"zdp_roads_dp",
+
+paint:{
+"line-color":[
+"case",
+
+["==",["get","ZUD"],2],"#FFEE00",
+["==",["get","ZUD"],3],"#00FFFF",
+["==",["get","ZUD"],4],"#FA9EFF",
+["==",["get","ZUD"],6],"#A1A1A1",
+
+["==",["get","Adm"],1],"#FF0000",
+["==",["get","Adm"],2],"#08FF00",
+["==",["get","Adm"],3],"#A500AD",
+
+"#A500AD"
+],
+"line-width":3
+}
+});
+
+}
+
+}
+
+/* ===============================
+LEGEND CONTROL
+=============================== */
+
+function ZDP_LEGEND_INIT(){
+
+document.querySelectorAll('#legend input').forEach(chk=>{
+
+chk.addEventListener('change',e=>{
+
+if(!window.map_instance) return;
+
+const map = window.map_instance;
+
+const layers = e.target.dataset.layers.split(',');
+
+layers.forEach(layerId=>{
+
+if(!map.getLayer(layerId)) return;
+
+map.setLayoutProperty(
+layerId,
+'visibility',
+e.target.checked ? 'visible':'none'
+);
+
+});
+
+});
+
+});
+
+console.log("Legend controller initialized");
+}
+
+/* ===============================
+PIPELINE LOAD
+=============================== */
 
 window.map_instance.on('load', async()=>{
 
 await ZDP_LOAD_GEO_SOURCES(window.map_instance);
 
-if(window.ZDP_RENDER_ROAD_STYLES){
 ZDP_RENDER_ROAD_STYLES(window.map_instance);
-}
 
-if(window.ZDP_LEGEND_INIT){
 ZDP_LEGEND_INIT();
-}
 
 });
 
