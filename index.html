@@ -247,10 +247,34 @@ layout:{
 },
 
 paint:{
-"text-color":"#FFFFFF",
-"text-halo-color":"#FF0000",
+
+/* ===== Kolor tekstu zależny od Adm ===== */
+
+"text-color":[
+"case",
+
+["==", ["get","Adm"], 1], "#FFFFFF",
+["==", ["get","Adm"], 2], "#000000",
+["==", ["get","Adm"], 3], "#FFFFFF",
+
+"#000000"
+],
+
+/* ===== Halo / ramka ===== */
+
+"text-halo-color":[
+"case",
+
+["==", ["get","Adm"], 1], "#FF0000",
+["==", ["get","Adm"], 2], "#FFEE00",
+["==", ["get","Adm"], 3], "#A500AD",
+
+"#FFFFFF"
+],
+
 "text-halo-width":3,
 "text-halo-blur":0.5
+
 }
 
 });
@@ -312,4 +336,5 @@ document.getElementById("updateOverlay").innerText =
 
 </body>
 </html>
+
 
