@@ -202,11 +202,15 @@ source:source,
 filter:filterExpression,
 
 paint:{
-"line-color":color,
-"line-width":3
-}
-});
+    "line-color":color,
+    "line-width":[
+        "case",
 
+        ["in", ["get","ZUD"], [2,3,4,6]],
+        6,   // grubsze otulenie dla ZUD
+
+        3
+    ]
 }
 
 function ZDP_RENDER_ROAD_STYLES(map){
@@ -339,6 +343,7 @@ document.getElementById("updateOverlay").innerText =
 
 </body>
 </html>
+
 
 
 
