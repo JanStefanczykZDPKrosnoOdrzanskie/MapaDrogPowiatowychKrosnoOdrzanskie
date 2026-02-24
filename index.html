@@ -61,7 +61,7 @@ Droga Krajowa
 <label>
 <input type="checkbox" data-layers="layer_adm_2" checked>
 <span class="legend-line" style="background:#08FF00"></span>
-Droga Wojew
+Droga Wojewewódzkie
 </label><br>
 
 <label>
@@ -73,7 +73,7 @@ Droga Powiatowa
 <label>
 <input type="checkbox" data-layers="layer_zud_2" checked>
 <span class="legend-line" style="background:#FFEE00"></span>
-ZUD = 2
+Standard 2
 </label><br>
 
 <label>
@@ -240,8 +240,52 @@ map.addLayer({
     },
 
     paint:{
-        "text-color":"#000000",
-        "text-halo-color":"#FFFFFF",
+
+        /* ===============================
+        TEXT COLOR – zależny od Adm
+        =============================== */
+
+        "text-color":[
+            "case",
+
+            // Drogi krajowe (Adm = 1) → białe teksty
+            ["==", ["get","Adm"], 1],
+            "#FFFFFF",
+
+            // Drogi wojewódzkie (Adm = 2) → czarne teksty
+            ["==", ["get","Adm"], 2],
+            "#000000",
+
+            // Drogi powiatowe (Adm = 3) → na razie standardowy czarny
+            ["==", ["get","Adm"], 3],
+            "#000000",
+
+            // Default fallback
+            "#000000"
+        ],
+
+        /* ===============================
+        HALO (czytelność na mapie)
+        =============================== */
+
+        "text-halo-color":[
+            "case",
+
+            // DK → czerwone tło
+            ["==", ["get","Adm"], 1],
+            "#FF0000",
+
+            // DW → żółte tło
+            ["==", ["get","Adm"], 2],
+            "#FFEE00",
+
+            // DP → neutralne halo
+            ["==", ["get","Adm"], 3],
+            "#FFFFFF",
+
+            "#FFFFFF"
+        ],
+
         "text-halo-width":2
     }
 
@@ -309,6 +353,7 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
+
 
 
 
