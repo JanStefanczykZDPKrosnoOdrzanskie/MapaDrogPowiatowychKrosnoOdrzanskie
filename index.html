@@ -142,23 +142,27 @@ GEOJSON SOURCE LOADER
 =============================== */
 
 async function ZDP_LOAD_GEO_SOURCES(map){
-
 try{
 
-const roads_main = await fetch("DK_i_DW.geojson").then(r=>r.json());
-const roads_dp = await fetch("DP.geojson").then(r=>r.json());
+const [roads_main, roads_dp] = await Promise.all([
+    fetch("DK_i_DW.geojson").then(r=>r.json()),
+    fetch("DP.geojson").then(r=>r.json())
+]);
 
-map.addSource("zdp_roads_main",{
-type:"geojson",
-data:roads_main
+const merged_roads = {
+    type: "FeatureCollection",
+    features: [
+        ...roads_main.features,
+        ...roads_dp.features
+    ]
+};
+
+map.addSource("zdp_roads",{
+    type:"geojson",
+    data: merged_roads
 });
 
-map.addSource("zdp_roads_dp",{
-type:"geojson",
-data:roads_dp
-});
-
-console.log("GeoJSON sources loaded");
+console.log("GeoJSON sources merged and loaded");
 
 }catch(e){
 console.error(e);
@@ -199,7 +203,7 @@ function ZDP_RENDER_ROAD_STYLES(map){
 ADD_FILTER_LAYER(
 map,
 "layer_adm_1",
-"zdp_roads_main",
+"zdp_roads",
 ["==",["get","Adm"],1],
 "#FF0000"
 );
@@ -207,7 +211,7 @@ map,
 ADD_FILTER_LAYER(
 map,
 "layer_adm_2",
-"zdp_roads_main",
+"zdp_roads",
 ["==",["get","Adm"],2],
 "#08FF00"
 );
@@ -215,7 +219,7 @@ map,
 ADD_FILTER_LAYER(
 map,
 "layer_adm_3",
-"zdp_roads_dp",
+"zdp_roads",
 ["==",["get","Adm"],3],
 "#A500AD"
 );
@@ -225,7 +229,7 @@ map,
 ADD_FILTER_LAYER(
 map,
 "layer_zud_2",
-"zdp_roads_dp",
+"zdp_roads",
 ["==",["get","ZUD"],2],
 "#FFEE00"
 );
@@ -233,7 +237,7 @@ map,
 ADD_FILTER_LAYER(
 map,
 "layer_zud_3",
-"zdp_roads_dp",
+"zdp_roads",
 ["==",["get","ZUD"],3],
 "#00FFFF"
 );
@@ -241,7 +245,7 @@ map,
 ADD_FILTER_LAYER(
 map,
 "layer_zud_4",
-"zdp_roads_dp",
+"zdp_roads",
 ["==",["get","ZUD"],4],
 "#FA9EFF"
 );
@@ -249,7 +253,7 @@ map,
 ADD_FILTER_LAYER(
 map,
 "layer_zud_6",
-"zdp_roads_dp",
+"zdp_roads",
 ["==",["get","ZUD"],6],
 "#A1A1A1"
 );
@@ -332,6 +336,7 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
+
 
 
 
