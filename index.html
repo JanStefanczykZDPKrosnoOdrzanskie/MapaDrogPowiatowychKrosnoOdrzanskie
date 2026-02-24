@@ -55,7 +55,7 @@ vertical-align:middle;
 <label>
 <input type="checkbox" data-layers="layer_adm_1" checked>
 <span class="legend-line" style="background:#FF0000"></span>
-Adm=1
+Droga Krajowa
 </label><br>
 
 <label>
@@ -220,7 +220,6 @@ ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1")
 /* ===============================
 LABEL LAYER
 =============================== */
-
 function ADD_LABEL_LAYER(map){
 
 if(map.getLayer("road_id_labels")) return;
@@ -231,10 +230,12 @@ map.addLayer({
     source:"zdp_roads",
 
     layout:{
+        "symbol-placement":"line",
         "text-field":["get","ID"],
         "text-size":12,
         "text-anchor":"center",
-        "text-allow-overlap":false
+        "text-allow-overlap":false,
+        "text-ignore-placement":false
     },
 
     paint:{
@@ -244,6 +245,7 @@ map.addLayer({
     }
 
 });
+
 }
 
 /* ===============================
@@ -306,4 +308,5 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
+
 
