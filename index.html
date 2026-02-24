@@ -411,6 +411,10 @@ PIPELINE LOAD
 
 map.on('load',async()=>{
 
+document.getElementById("basemapSelect").addEventListener("change", function(e) {
+  setBaseLayer(e.target.value);
+});
+    
 await ZDP_LOAD_GEO_SOURCES(map);
 
 ZDP_RENDER_ROAD_STYLES(map);
@@ -430,6 +434,7 @@ document.getElementById("updateOverlay").innerText =
 
 </body>
 </html>
+
 
 
 
