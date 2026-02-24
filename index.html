@@ -221,48 +221,12 @@ ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1")
 /* ===============================
 LABEL LAYER
 =============================== */
+/* ===============================
+LABEL LAYER
+=============================== */
 function ADD_LABEL_LAYER(map){
 
 if(map.getLayer("road_id_labels")) return;
-
-/* ===============================
-WARSTWA TŁA TABLICZKI (FAKTYCZNY RECTANGLE EFFECT)
-=============================== */
-
-map.addLayer({
-    id:"road_id_labels_bg",
-    type:"symbol",
-    source:"zdp_roads",
-
-    layout:{
-        "symbol-placement":"line",
-        "text-field":["get","ID"],
-        "text-size":12,
-        "text-allow-overlap":true,
-        "text-ignore-placement":true
-    },
-
-    paint:{
-        /* Kolor tabliczki */
-        "text-color":"#000000",
-
-        /* Symulacja prostokąta */
-        "text-halo-color":[
-            "case",
-            ["==", ["get","Adm"], 1], "#FF0000",
-            ["==", ["get","Adm"], 2], "#FFEE00",
-            ["==", ["get","Adm"], 3], "#A500AD",
-            "#CCCCCC"
-        ],
-
-        /* Gruba ramka = tabliczka */
-        "text-halo-width":6
-    }
-});
-
-/* ===============================
-WARSTWA TEKSTU NA GÓRZE
-=============================== */
 
 map.addLayer({
     id:"road_id_labels",
@@ -273,19 +237,62 @@ map.addLayer({
         "symbol-placement":"line",
         "text-field":["get","ID"],
         "text-size":12,
-        "text-allow-overlap":true,
-        "text-ignore-placement":true
+        "text-anchor":"center",
+        "text-allow-overlap":false,
+        "text-ignore-placement":false
     },
 
-    paint:{
-        "text-color":[
-            "case",
-            ["==", ["get","Adm"], 1], "#FFFFFF",
-            ["==", ["get","Adm"], 2], "#000000",
-            ["==", ["get","Adm"], 3], "#FFFFFF",
-            "#000000"
-        ]
-    }
+"paint":{
+
+/* ===============================
+TEXT COLOR
+=============================== */
+
+"text-color":[
+    "case",
+
+    // DK → biały tekst
+    ["==", ["get","Adm"], 1],
+    "#FFFFFF",
+
+    // DW → czarny tekst
+    ["==", ["get","Adm"], 2],
+    "#000000",
+
+    // DP → biały tekst
+    ["==", ["get","Adm"], 3],
+    "#FFFFFF",
+
+    "#000000"
+],
+
+/* ===============================
+RAMKA (HALO) WOKÓŁ TEKSTU
+=============================== */
+
+"text-halo-color":[
+    "case",
+
+    // DK → czerwone tło
+    ["==", ["get","Adm"], 1],
+    "#FF0000",
+
+    // DW → żółte tło
+    ["==", ["get","Adm"], 2],
+    "#FFEE00",
+
+    // DP → fioletowe tło
+    ["==", ["get","Adm"], 3],
+    "#A500AD",
+
+    "#FFFFFF"
+],
+
+"text-halo-width":3,
+"text-halo-blur":0.5
+
+}
+
 });
 
 }
@@ -350,6 +357,7 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
+
 
 
 
