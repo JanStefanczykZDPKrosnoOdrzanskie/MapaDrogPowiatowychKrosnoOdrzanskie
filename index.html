@@ -79,7 +79,7 @@ Standard 2
 <label>
 <input type="checkbox" data-layers="layer_zud_3" checked>
 <span class="legend-line" style="background:#00FFFF"></span>
-ZUD = 3
+Standard 3
 </label><br>
 
 <label>
@@ -239,55 +239,55 @@ map.addLayer({
         "text-ignore-placement":false
     },
 
-    paint:{
+"paint":{
 
-        /* ===============================
-        TEXT COLOR – zależny od Adm
-        =============================== */
+/* ===============================
+TEXT COLOR
+=============================== */
 
-        "text-color":[
-            "case",
+"text-color":[
+    "case",
 
-            // Drogi krajowe (Adm = 1) → białe teksty
-            ["==", ["get","Adm"], 1],
-            "#FFFFFF",
+    // DK → biały tekst
+    ["==", ["get","Adm"], 1],
+    "#FFFFFF",
 
-            // Drogi wojewódzkie (Adm = 2) → czarne teksty
-            ["==", ["get","Adm"], 2],
-            "#000000",
+    // DW → czarny tekst
+    ["==", ["get","Adm"], 2],
+    "#000000",
 
-            // Drogi powiatowe (Adm = 3) → na razie standardowy czarny
-            ["==", ["get","Adm"], 3],
-            "#000000",
+    // DP → biały tekst
+    ["==", ["get","Adm"], 3],
+    "#FFFFFF",
 
-            // Default fallback
-            "#000000"
-        ],
+    "#000000"
+],
 
-        /* ===============================
-        HALO (czytelność na mapie)
-        =============================== */
+/* ===============================
+HALO = RAMKA WOKÓŁ TEKSTU
+=============================== */
 
-        "text-halo-color":[
-            "case",
+"text-halo-color":[
+    "case",
 
-            // DK → czerwone tło
-            ["==", ["get","Adm"], 1],
-            "#FF0000",
+    // DK → czerwone tło
+    ["==", ["get","Adm"], 1],
+    "#FF0000",
 
-            // DW → żółte tło
-            ["==", ["get","Adm"], 2],
-            "#FFEE00",
+    // DW → żółte tło
+    ["==", ["get","Adm"], 2],
+    "#FFEE00",
 
-            // DP → neutralne halo
-            ["==", ["get","Adm"], 3],
-            "#FFFFFF",
+    // DP → fioletowe tło
+    ["==", ["get","Adm"], 3],
+    "#A500AD",
 
-            "#FFFFFF"
-        ],
+    "#FFFFFF"
+],
 
-        "text-halo-width":2
-    }
+"text-halo-width":3
+
+}
 
 });
 
@@ -353,6 +353,7 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
+
 
 
 
