@@ -50,7 +50,7 @@ vertical-align:middle;
 <body>
 
 <div id="legend">
-<h3>Legenda 4</h3>
+<h3>Legenda 5</h3>
 
 <label>
 <input type="checkbox" data-layers="layer_adm_1" checked>
@@ -232,34 +232,19 @@ map.addLayer({
     source:"zdp_roads",
 
     layout:{
-
-        /* Label wzdłuż drogi */
         "symbol-placement":"line",
-
-        /* Numer drogi */
         "text-field":["get","ID"],
-
-        /* Pogrubiona czytelna czcionka */
-"text-font":[
-    "Open Sans Semibold",
-    "Arial Unicode MS Regular"
-]
-
-        /* Rozmiar tekstu */
+        "text-font":[
+            "Open Sans Semibold",
+            "Arial Unicode MS Regular"
+        ],
         "text-size":12,
-
-        /* Centrowanie na linii */
         "text-anchor":"center",
-
-        /* Stabilność renderingu */
         "text-allow-overlap":false,
-        "text-ignore-placement":false,
-
+        "text-ignore-placement":false
     },
 
     paint:{
-
-        /* Kolor tekstu */
         "text-color":[
             "case",
             ["==", ["get","Adm"], 1], "#FFFFFF",
@@ -268,7 +253,6 @@ map.addLayer({
             "#000000"
         ],
 
-        /* Tło pod numerem drogi */
         "text-halo-color":[
             "case",
             ["==", ["get","Adm"], 1], "#FF0000",
@@ -277,12 +261,8 @@ map.addLayer({
             "#FFFFFF"
         ],
 
-        /* Grubość obramowania */
-        "text-halo-width":3,
-
-        /* Minimalne wygładzenie */
+        "text-halo-width":3
         "text-halo-blur":0.5
-
     }
 
 });
@@ -348,19 +328,3 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
