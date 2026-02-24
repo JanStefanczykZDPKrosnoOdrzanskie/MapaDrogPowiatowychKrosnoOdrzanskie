@@ -328,9 +328,131 @@ document.getElementById("updateOverlay").innerText =
 "Aktualizacja: " + new Date().toLocaleString("pl-PL");
 
 });
+/* ===============================
+BASE MAP DROPDOWN CONTROL
+=============================== */
 
+const BASE_MAPS = {
+
+"OSM Standard":{
+tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+type:"raster",
+tileSize:256
+},
+
+"OpenTopoMap":{
+tiles:["https://{a|b|c}.tile.opentopomap.org/{z}/{x}/{y}.png"],
+type:"raster",
+tileSize:256
+},
+
+"Stamen Toner":{
+tiles:["https://{a|b|c|d}.tile.stamen.com/toner/{z}/{x}/{y}.png"],
+type:"raster",
+tileSize:256
+},
+
+"Sentinel Cloudless":{
+tiles:["https://tiles{s}.s2maps.eu/tiles/{z}/{x}/{y}.jpg"],
+type:"raster",
+tileSize:256
+}
+
+};
+
+/* ---------- CREATE UI ---------- */
+
+function CREATE_BASEMAP_DROPDOWN(map){
+
+const container = document.createElement("div");
+
+container.style.position="absolute";
+container.style.top="10px";
+container.style.right="10px";
+container.style.zIndex="30";
+container.style.background="white";
+container.style.padding="8px";
+container.style.borderRadius="6px";
+container.style.boxShadow="0 0 5px rgba(0,0,0,0.3)";
+container.style.fontFamily="Arial";
+
+const select = document.createElement("select");
+
+Object.keys(BASE_MAPS).forEach(name=>{
+const option=document.createElement("option");
+option.value=name;
+option.innerText=name;
+select.appendChild(option);
+});
+
+container.appendChild(select);
+document.body.appendChild(container);
+
+/* ---------- BASE LAYER SWITCH ---------- */
+
+let currentLayerId=null;
+
+function SWITCH_BASEMAP(name){
+
+const cfg=BASE_MAPS[name];
+
+if(!cfg) return;
+
+/* remove previous base layer */
+
+if(currentLayerId && map.getLayer(currentLayerId)){
+map.removeLayer(currentLayerId);
+}
+
+if(map.getSource("basemap_source")){
+map.removeSource("basemap_source");
+}
+
+/* add source */
+
+map.addSource("basemap_source",{
+type:"raster",
+tiles:cfg.tiles,
+tileSize:cfg.tileSize
+});
+
+/* add layer */
+
+currentLayerId="basemap_layer";
+
+map.addLayer({
+id:currentLayerId,
+type:"raster",
+source:"basemap_source",
+paint:{
+"raster-opacity":1
+}
+}, map.getStyle().layers[0]?.id);
+
+}
+
+/* init */
+
+select.addEventListener("change",e=>{
+SWITCH_BASEMAP(e.target.value);
+});
+
+/* load default */
+
+SWITCH_BASEMAP(select.value);
+}
+
+/* ===============================
+INIT AFTER MAP LOAD
+=============================== */
+
+map.on("load",()=>{
+CREATE_BASEMAP_DROPDOWN(map);
+});
+    
 </script>
 
 </body>
 </html>
+
 
