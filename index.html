@@ -5,6 +5,7 @@
 <title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
+<link rel="icon" href="data:,">
 <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
 
 <style>
@@ -65,7 +66,7 @@ font-size:14px;
 
 <div id="legend">
 
-<h3>Legendowo</h3>
+<h3>Legendy</h3>
 
 <label>
 <input type="checkbox" data-layers="layer_adm_1" checked>
@@ -396,21 +397,22 @@ let currentLayerId=null;
 
 function SWITCH_BASEMAP(name){
 
-const cfg=BASE_MAPS[name];
-
+const cfg = BASE_MAPS[name];
 if(!cfg) return;
 
-/* remove previous base layer */
+/* --- usuń poprzednią warstwę --- */
 
-if(currentLayerId && map.getLayer(currentLayerId)){
-map.removeLayer(currentLayerId);
+if(map.getLayer("basemap_layer")){
+map.removeLayer("basemap_layer");
 }
+
+/* --- usuń poprzednie źródło --- */
 
 if(map.getSource("basemap_source")){
 map.removeSource("basemap_source");
 }
 
-/* add source */
+/* --- dodaj nowe źródło --- */
 
 map.addSource("basemap_source",{
 type:"raster",
@@ -418,32 +420,17 @@ tiles:cfg.tiles,
 tileSize:cfg.tileSize
 });
 
-/* add layer */
-
-currentLayerId="basemap_layer";
+/* --- dodaj warstwę --- */
 
 map.addLayer({
-id:currentLayerId,
+id:"basemap_layer",
 type:"raster",
-source:"basemap_source",
-paint:{
-"raster-opacity":1
-}
-}, map.getStyle().layers[0]?.id);
+source:"basemap_source"
+},
+map.getStyle().layers[0]?.id || undefined
+);
 
 }
-
-/* init */
-
-select.addEventListener("change",e=>{
-SWITCH_BASEMAP(e.target.value);
-});
-
-/* load default */
-
-SWITCH_BASEMAP(select.value);
-}
-
 /* ===============================
 INIT AFTER MAP LOAD
 =============================== */
@@ -456,6 +443,7 @@ CREATE_BASEMAP_DROPDOWN(map);
 
 </body>
 </html>
+
 
 
 
