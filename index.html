@@ -192,26 +192,27 @@ ROAD LAYERS
 
 function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color){
 
-if(map.getLayer(layerId)) return;
+    if(map.getLayer(layerId)) return;
 
-map.addLayer({
-id:layerId,
-type:"line",
-source:source,
+    map.addLayer({
+        id:layerId,
+        type:"line",
+        source:source,
 
-filter:filterExpression,
+        filter:filterExpression,
 
-paint:{
-    "line-color":color,
-    "line-width":[
-        "case",
+        paint:{
+            "line-color":color,
+            "line-width":[
+                "case",
 
-        ["in", ["get","ZUD"], [2,3,4,6]],
-        6,   // grubsze otulenie dla ZUD
+                ["in", ["get","ZUD"], [2,3,4,6]],
+                6,
 
-        3
-    ]
-}
+                3
+            ]
+        }
+    });
 }
 function ZDP_RENDER_ROAD_STYLES(map){
 
@@ -343,6 +344,7 @@ document.getElementById("updateOverlay").innerText =
 
 </body>
 </html>
+
 
 
 
