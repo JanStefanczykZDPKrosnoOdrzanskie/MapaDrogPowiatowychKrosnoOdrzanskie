@@ -91,7 +91,7 @@ Standard 4
 <label>
 <input type="checkbox" data-layers="layer_zud_6" checked>
 <span class="legend-line" style="background:#A1A1A1"></span>
-ZUD = 6
+Standard 6
 </label>
 
 </div>
@@ -225,6 +225,45 @@ function ADD_LABEL_LAYER(map){
 
 if(map.getLayer("road_id_labels")) return;
 
+/* ===============================
+WARSTWA TŁA TABLICZKI (FAKTYCZNY RECTANGLE EFFECT)
+=============================== */
+
+map.addLayer({
+    id:"road_id_labels_bg",
+    type:"symbol",
+    source:"zdp_roads",
+
+    layout:{
+        "symbol-placement":"line",
+        "text-field":["get","ID"],
+        "text-size":12,
+        "text-allow-overlap":true,
+        "text-ignore-placement":true
+    },
+
+    paint:{
+        /* Kolor tabliczki */
+        "text-color":"#000000",
+
+        /* Symulacja prostokąta */
+        "text-halo-color":[
+            "case",
+            ["==", ["get","Adm"], 1], "#FF0000",
+            ["==", ["get","Adm"], 2], "#FFEE00",
+            ["==", ["get","Adm"], 3], "#A500AD",
+            "#CCCCCC"
+        ],
+
+        /* Gruba ramka = tabliczka */
+        "text-halo-width":6
+    }
+});
+
+/* ===============================
+WARSTWA TEKSTU NA GÓRZE
+=============================== */
+
 map.addLayer({
     id:"road_id_labels",
     type:"symbol",
@@ -234,56 +273,19 @@ map.addLayer({
         "symbol-placement":"line",
         "text-field":["get","ID"],
         "text-size":12,
-        "text-anchor":"center",
-        "text-allow-overlap":false,
-        "text-ignore-placement":false
+        "text-allow-overlap":true,
+        "text-ignore-placement":true
     },
 
-"paint":{
-
-/* ===============================
-TEXT COLOR
-=============================== */
-
-"text-color":[
-    "case",
-
-    ["==", ["get","Adm"], 1],
-    "#FFFFFF",
-
-    ["==", ["get","Adm"], 2],
-    "#000000",
-
-    ["==", ["get","Adm"], 3],
-    "#FFFFFF",
-
-    "#000000"
-],
-
-/* ===============================
-PROSTOKĄTNA RAMKA POD TEKSTEM
-=============================== */
-
-"text-background-color":[
-    "case",
-
-    ["==", ["get","Adm"], 1],
-    "#FF0000",
-
-    ["==", ["get","Adm"], 2],
-    "#FFEE00",
-
-    ["==", ["get","Adm"], 3],
-    "#A500AD",
-
-    "#FFFFFF"
-],
-
-/* odstęp tekstu od krawędzi ramki */
-
-"text-padding":4
-
-}
+    paint:{
+        "text-color":[
+            "case",
+            ["==", ["get","Adm"], 1], "#FFFFFF",
+            ["==", ["get","Adm"], 2], "#000000",
+            ["==", ["get","Adm"], 3], "#FFFFFF",
+            "#000000"
+        ]
+    }
 });
 
 }
@@ -348,6 +350,7 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
+
 
 
 
