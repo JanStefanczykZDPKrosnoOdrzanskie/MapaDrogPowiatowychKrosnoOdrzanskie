@@ -252,7 +252,6 @@ source:"base_raster"
 
 /* domyślny podkład po wejściu na stronę */
 
-setBaseLayer("osm");
 /* ===============================
 GEOJSON SOURCE LOADER
 =============================== */
@@ -427,13 +426,14 @@ ZDP_LEGEND_INIT();
 
 document.getElementById("updateOverlay").innerText =
 "Aktualizacja: " + new Date().toLocaleString("pl-PL");
-
+setBaseLayer("osm");
 });
 
 </script>
 
 </body>
 </html>
+
 
 
 
