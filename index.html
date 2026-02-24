@@ -61,7 +61,7 @@ Droga Krajowa
 <label>
 <input type="checkbox" data-layers="layer_adm_2" checked>
 <span class="legend-line" style="background:#08FF00"></span>
-Adm = 2
+Droga Wojewódzka
 </label><br>
 
 <label>
@@ -111,6 +111,8 @@ container:'map',
 style:{
 version:8,
 
+glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+
 sources:{
 osm:{
 type:"raster",
@@ -136,7 +138,6 @@ center:[14.8953712,52.01625],
 zoom:10
 
 });
-
 /* ===============================
 GEOJSON SOURCE LOADER
 =============================== */
@@ -308,5 +309,6 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
+
 
 
