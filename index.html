@@ -85,7 +85,7 @@ Standard 3
 <label>
 <input type="checkbox" data-layers="layer_zud_4" checked>
 <span class="legend-line" style="background:#FA9EFF"></span>
-ZUD = 4
+Standard 4
 </label><br>
 
 <label>
@@ -248,15 +248,12 @@ TEXT COLOR
 "text-color":[
     "case",
 
-    // DK → biały tekst
     ["==", ["get","Adm"], 1],
     "#FFFFFF",
 
-    // DW → czarny tekst
     ["==", ["get","Adm"], 2],
     "#000000",
 
-    // DP → biały tekst
     ["==", ["get","Adm"], 3],
     "#FFFFFF",
 
@@ -264,31 +261,29 @@ TEXT COLOR
 ],
 
 /* ===============================
-HALO = RAMKA WOKÓŁ TEKSTU
+PROSTOKĄTNA RAMKA POD TEKSTEM
 =============================== */
 
-"text-halo-color":[
+"text-background-color":[
     "case",
 
-    // DK → czerwone tło
     ["==", ["get","Adm"], 1],
     "#FF0000",
 
-    // DW → żółte tło
     ["==", ["get","Adm"], 2],
     "#FFEE00",
 
-    // DP → fioletowe tło
     ["==", ["get","Adm"], 3],
     "#A500AD",
 
     "#FFFFFF"
 ],
 
-"text-halo-width":3
+/* odstęp tekstu od krawędzi ramki */
+
+"text-padding":4
 
 }
-
 });
 
 }
@@ -353,6 +348,7 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
+
 
 
 
