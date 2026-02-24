@@ -336,25 +336,21 @@ const BASE_MAPS = {
 
 "OSM Standard":{
 tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-type:"raster",
 tileSize:256
 },
 
 "OpenTopoMap":{
-tiles:["https://{a|b|c}.tile.opentopomap.org/{z}/{x}/{y}.png"],
-type:"raster",
+tiles:["https://{a}.tile.opentopomap.org/{z}/{x}/{y}.png"],
 tileSize:256
 },
 
 "Stamen Toner":{
-tiles:["https://{a|b|c|d}.tile.stamen.com/toner/{z}/{x}/{y}.png"],
-type:"raster",
+tiles:["https://{a}.tile.stamen.com/toner/{z}/{x}/{y}.png"],
 tileSize:256
 },
 
 "Sentinel Cloudless":{
 tiles:["https://tiles{s}.s2maps.eu/tiles/{z}/{x}/{y}.jpg"],
-type:"raster",
 tileSize:256
 }
 
@@ -454,5 +450,6 @@ CREATE_BASEMAP_DROPDOWN(map);
 
 </body>
 </html>
+
 
 
