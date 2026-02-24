@@ -152,22 +152,25 @@ const [roads_main, roads_dp] = await Promise.all([
 const merged_roads = {
     type: "FeatureCollection",
     features: [
-        ...roads_main.features,
-        ...roads_dp.features
+        ...(roads_main?.features || []),
+        ...(roads_dp?.features || [])
     ]
 };
+
+if(map.getSource("zdp_roads")){
+    map.removeSource("zdp_roads");
+}
 
 map.addSource("zdp_roads",{
     type:"geojson",
     data: merged_roads
 });
 
-console.log("GeoJSON sources merged and loaded");
+console.log("GeoJSON merged source loaded");
 
 }catch(e){
 console.error(e);
 }
-
 }
 
 /* ===============================
@@ -199,68 +202,28 @@ ROAD RENDERER
 
 function ZDP_RENDER_ROAD_STYLES(map){
 
-// ADM layers
-ADD_FILTER_LAYER(
-map,
-"layer_adm_1",
-"zdp_roads",
-["==",["get","Adm"],1],
-"#FF0000"
-);
+ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","Adm"],1],"#FF0000");
 
-ADD_FILTER_LAYER(
-map,
-"layer_adm_2",
-"zdp_roads",
-["==",["get","Adm"],2],
-"#08FF00"
-);
+ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","Adm"],2],"#08FF00");
 
-ADD_FILTER_LAYER(
-map,
-"layer_adm_3",
-"zdp_roads",
-["==",["get","Adm"],3],
-"#A500AD"
-);
+ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","Adm"],3],"#A500AD");
 
-// ZUD layers (DP source)
+ADD_FILTER_LAYER(map,"layer_zud_2","zdp_roads",["==",["get","ZUD"],2],"#FFEE00");
 
-ADD_FILTER_LAYER(
-map,
-"layer_zud_2",
-"zdp_roads",
-["==",["get","ZUD"],2],
-"#FFEE00"
-);
+ADD_FILTER_LAYER(map,"layer_zud_3","zdp_roads",["==",["get","ZUD"],3],"#00FFFF");
 
-ADD_FILTER_LAYER(
-map,
-"layer_zud_3",
-"zdp_roads",
-["==",["get","ZUD"],3],
-"#00FFFF"
-);
+ADD_FILTER_LAYER(map,"layer_zud_4","zdp_roads",["==",["get","ZUD"],4],"#FA9EFF");
 
-ADD_FILTER_LAYER(
-map,
-"layer_zud_4",
-"zdp_roads",
-["==",["get","ZUD"],4],
-"#FA9EFF"
-);
-
-ADD_FILTER_LAYER(
-map,
-"layer_zud_6",
-"zdp_roads",
-["==",["get","ZUD"],6],
-"#A1A1A1"
-);
-
+ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1");
 }
 
-if(!map.getLayer("road_id_labels")){
+/* ===============================
+LABEL LAYER
+=============================== */
+
+function ADD_LABEL_LAYER(map){
+
+if(map.getLayer("road_id_labels")) return;
 
 map.addLayer({
     id:"road_id_labels",
@@ -281,9 +244,8 @@ map.addLayer({
     }
 
 });
-
 }
-  
+
 /* ===============================
 LEGEND CONTROL
 =============================== */
@@ -324,10 +286,18 @@ PIPELINE LOAD
 
 window.map_instance.on('load', async()=>{
 
-await ZDP_LOAD_GEO_SOURCES(window.map_instance);
+const map = window.map_instance;
 
-ZDP_RENDER_ROAD_STYLES(window.map_instance);
+/* Source */
+await ZDP_LOAD_GEO_SOURCES(map);
 
+/* Layers */
+ZDP_RENDER_ROAD_STYLES(map);
+
+/* Labels */
+ADD_LABEL_LAYER(map);
+
+/* Legend */
 ZDP_LEGEND_INIT();
 
 });
@@ -336,7 +306,3 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
-
-
-
-
