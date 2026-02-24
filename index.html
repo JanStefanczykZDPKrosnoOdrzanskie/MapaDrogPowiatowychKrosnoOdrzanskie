@@ -53,43 +53,43 @@ vertical-align:middle;
 <h3>Legenda</h3>
 
 <label>
-<input type="checkbox" data-layers="DK_i_DW_layer" checked>
+<input type="checkbox" data-layers="layer_adm_1" checked>
 <span class="legend-line" style="background:#FF0000"></span>
-Drogi krajowe
+Adm = 1
 </label><br>
 
 <label>
-<input type="checkbox" data-layers="DK_i_DW_layer" checked>
+<input type="checkbox" data-layers="layer_adm_2" checked>
 <span class="legend-line" style="background:#08FF00"></span>
-Drogi wojewódzkie
+Adm = 2
 </label><br>
 
 <label>
-<input type="checkbox" data-layers="DP_layer" checked>
+<input type="checkbox" data-layers="layer_adm_3" checked>
 <span class="legend-line" style="background:#A500AD"></span>
-Drogi powiatowe
+Adm = 3
 </label><br>
 
 <label>
-<input type="checkbox" data-layers="DP_layer" checked>
+<input type="checkbox" data-layers="layer_zud_2" checked>
 <span class="legend-line" style="background:#FFEE00"></span>
 ZUD = 2
 </label><br>
 
 <label>
-<input type="checkbox" data-layers="DP_layer" checked>
+<input type="checkbox" data-layers="layer_zud_3" checked>
 <span class="legend-line" style="background:#00FFFF"></span>
 ZUD = 3
 </label><br>
 
 <label>
-<input type="checkbox" data-layers="DP_layer" checked>
+<input type="checkbox" data-layers="layer_zud_4" checked>
 <span class="legend-line" style="background:#FA9EFF"></span>
 ZUD = 4
 </label><br>
 
 <label>
-<input type="checkbox" data-layers="DP_layer" checked>
+<input type="checkbox" data-layers="layer_zud_6" checked>
 <span class="legend-line" style="background:#A1A1A1"></span>
 ZUD = 6
 </label>
@@ -138,7 +138,7 @@ zoom:10
 });
 
 /* ===============================
-GEOJSON LOADER
+GEOJSON SOURCE LOADER
 =============================== */
 
 async function ZDP_LOAD_GEO_SOURCES(map){
@@ -167,61 +167,92 @@ console.error(e);
 }
 
 /* ===============================
+ROAD LAYER FACTORY
+=============================== */
+
+function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color){
+
+if(map.getLayer(layerId)) return;
+
+map.addLayer({
+id:layerId,
+type:"line",
+source:source,
+
+filter:filterExpression,
+
+paint:{
+"line-color":color,
+"line-width":3
+}
+});
+
+}
+
+/* ===============================
 ROAD RENDERER
 =============================== */
 
 function ZDP_RENDER_ROAD_STYLES(map){
 
-if(!map.getLayer("DK_i_DW_layer")){
-
-map.addLayer({
-id:"DK_i_DW_layer",
-type:"line",
-source:"zdp_roads_main",
-
-paint:{
-"line-color":[
-"match",
-["get","Adm"],
-
-1,"#FF0000",
-2,"#08FF00",
-
+// ADM layers
+ADD_FILTER_LAYER(
+map,
+"layer_adm_1",
+"zdp_roads_main",
+["==",["get","Adm"],1],
 "#FF0000"
-],
-"line-width":3
-}
-});
+);
 
-}
+ADD_FILTER_LAYER(
+map,
+"layer_adm_2",
+"zdp_roads_main",
+["==",["get","Adm"],2],
+"#08FF00"
+);
 
-if(!map.getLayer("DP_layer")){
-
-map.addLayer({
-id:"DP_layer",
-type:"line",
-source:"zdp_roads_dp",
-
-paint:{
-"line-color":[
-"case",
-
-["==",["get","ZUD"],2],"#FFEE00",
-["==",["get","ZUD"],3],"#00FFFF",
-["==",["get","ZUD"],4],"#FA9EFF",
-["==",["get","ZUD"],6],"#A1A1A1",
-
-["==",["get","Adm"],1],"#FF0000",
-["==",["get","Adm"],2],"#08FF00",
-["==",["get","Adm"],3],"#A500AD",
-
+ADD_FILTER_LAYER(
+map,
+"layer_adm_3",
+"zdp_roads_main",
+["==",["get","Adm"],3],
 "#A500AD"
-],
-"line-width":3
-}
-});
+);
 
-}
+// ZUD layers (DP source)
+
+ADD_FILTER_LAYER(
+map,
+"layer_zud_2",
+"zdp_roads_dp",
+["==",["get","ZUD"],2],
+"#FFEE00"
+);
+
+ADD_FILTER_LAYER(
+map,
+"layer_zud_3",
+"zdp_roads_dp",
+["==",["get","ZUD"],3],
+"#00FFFF"
+);
+
+ADD_FILTER_LAYER(
+map,
+"layer_zud_4",
+"zdp_roads_dp",
+["==",["get","ZUD"],4],
+"#FA9EFF"
+);
+
+ADD_FILTER_LAYER(
+map,
+"layer_zud_6",
+"zdp_roads_dp",
+["==",["get","ZUD"],6],
+"#A1A1A1"
+);
 
 }
 
@@ -235,9 +266,8 @@ document.querySelectorAll('#legend input').forEach(chk=>{
 
 chk.addEventListener('change',e=>{
 
-if(!window.map_instance) return;
-
 const map = window.map_instance;
+if(!map) return;
 
 const layers = e.target.dataset.layers.split(',');
 
