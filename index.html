@@ -61,7 +61,7 @@ Droga Krajowa
 <label>
 <input type="checkbox" data-layers="layer_adm_2" checked>
 <span class="legend-line" style="background:#08FF00"></span>
-Droga Wojewewódzkie
+Droga Wojewewódzka
 </label><br>
 
 <label>
@@ -221,9 +221,7 @@ ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1")
 /* ===============================
 LABEL LAYER
 =============================== */
-/* ===============================
-LABEL LAYER
-=============================== */
+
 function ADD_LABEL_LAYER(map){
 
 if(map.getLayer("road_id_labels")) return;
@@ -234,69 +232,65 @@ map.addLayer({
     source:"zdp_roads",
 
     layout:{
+
+        /* Label wzdłuż drogi */
         "symbol-placement":"line",
+
+        /* Numer drogi */
         "text-field":["get","ID"],
+
+        /* Pogrubiona czytelna czcionka */
+        "text-font":[
+            "Open Sans Bold",
+            "Arial Unicode MS Bold"
+        ],
+
+        /* Rozmiar tekstu */
         "text-size":12,
+
+        /* Centrowanie na linii */
         "text-anchor":"center",
+
+        /* Stabilność renderingu */
         "text-allow-overlap":false,
-        "text-ignore-placement":false
+        "text-ignore-placement":false,
+
+        /* Ograniczenie pojawiania się na mocnych zakrzywieniach */
+        "text-max-angle":30
+
     },
 
-"paint":{
+    paint:{
 
-/* ===============================
-TEXT COLOR
-=============================== */
+        /* Kolor tekstu */
+        "text-color":[
+            "case",
+            ["==", ["get","Adm"], 1], "#FFFFFF",
+            ["==", ["get","Adm"], 2], "#000000",
+            ["==", ["get","Adm"], 3], "#FFFFFF",
+            "#000000"
+        ],
 
-"text-color":[
-    "case",
+        /* Tło pod numerem drogi */
+        "text-halo-color":[
+            "case",
+            ["==", ["get","Adm"], 1], "#FF0000",
+            ["==", ["get","Adm"], 2], "#FFEE00",
+            ["==", ["get","Adm"], 3], "#A500AD",
+            "#FFFFFF"
+        ],
 
-    // DK → biały tekst
-    ["==", ["get","Adm"], 1],
-    "#FFFFFF",
+        /* Grubość obramowania */
+        "text-halo-width":3,
 
-    // DW → czarny tekst
-    ["==", ["get","Adm"], 2],
-    "#000000",
+        /* Minimalne wygładzenie */
+        "text-halo-blur":0.5
 
-    // DP → biały tekst
-    ["==", ["get","Adm"], 3],
-    "#FFFFFF",
-
-    "#000000"
-],
-
-/* ===============================
-RAMKA (HALO) WOKÓŁ TEKSTU
-=============================== */
-
-"text-halo-color":[
-    "case",
-
-    // DK → czerwone tło
-    ["==", ["get","Adm"], 1],
-    "#FF0000",
-
-    // DW → żółte tło
-    ["==", ["get","Adm"], 2],
-    "#FFEE00",
-
-    // DP → fioletowe tło
-    ["==", ["get","Adm"], 3],
-    "#A500AD",
-
-    "#FFFFFF"
-],
-
-"text-halo-width":3,
-"text-halo-blur":0.5
-
-}
+    }
 
 });
 
 }
-
 /* ===============================
 LEGEND CONTROL
 =============================== */
@@ -357,6 +351,7 @@ ZDP_LEGEND_INIT();
 
 </body>
 </html>
+
 
 
 
