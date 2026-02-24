@@ -2,7 +2,6 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
@@ -43,15 +42,30 @@ margin-right:5px;
 vertical-align:middle;
 }
 
-</style>
+/* Timestamp overlay */
 
+#updateOverlay{
+position:absolute;
+top:10px;
+left:50%;
+transform:translateX(-50%);
+z-index:20;
+background:white;
+padding:6px 12px;
+border-radius:5px;
+box-shadow:0 0 4px rgba(0,0,0,0.3);
+font-family:Arial,sans-serif;
+font-size:14px;
+}
+
+</style>
 </head>
 
 <body>
 
 <div id="legend">
 
-<h3>Legenda 1</h3>
+<h3>Legenda 4</h3>
 
 <label>
 <input type="checkbox" data-layers="layer_adm_1" checked>
@@ -97,6 +111,8 @@ Standard 6
 
 </div>
 
+<div id="updateOverlay">Aktualizacja: --</div>
+
 <div id="map"></div>
 
 <script>
@@ -105,7 +121,7 @@ Standard 6
 MAP INSTANCE
 =============================== */
 
-window.map_instance = new maplibregl.Map({
+const map = new maplibregl.Map({
 
 container:'map',
 
@@ -145,39 +161,33 @@ GEOJSON SOURCE LOADER
 =============================== */
 
 async function ZDP_LOAD_GEO_SOURCES(map){
-try{
 
 const [roads_main, roads_dp] = await Promise.all([
-    fetch("DK_i_DW.geojson").then(r=>r.json()),
-    fetch("DP.geojson").then(r=>r.json())
+fetch("DK_i_DW.geojson").then(r=>r.json()),
+fetch("DP.geojson").then(r=>r.json())
 ]);
 
 const merged_roads = {
-    type: "FeatureCollection",
-    features: [
-        ...(roads_main?.features || []),
-        ...(roads_dp?.features || [])
-    ]
+type:"FeatureCollection",
+features:[
+...(roads_main?.features || []),
+...(roads_dp?.features || [])
+]
 };
 
 if(map.getSource("zdp_roads")){
-    map.removeSource("zdp_roads");
+map.removeSource("zdp_roads");
 }
 
 map.addSource("zdp_roads",{
-    type:"geojson",
-    data: merged_roads
+type:"geojson",
+data:merged_roads
 });
 
-console.log("GeoJSON merged source loaded");
-
-}catch(e){
-console.error(e);
-}
 }
 
 /* ===============================
-ROAD LAYER FACTORY
+ROAD LAYERS
 =============================== */
 
 function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color){
@@ -199,10 +209,6 @@ paint:{
 
 }
 
-/* ===============================
-ROAD RENDERER
-=============================== */
-
 function ZDP_RENDER_ROAD_STYLES(map){
 
 ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","Adm"],1],"#FF0000");
@@ -217,7 +223,7 @@ ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1")
 }
 
 /* ===============================
-LABEL LAYER
+LABELS
 =============================== */
 
 function ADD_LABEL_LAYER(map){
@@ -232,33 +238,17 @@ source:"zdp_roads",
 layout:{
 "symbol-placement":"line",
 "text-field":["get","ID"],
-"text-font":[
-"Open Sans Semibold",
-"Arial Unicode MS Regular"
-],
+"text-font":["Open Sans Semibold"],
 "text-size":12,
 "text-anchor":"center",
 "text-allow-overlap":false,
-"text-ignore-placement":false
+"text-ignore-placement":false,
+"text-max-angle":30
 },
 
 paint:{
-"text-color":[
-"case",
-["==", ["get","Adm"], 1], "#FFFFFF",
-["==", ["get","Adm"], 2], "#000000",
-["==", ["get","Adm"], 3], "#FFFFFF",
-"#000000"
-],
-
-"text-halo-color":[
-"case",
-["==", ["get","Adm"], 1], "#FF0000",
-["==", ["get","Adm"], 2], "#FFEE00",
-["==", ["get","Adm"], 3], "#A500AD",
-"#FFFFFF"
-],
-
+"text-color":"#FFFFFF",
+"text-halo-color":"#FF0000",
 "text-halo-width":3,
 "text-halo-blur":0.5
 }
@@ -276,9 +266,6 @@ function ZDP_LEGEND_INIT(){
 document.querySelectorAll('#legend input').forEach(chk=>{
 
 chk.addEventListener('change',e=>{
-
-const map = window.map_instance;
-if(!map) return;
 
 const layers = e.target.dataset.layers.split(',');
 
@@ -298,28 +285,26 @@ e.target.checked ? 'visible':'none'
 
 });
 
-console.log("Legend controller initialized");
 }
 
 /* ===============================
 PIPELINE LOAD
 =============================== */
 
-window.map_instance.on('load', async()=>{
+map.on('load',async()=>{
 
-const map = window.map_instance;
-
-/* Source */
 await ZDP_LOAD_GEO_SOURCES(map);
 
-/* Layers */
 ZDP_RENDER_ROAD_STYLES(map);
 
-/* Labels */
 ADD_LABEL_LAYER(map);
 
-/* Legend */
 ZDP_LEGEND_INIT();
+
+/* timestamp */
+
+document.getElementById("updateOverlay").innerText =
+"Aktualizacja: " + new Date().toLocaleString("pl-PL");
 
 });
 
