@@ -323,6 +323,8 @@ ADD_LABEL_LAYER(map);
 
 ZDP_LEGEND_INIT();
 
+CREATE_BASEMAP_DROPDOWN(map);
+
 /* timestamp */
 
 document.getElementById("updateOverlay").innerText =
@@ -435,14 +437,12 @@ map.getStyle().layers[0]?.id || undefined
 INIT AFTER MAP LOAD
 =============================== */
 
-map.on("load",()=>{
-CREATE_BASEMAP_DROPDOWN(map);
-});
 }    
 </script>
 
 </body>
 </html>
+
 
 
 
