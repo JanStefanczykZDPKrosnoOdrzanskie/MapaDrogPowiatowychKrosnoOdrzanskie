@@ -404,14 +404,30 @@ function SWITCH_BASEMAP(name){
 const cfg = BASE_MAPS[name];
 if(!cfg) return;
 
-map.removeSource("osm");
+/* usuń warstwę bazową */
+if(map.getLayer("osm")){
+    map.removeLayer("osm");
+}
 
+/* usuń source */
+if(map.getSource("osm")){
+    map.removeSource("osm");
+}
+
+/* dodaj nowe source */
 map.addSource("osm",{
-type:"raster",
-tiles:cfg.tiles,
-tileSize:cfg.tileSize,
-attribution:""
+    type:"raster",
+    tiles:cfg.tiles,
+    tileSize:cfg.tileSize,
+    attribution:""
 });
+
+/* dodaj warstwę z powrotem NA SAM SPÓD */
+map.addLayer({
+    id:"osm",
+    type:"raster",
+    source:"osm"
+}, map.getStyle().layers[0].id);
 
 }
 /* ===============================
@@ -423,6 +439,7 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
 
 
 
