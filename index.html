@@ -66,7 +66,7 @@ font-size:14px;
 
 <div id="legend">
 
-<h3>Legendy</h3>
+<h3>Legenda</h3>
 
 <label>
 <input type="checkbox" data-layers="layer_adm_1" checked>
@@ -340,34 +340,32 @@ BASE MAP DROPDOWN CONTROL
 
 const BASE_MAPS = {
 
+const BASE_MAPS = {
+
 "OSM Standard":{
 tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-tileSize:256,
-attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+tileSize:256
 },
 
 "ESRI Satellite":{
 tiles:[
 "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
 ],
-tileSize:256,
-attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'
+tileSize:256
 },
 
 "Dark Night":{
 tiles:[
 "https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
 ],
-tileSize:256,
-attribution:'© OpenStreetMap contributors © CARTO'
+tileSize:256
 },
 
 "High Contrast Toner":{
 tiles:[
 "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png"
 ],
-tileSize:256,
-attribution:'Map tiles by Stamen Design, CC BY 3.0 — Data © OpenStreetMap contributors'
+tileSize:256
 }
 
 };
@@ -426,11 +424,14 @@ map.addSource("osm",{
     attribution:cfg.attribution
 });
 
+const layers = map.getStyle().layers;
+const firstSymbolLayer = layers.find(l => l.type === "symbol");
+
 map.addLayer({
     id:"osm",
     type:"raster",
     source:"osm"
-});
+}, firstSymbolLayer?.id);
 
 }
 /* ===============================
@@ -442,6 +443,7 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
 
 
 
