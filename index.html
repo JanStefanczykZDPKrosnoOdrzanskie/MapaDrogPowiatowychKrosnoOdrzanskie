@@ -123,11 +123,7 @@ MAP INSTANCE
 =============================== */
 
 const map = new maplibregl.Map({
-
-map.addControl(new maplibregl.AttributionControl({
-compact:true
-}));
-    
+  
 container:'map',
 
 style:{
@@ -160,7 +156,10 @@ center:[14.8953712,52.01625],
 zoom:10
 
 });
-
+    
+map.addControl(new maplibregl.AttributionControl({
+compact:true
+}));
 /* ===============================
 GEOJSON SOURCE LOADER
 =============================== */
@@ -443,6 +442,7 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
 
 
 
