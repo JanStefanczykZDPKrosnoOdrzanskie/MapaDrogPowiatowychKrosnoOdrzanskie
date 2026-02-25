@@ -395,42 +395,19 @@ document.body.appendChild(container);
 
 /* ---------- BASE LAYER SWITCH ---------- */
 
-let currentLayerId=null;
-
 function SWITCH_BASEMAP(name){
 
 const cfg = BASE_MAPS[name];
 if(!cfg) return;
 
-/* --- usuń poprzednią warstwę --- */
+map.removeSource("osm");
 
-if(map.getLayer("basemap_layer")){
-map.removeLayer("basemap_layer");
-}
-
-/* --- usuń poprzednie źródło --- */
-
-if(map.getSource("basemap_source")){
-map.removeSource("basemap_source");
-}
-
-/* --- dodaj nowe źródło --- */
-
-map.addSource("basemap_source",{
+map.addSource("osm",{
 type:"raster",
 tiles:cfg.tiles,
-tileSize:cfg.tileSize
+tileSize:cfg.tileSize,
+attribution:""
 });
-
-/* --- dodaj warstwę --- */
-
-map.addLayer({
-id:"basemap_layer",
-type:"raster",
-source:"basemap_source"
-},
-map.getStyle().layers[0]?.id || undefined
-);
 
 }
 /* ===============================
@@ -442,6 +419,7 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
 
 
 
