@@ -418,14 +418,11 @@ map.addSource("osm",{
     tileSize:cfg.tileSize
 });
 
-const layers = map.getStyle().layers;
-const firstSymbolLayer = layers.find(l => l.type === "symbol");
-
 map.addLayer({
     id:"osm",
     type:"raster",
     source:"osm"
-}, firstSymbolLayer?.id);
+}, map.getStyle().layers[0].id);
 
 }
 /* ===============================
@@ -437,6 +434,7 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
 
 
 
