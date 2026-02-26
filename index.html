@@ -232,7 +232,7 @@ map.addLayer({
 id:"road_id_labels",
 type:"symbol",
 source:"zdp_roads",
-filter:["in",["get","Adm"],1,2,3],
+filter:["match",["get","Adm"],[1,2,3],true,false],
 
 layout:{
 "symbol-placement":"line",
@@ -456,6 +456,7 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
 
 
 
