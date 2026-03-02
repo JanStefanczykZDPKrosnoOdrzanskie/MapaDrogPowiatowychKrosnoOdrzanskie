@@ -1,3 +1,4 @@
+Sprawdź poprawność.
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -57,25 +58,16 @@ top:0;
 right:0;
 width:300px;
 height:100vh;
-
-display:flex;
-flex-direction:column;
-
 background:white;
 box-shadow:-3px 0 6px rgba(0,0,0,0.2);
-
 padding:20px;
+display:flex;
+flex-direction:column;
 z-index:50;
-
 font-family:Arial,sans-serif;
-}
-
-#legendContent{
-flex:1;
 overflow-y:auto;
 }
 
-  
 #legend h2{
 margin-top:0;
 margin-bottom:20px;
@@ -112,19 +104,16 @@ border-radius:5px;
 font-size:13px;
 }
 
-
 #legendLogo{
-margin-top:20px;
+margin-top:auto;
+text-align:center;
 padding-top:20px;
 border-top:1px solid #ddd;
-text-align:center;
 }
 
 #legendLogo img{
 max-width:180px;
 height:auto;
-display:block;
-margin:auto;
 }
 
 </style>
@@ -133,12 +122,10 @@ margin:auto;
 <body>
 
 <div id="legend">
-
+  
 <div id="updateOverlay">Aktualizacja: --</div>
 
 <h2>Opcje Wyświetlania</h2>
-
-<div id="legendContent">
   
 <div class="legend-section">
 <h3>Administracja Dróg</h3>
@@ -195,6 +182,7 @@ Standard 4
 <span class="legend-line" style="background:#A1A1A1"></span>
 Standard 6
 </label>
+
 </div>
 
 <div id="legendLogo">
@@ -324,7 +312,7 @@ map.addLayer({
 id:"road_id_labels",
 type:"symbol",
 source:"zdp_roads",
-filter:["match",["get","Adm"],[1,2,3,4],true,false],
+filter:["match",["get","Adm"],[1,2,3],true,false],
 
 layout:{
 "symbol-placement":"line",
@@ -572,5 +560,3 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
-
-
