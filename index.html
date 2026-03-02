@@ -10,6 +10,35 @@
 
 <style>
 
+#basemapButtons{
+position:absolute;
+top:10px;
+left:10px;
+display:flex;
+gap:10px;
+z-index:60;
+}
+
+.basemap-btn{
+padding:10px 18px;
+background:white;
+border-radius:6px;
+box-shadow:0 2px 5px rgba(0,0,0,0.3);
+cursor:pointer;
+font-family:Arial,sans-serif;
+font-size:14px;
+transition:all 0.2s ease;
+}
+
+.basemap-btn:hover{
+background:#f2f2f2;
+}
+
+.basemap-btn.active{
+background:#2c3e50;
+color:white;
+}
+  
 body{
 margin:0;
 padding:0;
@@ -405,7 +434,7 @@ ADD_LABEL_LAYER(map);
 
 ZDP_LEGEND_INIT();
 
-CREATE_BASEMAP_DROPDOWN(map);
+CREATE_BASEMAP_BUTTONS(map);
 
 /* timestamp */
 
@@ -453,51 +482,68 @@ attribution:'Map tiles by Stamen Design, CC BY 3.0 — Data © OpenStreetMap con
 
 /* ---------- CREATE UI ---------- */
 
-function CREATE_BASEMAP_DROPDOWN(map){
+function CREATE_BASEMAP_BUTTONS(map){
 
 const container = document.createElement("div");
 
-container.style.position="absolute";
-container.style.top="10px";
-container.style.right="10px";
-container.style.zIndex="30";
-container.style.background="white";
-container.style.padding="8px";
-container.style.borderRadius="6px";
-container.style.boxShadow="0 0 5px rgba(0,0,0,0.3)";
-container.style.fontFamily="Arial";
-
-const select = document.createElement("select");
-
-Object.keys(BASE_MAPS).forEach(name=>{
-const option=document.createElement("option");
-option.value=name;
-option.innerText=name;
-select.appendChild(option);
-});
-
-container.appendChild(select);
+container.id = "basemapButtons";
 document.body.appendChild(container);
 
-    select.addEventListener("change", e=>{
-    SWITCH_BASEMAP(e.target.value);
+/* ---------- BASEMAP BUTTON CONFIG ---------- */
+
+const buttons = [
+{label:"Mapa", map:"OSM Standard"},
+{label:"Satelita", map:"ESRI Satellite"},
+{label:"Nocna", map:"Dark Night"}
+];
+
+/* ---------- CREATE BUTTONS ---------- */
+
+buttons.forEach(cfg=>{
+
+const btn = document.createElement("div");
+btn.className = "basemap-btn";
+btn.innerText = cfg.label;
+
+btn.addEventListener("click",()=>{
+
+document.querySelectorAll(".basemap-btn")
+.forEach(b=>b.classList.remove("active"));
+
+btn.classList.add("active");
+
+SWITCH_BASEMAP(cfg.map);
+
 });
 
-/* ---------- BASE LAYER SWITCH ---------- */
+container.appendChild(btn);
+
+});
+
+/* ---------- DEFAULT ACTIVE BUTTON ---------- */
+
+container.querySelector(".basemap-btn").classList.add("active");
+
+/* ===============================
+BASE LAYER SWITCH
+=============================== */
 
 function SWITCH_BASEMAP(name){
 
 const cfg = BASE_MAPS[name];
 if(!cfg) return;
 
+/* usuń warstwę bazową */
 if(map.getLayer("osm")){
     map.removeLayer("osm");
 }
 
+/* usuń source */
 if(map.getSource("osm")){
     map.removeSource("osm");
 }
 
+/* dodaj source */
 map.addSource("osm",{
     type:"raster",
     tiles:cfg.tiles,
@@ -505,24 +551,20 @@ map.addSource("osm",{
     attribution:cfg.attribution
 });
 
+/* dodaj warstwę na spód mapy */
+const layers = map.getStyle().layers;
+const firstSymbolLayer = layers.find(l => l.type === "symbol");
+
 map.addLayer({
     id:"osm",
     type:"raster",
     source:"osm"
-}, map.getStyle().layers[0].id);
+}, firstSymbolLayer?.id);
 
 }
-/* ===============================
-INIT AFTER MAP LOAD
-=============================== */
 
-}    
+}
 </script>
 
 </body>
 </html>
-
-
-
-
-
