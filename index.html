@@ -311,7 +311,7 @@ map.addLayer({
 id:"road_id_labels",
 type:"symbol",
 source:"zdp_roads",
-filter:["match",["get","Adm"],[1,2,3],true,false],
+filter:["match",["get","Adm"],[1,2,3,4],true,false],
 
 layout:{
 "symbol-placement":"line",
@@ -489,15 +489,11 @@ const container = document.createElement("div");
 container.id = "basemapButtons";
 document.body.appendChild(container);
 
-/* ---------- BASEMAP BUTTON CONFIG ---------- */
-
 const buttons = [
 {label:"Mapa", map:"OSM Standard"},
 {label:"Satelita", map:"ESRI Satellite"},
 {label:"Nocna", map:"Dark Night"}
 ];
-
-/* ---------- CREATE BUTTONS ---------- */
 
 buttons.forEach(cfg=>{
 
@@ -520,51 +516,47 @@ container.appendChild(btn);
 
 });
 
-/* ---------- DEFAULT ACTIVE BUTTON ---------- */
-
+/* ustaw pierwszy jako aktywny */
 container.querySelector(".basemap-btn").classList.add("active");
 
-/* ===============================
-BASE LAYER SWITCH
-=============================== */
+}
+
+/* ---------- BASE LAYER SWITCH ---------- */
 
 function SWITCH_BASEMAP(name){
 
 const cfg = BASE_MAPS[name];
 if(!cfg) return;
 
-/* usuń warstwę bazową */
 if(map.getLayer("osm")){
-    map.removeLayer("osm");
+map.removeLayer("osm");
 }
 
-/* usuń source */
 if(map.getSource("osm")){
-    map.removeSource("osm");
+map.removeSource("osm");
 }
 
-/* dodaj source */
 map.addSource("osm",{
-    type:"raster",
-    tiles:cfg.tiles,
-    tileSize:cfg.tileSize,
-    attribution:cfg.attribution
+type:"raster",
+tiles:cfg.tiles,
+tileSize:cfg.tileSize,
+attribution:cfg.attribution
 });
 
-/* dodaj warstwę na spód mapy */
-const layers = map.getStyle().layers;
-const firstSymbolLayer = layers.find(l => l.type === "symbol");
-
 map.addLayer({
-    id:"osm",
-    type:"raster",
-    source:"osm"
-}, firstSymbolLayer?.id);
+id:"osm",
+type:"raster",
+source:"osm"
+}, map.getStyle().layers[0].id);
 
 }
 
-}
+/* ===============================
+INIT AFTER MAP LOAD
+=============================== */
+  
 </script>
 
 </body>
 </html>
+
