@@ -24,39 +24,66 @@ width:100%;
 
 #legend{
 position:absolute;
-top:10px;
-left:10px;
-z-index:10;
+top:0;
+right:0;
+width:300px;
+height:100vh;
 background:white;
-padding:10px;
-border-radius:5px;
-box-shadow:0 0 5px rgba(0,0,0,0.3);
+box-shadow:-3px 0 6px rgba(0,0,0,0.2);
+padding:20px;
+display:flex;
+flex-direction:column;
+z-index:50;
 font-family:Arial,sans-serif;
-font-size:14px;
+overflow-y:auto;
+}
+
+#legend h2{
+margin-top:0;
+margin-bottom:20px;
+}
+
+.legend-section{
+margin-bottom:25px;
+}
+
+.legend-section h3{
+margin-bottom:10px;
+font-size:16px;
+}
+
+#legend label{
+display:block;
+margin-bottom:10px;
+cursor:pointer;
 }
 
 .legend-line{
 display:inline-block;
 width:40px;
-height:3px;
-margin-right:5px;
+height:4px;
+margin-right:8px;
 vertical-align:middle;
 }
 
-/* Timestamp overlay */
-
 #updateOverlay{
-position:absolute;
-top:10px;
-left:50%;
-transform:translateX(-50%);
-z-index:20;
-background:white;
-padding:6px 12px;
+margin-bottom:20px;
+padding:8px;
+background:#f2f2f2;
 border-radius:5px;
-box-shadow:0 0 4px rgba(0,0,0,0.3);
-font-family:Arial,sans-serif;
-font-size:14px;
+font-size:13px;
+}
+
+#legendLogo{
+margin-top:auto;
+text-align:center;
+padding-top:20px;
+border-top:1px solid #ddd;
+}
+
+#legendLogo img{
+max-width:180px;
+height:auto;
 }
 
 </style>
@@ -65,50 +92,60 @@ font-size:14px;
 <body>
 
 <div id="legend">
+  
+<div id="updateOverlay">Aktualizacja: --</div>
 
-<h3>Legendy</h3>
+<h2>Opcje Wyświetlania</h2>
+  
+<div class="legend-section">
+<h3>Administracja Dróg</h3>
 
 <label>
 <input type="checkbox" data-layers="layer_adm_1" checked>
 <span class="legend-line" style="background:#FF0000"></span>
 Droga Krajowa
-</label><br>
+</label>
 
 <label>
 <input type="checkbox" data-layers="layer_adm_2" checked>
 <span class="legend-line" style="background:#08FF00"></span>
 Droga Wojewódzka
-</label><br>
+</label>
 
 <label>
 <input type="checkbox" data-layers="layer_adm_3" checked>
 <span class="legend-line" style="background:#A500AD"></span>
 Droga Powiatowa
-</label><br>
+</label>
 
   <label>
 <input type="checkbox" data-layers="layer_adm_4">
 <span class="legend-line" style="background:#808080"></span>
 Droga Gminna
-</label><br>
+</label>
 
+</div>
+
+<div class="legend-section">
+<h3>Zimowe Utrzymanie Dróg</h3> 
+  
 <label>
 <input type="checkbox" data-layers="layer_zud_2">
 <span class="legend-line" style="background:#FFEE00"></span>
 Standard 2
-</label><br>
+</label>
 
 <label>
 <input type="checkbox" data-layers="layer_zud_3">
 <span class="legend-line" style="background:#00FFFF"></span>
 Standard 3
-</label><br>
+</label>
 
 <label>
 <input type="checkbox" data-layers="layer_zud_4">
 <span class="legend-line" style="background:#FA9EFF"></span>
 Standard 4
-</label><br>
+</label>
 
 <label>
 <input type="checkbox" data-layers="layer_zud_6">
@@ -118,7 +155,11 @@ Standard 6
 
 </div>
 
-<div id="updateOverlay">Aktualizacja: --</div>
+<div id="legendLogo">
+<img src="Logo ZDP.png" alt="ZDP Logo">
+</div>
+
+</div>
 
 <div id="map"></div>
 
@@ -480,6 +521,7 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
 
 
 
