@@ -86,6 +86,12 @@ Droga Wojewódzka
 Droga Powiatowa
 </label><br>
 
+  <label>
+<input type="checkbox" data-layers="layer_adm_4" checked>
+<span class="legend-line" style="background:#808080"></span>
+Droga Gminna
+</label><br>
+
 <label>
 <input type="checkbox" data-layers="layer_zud_2" checked>
 <span class="legend-line" style="background:#FFEE00"></span>
@@ -217,7 +223,7 @@ ADD_FILTER_LAYER(map,"layer_zud_4","zdp_roads",["==",["get","ZUD"],4],"#FA9EFF",
 ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1",6);
 
 ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","Adm"],3],"#A500AD",3);
-
+ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","Adm"],4],"#808080",3);
 }
 
 /* ===============================
@@ -319,7 +325,8 @@ const visibleAdm = [];
 if(map.getLayoutProperty("layer_adm_1","visibility") !== "none") visibleAdm.push(1);
 if(map.getLayoutProperty("layer_adm_2","visibility") !== "none") visibleAdm.push(2);
 if(map.getLayoutProperty("layer_adm_3","visibility") !== "none") visibleAdm.push(3);
-
+if(map.getLayoutProperty("layer_adm_4","visibility") !== "none") visibleAdm.push(4);
+  
 if(visibleAdm.length === 0){
 
     map.setFilter(
@@ -468,3 +475,4 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
