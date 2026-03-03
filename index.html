@@ -43,6 +43,8 @@ color:white;
 body{
 margin:0;
 padding:0;
+overflow:hidden;
+height:100vh
 }
 
 #map{
@@ -60,12 +62,10 @@ width:250px;
 height:100vh;
 background:white;
 box-shadow:-3px 0 6px rgba(0,0,0,0.2);
-padding:20px;
 display:flex;
 flex-direction:column;
 z-index:50;
 font-family:Arial,sans-serif;
-overflow-y:auto;
 }
 
 #legend h2{
@@ -104,11 +104,17 @@ border-radius:5px;
 font-size:13px;
 }
 
+#legendContent{
+flex:1;
+overflow-y:auto;
+padding:20px;
+}
+  
 #legendLogo{
-margin-top:auto;
+padding:15px;
 text-align:center;
-padding-top:20px;
 border-top:1px solid #ddd;
+flex-shrink:0;
 }
 
 #legendLogo img{
@@ -122,6 +128,8 @@ height:auto;
 <body>
 
 <div id="legend">
+
+<div id="legendContent"> 
   
 <div id="updateOverlay">Aktualizacja: --</div>
 
@@ -560,4 +568,5 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
 
