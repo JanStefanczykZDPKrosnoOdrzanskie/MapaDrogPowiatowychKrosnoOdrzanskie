@@ -11,6 +11,11 @@ Sprawdź poprawność.
 
 <style>
 
+:root{
+--legend-width:250px;
+}
+
+  
 #basemapButtons{
 position:absolute;
 top:10px;
@@ -51,14 +56,15 @@ height:100vh
 position:absolute;
 top:0;
 bottom:0;
-width:100%;
+left:0;
+right:var(--legend-width);
 }
 
 #legend{
 position:absolute;
 top:0;
 right:0;
-width:250px;
+width:var(--legend-width);
 height:100vh;
 background:white;
 box-shadow:-3px 0 6px rgba(0,0,0,0.2);
@@ -568,5 +574,6 @@ INIT AFTER MAP LOAD
 
 </body>
 </html>
+
 
 
