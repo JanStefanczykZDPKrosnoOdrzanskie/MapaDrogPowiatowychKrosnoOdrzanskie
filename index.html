@@ -1,28 +1,63 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ZDP – Mapa</title>
-<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
-<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<meta charset="UTF-8">
+<title>Mapa ZDP</title>
+
+<link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
+<link rel="icon" href="data:,">
+<script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
 
 <style>
+
 :root{
---legend-width:320px;
+--legend-width:275px;
 }
 
-body{margin:0;font-family:Arial, sans-serif;overflow:hidden;}
+  
+#basemapButtons{
+position:absolute;
+top:10px;
+left:10px;
+display:flex;
+gap:10px;
+z-index:60;
+}
+
+.basemap-btn{
+padding:10px 18px;
+background:white;
+border-radius:6px;
+box-shadow:0 2px 5px rgba(0,0,0,0.3);
+cursor:pointer;
+font-family:Arial,sans-serif;
+font-size:14px;
+transition:all 0.2s ease;
+}
+
+.basemap-btn:hover{
+background:#f2f2f2;
+}
+
+.basemap-btn.active{
+background:#2c3e50;
+color:white;
+}
+  
+body{
+margin:0;
+padding:0;
+overflow:hidden;
+height:100vh
+}
 
 #map{
 position:absolute;
 top:0;
+bottom:0;
 left:0;
-width:100%;
-height:100%;
+right:var(--legend-width);
 }
-
-/* ===== LEGEND ===== */
 
 #legend{
 position:absolute;
@@ -30,202 +65,559 @@ top:0;
 right:0;
 width:var(--legend-width);
 height:100vh;
-background:#ffffff;
-z-index:20;
+background:white;
+box-shadow:-3px 0 6px rgba(0,0,0,0.2);
 display:flex;
 flex-direction:column;
-box-shadow:-2px 0 6px rgba(0,0,0,0.2);
+z-index:50;
+font-family:Arial,sans-serif;
+}
+
+#legend h2{
+margin-top:0;
+margin-bottom:20px;
+}
+
+.legend-section{
+margin-bottom:25px;
+}
+
+.legend-section h3{
+margin-bottom:10px;
+font-size:16px;
+}
+
+#legend label{
+display:block;
+margin-bottom:10px;
+cursor:pointer;
+}
+
+.legend-line{
+display:inline-block;
+width:40px;
+height:4px;
+margin-right:8px;
+vertical-align:middle;
+}
+
+#updateOverlay{
+margin-bottom:20px;
+padding:8px;
+background:#f2f2f2;
+border-radius:5px;
+font-size:13px;
 }
 
 #legendContent{
 flex:1;
 overflow-y:auto;
-padding:15px;
+padding:20px;
 }
-
-#legend h2{margin-top:0;}
-
-.legend-section{margin-bottom:20px;}
-
-.legend-section h3{margin-bottom:8px;}
-
-.legend-line{
-display:inline-block;
-width:20px;
-height:4px;
-margin-right:6px;
-vertical-align:middle;
-}
-
+  
 #legendLogo{
-padding:10px;
+padding:15px;
 text-align:center;
-border-top:1px solid #ccc;
+border-top:1px solid #ddd;
+flex-shrink:0;
 }
 
 #legendLogo img{
-max-width:100%;
+max-width:180px;
 height:auto;
 }
 
-#updateOverlay{
-font-size:12px;
-margin-bottom:10px;
-}
-
-/* ===== BASEMAP BUTTONS ===== */
-
-#basemapButtons{
-position:absolute;
-top:10px;
-left:10px;
-z-index:30;
-display:flex;
-gap:6px;
-}
-
-.basemap-btn{
-padding:6px 12px;
-background:white;
-border-radius:6px;
-box-shadow:0 0 5px rgba(0,0,0,0.3);
-cursor:pointer;
-user-select:none;
-font-size:14px;
-}
-
-.basemap-btn.active{
-background:#0078ff;
-color:white;
-}
-
-/* ===== SEARCH ===== */
+/* ===============================
+SEARCH CONTROL
+=============================== */
 
 #searchButton{
 position:absolute;
 top:10px;
 right:calc(var(--legend-width) + 10px);
-z-index:30;
-padding:6px 12px;
+z-index:60;
+width:42px;
+height:42px;
 background:white;
 border-radius:6px;
-box-shadow:0 0 5px rgba(0,0,0,0.3);
+box-shadow:0 2px 5px rgba(0,0,0,0.3);
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+font-size:18px;
+font-family:Arial,sans-serif;
+}
+
+#searchPanel{
+position:absolute;
+top:60px;
+right:calc(var(--legend-width) + 10px);
+z-index:60;
+width:260px;
+background:white;
+border-radius:8px;
+box-shadow:0 4px 10px rgba(0,0,0,0.3);
+padding:15px;
+display:none;
+font-family:Arial,sans-serif;
+}
+
+#searchPanel input{
+width:100%;
+padding:8px;
+margin-bottom:10px;
+box-sizing:border-box;
+}
+
+#searchPanel button{
+width:100%;
+padding:8px;
 cursor:pointer;
 }
-
-#searchBox{
-position:absolute;
-top:50px;
-right:calc(var(--legend-width) + 10px);
-z-index:30;
-background:white;
-padding:10px;
-border-radius:6px;
-box-shadow:0 0 5px rgba(0,0,0,0.3);
-display:none;
-}
-
-#searchBox input{
-width:200px;
-padding:4px;
-}
-
+  
 </style>
 </head>
 
 <body>
 
-<div id="basemapButtons">
-<div class="basemap-btn active" data-map="Mapa">Mapa</div>
-<div class="basemap-btn" data-map="Satelita">Satelita</div>
-<div class="basemap-btn" data-map="Nocna">Nocna</div>
-</div>
-
-<div id="searchButton">Szukaj</div>
-<div id="searchBox">
-<input type="text" id="searchInput" placeholder="ID drogi..." />
-<button id="searchExecute">OK</button>
-</div>
-
 <div id="legend">
-<div id="legendContent">
-<div id="updateOverlay">Aktualizacja: --</div>
-<h2>Opcje Wyświetlania</h2>
 
+<div id="legendContent"> 
+  
+<div id="updateOverlay">Aktualizacja: --</div>
+
+<h2>Opcje Wyświetlania</h2>
+  
 <div class="legend-section">
 <h3>Administracja Dróg</h3>
-<label><input type="checkbox" data-layers="layer_adm_1" checked> <span class="legend-line" style="background:#FF0000"></span>Droga Krajowa</label><br>
-<label><input type="checkbox" data-layers="layer_adm_2" checked> <span class="legend-line" style="background:#08FF00"></span>Droga Wojewódzka</label><br>
-<label><input type="checkbox" data-layers="layer_adm_3" checked> <span class="legend-line" style="background:#A500AD"></span>Droga Powiatowa</label><br>
-<label><input type="checkbox" data-layers="layer_adm_4"> <span class="legend-line" style="background:#808080"></span>Droga Gminna</label>
+
+<label>
+<input type="checkbox" data-layers="layer_adm_1" checked>
+<span class="legend-line" style="background:#FF0000"></span>
+Droga Krajowa
+</label>
+
+<label>
+<input type="checkbox" data-layers="layer_adm_2" checked>
+<span class="legend-line" style="background:#08FF00"></span>
+Droga Wojewódzka
+</label>
+
+<label>
+<input type="checkbox" data-layers="layer_adm_3" checked>
+<span class="legend-line" style="background:#A500AD"></span>
+Droga Powiatowa
+</label>
+
+  <label>
+<input type="checkbox" data-layers="layer_adm_4">
+<span class="legend-line" style="background:#808080"></span>
+Droga Gminna
+</label>
+
 </div>
 
 <div class="legend-section">
-<h3>Zimowe Utrzymanie Dróg</h3>
-<label><input type="checkbox" data-layers="layer_zud_2"> <span class="legend-line" style="background:#FFEE00"></span>Standard 2</label><br>
-<label><input type="checkbox" data-layers="layer_zud_3"> <span class="legend-line" style="background:#00FFFF"></span>Standard 3</label><br>
-<label><input type="checkbox" data-layers="layer_zud_4"> <span class="legend-line" style="background:#FA9EFF"></span>Standard 4</label><br>
-<label><input type="checkbox" data-layers="layer_zud_6"> <span class="legend-line" style="background:#A1A1A1"></span>Standard 6</label>
-</div>
+<h3>Zimowe Utrzymanie Dróg</h3> 
+  
+<label>
+<input type="checkbox" data-layers="layer_zud_2">
+<span class="legend-line" style="background:#FFEE00"></span>
+Standard 2
+</label>
 
+<label>
+<input type="checkbox" data-layers="layer_zud_3">
+<span class="legend-line" style="background:#00FFFF"></span>
+Standard 3
+</label>
+
+<label>
+<input type="checkbox" data-layers="layer_zud_4">
+<span class="legend-line" style="background:#FA9EFF"></span>
+Standard 4
+</label>
+
+<label>
+<input type="checkbox" data-layers="layer_zud_6">
+<span class="legend-line" style="background:#A1A1A1"></span>
+Standard 6
+</label>
 </div>
+</div> <!-- KONIEC legendContent -->
+  
 <div id="legendLogo">
 <img src="Logo ZDP.png" alt="ZDP Logo">
 </div>
-</div>
+
+</div> <!-- KONIEC legend -->
 
 <div id="map"></div>
+  
+<div id="searchButton">🔍</div>
 
+<div id="searchPanel">
+<input type="text" id="searchInput" placeholder="Wpisz ID drogi...">
+<button id="searchSubmit">Szukaj</button>
+</div>
+  
 <script>
 
+let ZDP_ALL_FEATURES = [];
+  
 /* ===============================
-MAP INIT
+MAP INSTANCE
 =============================== */
-
-const bounds = [[14.0,51.75],[15.75,52.5]];
 
 const map = new maplibregl.Map({
+
+maxBounds:[
+    [14, 51.6],
+    [15.75, 52.35]
+],
+  
 container:'map',
+
 style:{
 version:8,
-sources:{},
-layers:[]
-},
-center:[14.9,52.1],
-zoom:9,
-maxBounds:bounds
-});
 
-/* ===============================
-BASEMAP CONFIG
-=============================== */
+glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
 
-const BASE_MAPS={
-"Mapa":{
-tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+sources:{
+osm:{
+type:"raster",
+tiles:[
+"https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+],
 tileSize:256,
 attribution:"© OpenStreetMap contributors"
-},
-"Satelita":{
-tiles:["https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
-tileSize:256,
-attribution:"Tiles © Esri"
-},
-"Nocna":{
-tiles:["https://tiles.stadiamaps.com/tiles/alidade_dark/{z}/{x}/{y}.png"],
-tileSize:256,
-attribution:"© Stadia Maps"
 }
+},
+
+layers:[
+{
+id:"osm",
+type:"raster",
+source:"osm"
+}
+]
+
+},
+
+center:[14.8953712,52.01625],
+zoom:10
+
+});
+    
+/* ===============================
+GEOJSON SOURCE LOADER
+=============================== */
+
+async function ZDP_LOAD_GEO_SOURCES(map){
+
+const [roads_main, roads_dp] = await Promise.all([
+fetch("DK_i_DW.geojson").then(r=>r.json()),
+fetch("DP.geojson").then(r=>r.json())
+]);
+
+const merged_roads = {
+type:"FeatureCollection",
+features:[
+...(roads_main?.features || []),
+...(roads_dp?.features || [])
+]
 };
 
-function switchBasemap(name){
+ZDP_ALL_FEATURES = merged_roads.features;
+  
+if(map.getSource("zdp_roads")){
+map.removeSource("zdp_roads");
+}
 
-if(map.getLayer("basemap")) map.removeLayer("basemap");
-if(map.getSource("basemap")) map.removeSource("basemap");
+map.addSource("zdp_roads",{
+type:"geojson",
+data:merged_roads
+});
+
+}
+
+/* ===============================
+ROAD LAYERS
+=============================== */
+
+function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, visible=true){
+
+    if(map.getLayer(layerId)) return;
+
+    map.addLayer({
+        id:layerId,
+        type:"line",
+        source:source,
+        filter:filterExpression,
+        layout:{
+        visibility: visible ? "visible" : "none"
+        },
+        paint:{
+            "line-color":color,
+            "line-width":width
+        }
+    });
+}
+function ZDP_RENDER_ROAD_STYLES(map){
+
+ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","Adm"],1],"#FF0000",4);
+ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","Adm"],2],"#08FF00",4);
+
+ADD_FILTER_LAYER(map,"layer_zud_2","zdp_roads",["==",["get","ZUD"],2],"#FFEE00",6, false);
+ADD_FILTER_LAYER(map,"layer_zud_3","zdp_roads",["==",["get","ZUD"],3],"#00FFFF",6, false);
+ADD_FILTER_LAYER(map,"layer_zud_4","zdp_roads",["==",["get","ZUD"],4],"#FA9EFF",6, false);
+ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1",6, false);
+
+ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","Adm"],3],"#A500AD",3);
+ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","Adm"],4],"#808080",3, false);
+}
+
+/* ===============================
+LABELS
+=============================== */
+
+function ADD_LABEL_LAYER(map){
+
+if(map.getLayer("road_id_labels")) return;
+
+map.addLayer({
+id:"road_id_labels",
+type:"symbol",
+source:"zdp_roads",
+filter:["match",["get","Adm"],[1,2,3],true,false],
+
+layout:{
+"symbol-placement":"line",
+"text-field":["get","ID"],
+"text-font":["Open Sans Semibold"],
+"text-size":12,
+"text-anchor":"center",
+"text-allow-overlap":false,
+"text-ignore-placement":false,
+"text-max-angle":30
+},
+
+paint:{
+
+/* ===== Kolor tekstu zależny od Adm ===== */
+
+"text-color":[
+"case",
+
+["==", ["get","Adm"], 1], "#FFFFFF",
+["==", ["get","Adm"], 2], "#000000",
+["==", ["get","Adm"], 3], "#FFFFFF",
+["==", ["get","Adm"], 4], "#FFFFFF",
+
+"#000000"
+],
+
+/* ===== Halo / ramka ===== */
+
+"text-halo-color":[
+"case",
+
+["==", ["get","Adm"], 1], "#FF0000",
+["==", ["get","Adm"], 2], "#FFEE00",
+["==", ["get","Adm"], 3], "#A500AD",
+["==", ["get","Adm"], 4], "#808080",
+  
+"#FFFFFF"
+],
+
+"text-halo-width":3,
+"text-halo-blur":0.5
+
+}
+
+});
+
+}
+
+/* ===============================
+LEGEND CONTROL
+=============================== */
+
+function ZDP_LEGEND_INIT(){
+
+document.querySelectorAll('#legend input').forEach(chk=>{
+
+chk.addEventListener('change',e=>{
+
+const layers = e.target.dataset.layers.split(',');
+
+layers.forEach(layerId=>{
+
+if(!map.getLayer(layerId)) return;
+
+map.setLayoutProperty(
+layerId,
+'visibility',
+e.target.checked ? 'visible':'none'
+);
+  UPDATE_LABEL_FILTER();
+});
+
+});
+
+});
+
+}
+
+function UPDATE_LABEL_FILTER(){
+
+if(!map.getLayer("road_id_labels")) return;
+
+const visibleAdm = [];
+
+if(map.getLayoutProperty("layer_adm_1","visibility") !== "none") visibleAdm.push(1);
+if(map.getLayoutProperty("layer_adm_2","visibility") !== "none") visibleAdm.push(2);
+if(map.getLayoutProperty("layer_adm_3","visibility") !== "none") visibleAdm.push(3);
+if(map.getLayoutProperty("layer_adm_4","visibility") !== "none") visibleAdm.push(4);
+  
+if(visibleAdm.length === 0){
+
+    map.setFilter(
+        "road_id_labels",
+        ["==",["get","Adm"],-999]
+    );
+
+}else{
+
+    map.setFilter(
+        "road_id_labels",
+        ["match",["get","Adm"],visibleAdm,true,false]
+    );
+
+}
+
+}
+
+/* ===============================
+PIPELINE LOAD
+=============================== */
+
+map.on('load',async()=>{
+
+await ZDP_LOAD_GEO_SOURCES(map);
+
+ZDP_RENDER_ROAD_STYLES(map);
+
+ADD_LABEL_LAYER(map);
+
+ZDP_LEGEND_INIT();
+
+CREATE_BASEMAP_BUTTONS(map);
+
+INIT_SEARCH();
+  
+/* timestamp */
+
+document.getElementById("updateOverlay").innerText =
+"Aktualizacja: " + new Date().toLocaleString("pl-PL");
+
+});
+/* ===============================
+BASE MAP DROPDOWN CONTROL
+=============================== */
+
+const BASE_MAPS = {
+
+"OSM Standard":{
+tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+tileSize:256,
+attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+},
+
+"ESRI Satellite":{
+tiles:[
+"https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+],
+tileSize:256,
+attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'
+},
+
+"Dark Night":{
+tiles:[
+"https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
+],
+tileSize:256,
+attribution:'© OpenStreetMap contributors © CARTO'
+},
+
+"High Contrast Toner":{
+tiles:[
+"https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png"
+],
+tileSize:256,
+attribution:'Map tiles by Stamen Design, CC BY 3.0 — Data © OpenStreetMap contributors'
+}
+
+};
+
+/* ---------- CREATE UI ---------- */
+
+function CREATE_BASEMAP_BUTTONS(map){
+
+const container = document.createElement("div");
+
+container.id = "basemapButtons";
+document.body.appendChild(container);
+
+const buttons = [
+{label:"Mapa", map:"OSM Standard"},
+{label:"Satelita", map:"ESRI Satellite"},
+{label:"Nocna", map:"Dark Night"}
+];
+
+buttons.forEach(cfg=>{
+
+const btn = document.createElement("div");
+btn.className = "basemap-btn";
+btn.innerText = cfg.label;
+
+btn.addEventListener("click",()=>{
+
+document.querySelectorAll(".basemap-btn")
+.forEach(b=>b.classList.remove("active"));
+
+btn.classList.add("active");
+
+SWITCH_BASEMAP(cfg.map);
+
+});
+
+container.appendChild(btn);
+
+});
+
+/* ustaw pierwszy jako aktywny */
+container.querySelector(".basemap-btn").classList.add("active");
+
+}
+
+/* ---------- BASE LAYER SWITCH ---------- */
+
+function SWITCH_BASEMAP(name){
 
 const cfg = BASE_MAPS[name];
+if(!cfg) return;
 
-map.addSource("basemap",{
+if(map.getLayer("osm")){
+map.removeLayer("osm");
+}
+
+if(map.getSource("osm")){
+map.removeSource("osm");
+}
+
+map.addSource("osm",{
 type:"raster",
 tiles:cfg.tiles,
 tileSize:cfg.tileSize,
@@ -233,134 +625,328 @@ attribution:cfg.attribution
 });
 
 map.addLayer({
-id:"basemap",
+id:"osm",
 type:"raster",
-source:"basemap"
-});
+source:"osm"
+}, map.getStyle().layers[0].id);
+
 }
 
-switchBasemap("Mapa");
-
 /* ===============================
-BASEMAP BUTTONS
+INIT AFTER MAP LOAD
+=============================== */
+/* ===============================
+SEARCH FUNCTIONALITY
 =============================== */
 
-document.querySelectorAll(".basemap-btn").forEach(btn=>{
+function INIT_SEARCH(){
+
+const btn = document.getElementById("searchButton");
+const panel = document.getElementById("searchPanel");
+const input = document.getElementById("searchInput");
+const submit = document.getElementById("searchSubmit");
+
 btn.addEventListener("click",()=>{
-document.querySelectorAll(".basemap-btn").forEach(b=>b.classList.remove("active"));
-btn.classList.add("active");
-switchBasemap(btn.dataset.map);
-});
+panel.style.display = panel.style.display === "block" ? "none" : "block";
+input.focus();
 });
 
-/* ===============================
-SEARCH LOGIC (Partial + Highlight + Pulse)
+submit.addEventListener("click", EXECUTE_SEARCH);
+input.addEventListener("keypress", e=>{
+if(e.key === "Enter") EXECUTE_SEARCH();
+});
+
+function EXECUTE_SEARCH(){
+
+CLEAR_HIGHLIGHT();
+
+const value = input.value.trim();
+if(!value) return;
+
+const normalize = str =>
+    str.toString()
+    .replace(/\s+/g,'')
+    .toUpperCase();
+
+const query = normalize(value);
+
+const features = ZDP_ALL_FEATURES.filter(f => {
+
+const roadId = f.properties?.ID;
+if(!roadId) return false;
+
+return normalize(roadId).startsWith(query);
+
+});
+if(!features.length){
+    alert("Nie znaleziono drogi o ID: " + value);
+    return;
+}
+
+/* Podświetl wszystkie segmenty o tym samym ID */
+HIGHLIGHT_FEATURES_BY_ID(value);
+  
+const geojson = {
+    type:"FeatureCollection",
+    features: features
+};
+
+let bounds = new maplibregl.LngLatBounds();
+
+geojson.features.forEach(feature=>{
+    const geom = feature.geometry;
+
+    if(!geom) return;
+
+    const processCoords = (coords)=>{
+        coords.forEach(c=>{
+            if(Array.isArray(c[0])){
+                processCoords(c);
+            } else {
+                bounds.extend(c);
+            }
+        });
+    };
+
+    processCoords(geom.coordinates);
+});
+
+map.fitBounds(bounds,{
+padding:80,
+duration:800
+});
+
+}
+
+}
+
+  /* ===============================
+SEARCH HIGHLIGHT
 =============================== */
 
-let pulseFrame=null;
-let pulseWidth=4;
-let pulseGrow=true;
+function HIGHLIGHT_FEATURE(feature){
 
-function normalize(str){
-return str.toString().trim().toUpperCase();
+/* usuń poprzedni highlight */
+
+if(map.getLayer("search_highlight_layer")){
+map.removeLayer("search_highlight_layer");
 }
 
-function clearHighlight(){
-if(pulseFrame) cancelAnimationFrame(pulseFrame);
-if(map.getLayer("search_pulse")) map.removeLayer("search_pulse");
-if(map.getLayer("search_highlight")) map.removeLayer("search_highlight");
-if(map.getSource("search_source")) map.removeSource("search_source");
+if(map.getSource("search_highlight_source")){
+map.removeSource("search_highlight_source");
 }
 
-function pulse(){
-if(!map.getLayer("search_pulse")) return;
+/* dodaj nowe źródło */
 
-pulseWidth += pulseGrow?0.4:-0.4;
-if(pulseWidth>14) pulseGrow=false;
-if(pulseWidth<4) pulseGrow=true;
+map.addSource("search_highlight_source",{
+type:"geojson",
+data:feature
+});
 
-map.setPaintProperty("search_pulse","line-width",pulseWidth);
-pulseFrame=requestAnimationFrame(pulse);
+/* dodaj warstwę nad wszystkimi */
+
+map.addLayer({
+id:"search_highlight_layer",
+type:"line",
+source:"search_highlight_source",
+paint:{
+"line-color":"#00FFFF",
+"line-width":8,
+"line-opacity":0.9
+}
+});
 }
 
-function highlightByID(id){
+function HIGHLIGHT_FEATURES_BY_ID(id){
 
-const norm = normalize(id);
-
-const features = ZDP_ALL_FEATURES.filter(f=>
-f.properties?.ID && normalize(f.properties.ID).startsWith(norm)
+const features = ZDP_ALL_FEATURES.filter(
+f => f.properties?.ID === id
 );
 
-if(!features.length){
-alert("Nie znaleziono drogi");
+if(!features.length) return;
+
+/* usuń poprzedni highlight */
+
+if(map.getLayer("search_highlight_layer")){
+map.removeLayer("search_highlight_layer");
+}
+
+if(map.getSource("search_highlight_source")){
+map.removeSource("search_highlight_source");
+}
+
+/* GeoJSON MultiFeature wrapper */
+
+const geojson = {
+type:"FeatureCollection",
+features:features
+};
+
+map.addSource("search_highlight_source",{
+type:"geojson",
+data:geojson
+});
+
+map.addLayer({
+id:"search_highlight_layer",
+type:"line",
+source:"search_highlight_source",
+paint:{
+"line-color":"#00FFFF",
+"line-width":8,
+"line-opacity":0.9
+}
+});
+}
+
+function CLEAR_HIGHLIGHT(){
+
+if(map.getLayer("search_highlight_layer")){
+map.removeLayer("search_highlight_layer");
+}
+
+if(map.getSource("search_highlight_source")){
+map.removeSource("search_highlight_source");
+}
+
+}
+/* ===============================
+PULSE HIGHLIGHT ANIMATION
+=============================== */
+
+let pulseAnimationFrame = null;
+let pulseRadius = 0;
+let pulseGrowing = true;
+
+function START_PULSE_ANIMATION(){
+
+STOP_PULSE_ANIMATION();
+
+pulseRadius = 2;
+
+function animate(){
+
+const source = map.getSource("search_highlight_source");
+if(!source){
+pulseAnimationFrame = requestAnimationFrame(animate);
 return;
 }
 
-clearHighlight();
+/* pulse oscillation */
 
-map.addSource("search_source",{
+if(pulseGrowing){
+pulseRadius += 0.3;
+if(pulseRadius > 14) pulseGrowing = false;
+}else{
+pulseRadius -= 0.3;
+if(pulseRadius < 4) pulseGrowing = true;
+}
+
+/* update layer paint */
+
+if(map.getLayer("search_pulse_layer")){
+map.setPaintProperty(
+"search_pulse_layer",
+"line-width",
+pulseRadius
+);
+}
+
+pulseAnimationFrame = requestAnimationFrame(animate);
+}
+
+animate();
+}
+
+function STOP_PULSE_ANIMATION(){
+
+if(pulseAnimationFrame){
+cancelAnimationFrame(pulseAnimationFrame);
+pulseAnimationFrame = null;
+}
+
+if(map.getLayer("search_pulse_layer")){
+map.removeLayer("search_pulse_layer");
+}
+
+}
+
+/* ===============================
+MODIFY HIGHLIGHT FUNCTION
+=============================== */
+
+function HIGHLIGHT_FEATURES_BY_ID(id){
+
+const features = ZDP_ALL_FEATURES.filter(
+f => f.properties?.ID && f.properties.ID.toString().toUpperCase().startsWith(
+id.toString().toUpperCase()
+)
+);
+
+if(!features.length) return;
+
+/* cleanup */
+
+if(map.getLayer("search_highlight_layer")){
+map.removeLayer("search_highlight_layer");
+}
+
+if(map.getLayer("search_pulse_layer")){
+map.removeLayer("search_pulse_layer");
+}
+
+if(map.getSource("search_highlight_source")){
+map.removeSource("search_highlight_source");
+}
+
+/* geojson wrapper */
+
+const geojson = {
+type:"FeatureCollection",
+features:features
+};
+
+map.addSource("search_highlight_source",{
 type:"geojson",
-data:{type:"FeatureCollection",features:features}
+data:geojson
 });
 
+/* main highlight line */
+
 map.addLayer({
-id:"search_highlight",
+id:"search_highlight_layer",
 type:"line",
-source:"search_source",
+source:"search_highlight_source",
 paint:{
 "line-color":"#00FFFF",
-"line-width":6
+"line-width":6,
+"line-opacity":0.95
+},
+layout:{
+"line-cap":"round",
+"line-join":"round"
 }
 });
 
+/* pulse halo layer */
+
 map.addLayer({
-id:"search_pulse",
+id:"search_pulse_layer",
 type:"line",
-source:"search_source",
+source:"search_highlight_source",
 paint:{
 "line-color":"#00FFFF",
-"line-width":pulseWidth,
+"line-width":2,
 "line-opacity":0.5
 }
 });
 
-pulse();
+/* start animation */
 
-/* FIT TO FULL GEOMETRY */
+START_PULSE_ANIMATION();
 
-let coords=[];
-features.forEach(f=>{
-const extract=c=>Array.isArray(c[0])?c.forEach(extract):coords.push(c);
-extract(f.geometry.coordinates);
-});
-
-let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-coords.forEach(c=>{
-minX=Math.min(minX,c[0]);
-minY=Math.min(minY,c[1]);
-maxX=Math.max(maxX,c[0]);
-maxY=Math.max(maxY,c[1]);
-});
-
-map.fitBounds([[minX,minY],[maxX,maxY]],{padding:60});
 }
-
-/* ===============================
-SEARCH UI
-=============================== */
-
-const searchBtn=document.getElementById("searchButton");
-const searchBox=document.getElementById("searchBox");
-
-searchBtn.addEventListener("click",()=>{
-searchBox.style.display = searchBox.style.display==="none"?"block":"none";
-});
-
-document.getElementById("searchExecute").addEventListener("click",()=>{
-const val=document.getElementById("searchInput").value;
-if(val) highlightByID(val);
-});
-
+  
 </script>
 
 </body>
