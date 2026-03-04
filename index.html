@@ -774,10 +774,23 @@ paint:{
 }
 });
 }
+
+function CLEAR_HIGHLIGHT(){
+
+if(map.getLayer("search_highlight_layer")){
+map.removeLayer("search_highlight_layer");
+}
+
+if(map.getSource("search_highlight_source")){
+map.removeSource("search_highlight_source");
+}
+
+}
 </script>
 
 </body>
 </html>
+
 
 
 
