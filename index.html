@@ -836,20 +836,26 @@ data:geojson
 
 /* main highlight line */
 
-map.addLayer({
-id:"search_highlight_layer",
-type:"line",
-source:"search_highlight_source",
-paint:{
-"line-color":"#00FFFF",
-"line-width":6,
-"line-opacity":0.95
+const labelLayer = "road_id_labels";
+
+map.addLayer(
+{
+    id:"search_highlight_layer",
+    type:"line",
+    source:"search_highlight_source",
+    paint:{
+        "line-color":"#00008B",
+        "line-width":6,
+        "line-opacity":0.95
+    },
+    layout:{
+        "line-cap":"round",
+        "line-join":"round"
+    }
 },
-layout:{
-"line-cap":"round",
-"line-join":"round"
-}
-});
+/* Wstaw highlight POD numerami dróg */
+map.getLayer(labelLayer) ? labelLayer : undefined
+);
 
 /* pulse halo layer */
 
@@ -858,7 +864,7 @@ id:"search_pulse_layer",
 type:"line",
 source:"search_highlight_source",
 paint:{
-"line-color":"#00FFFF",
+"line-color":"#FFFF00",
 "line-width":2,
 "line-opacity":0.5
 }
@@ -876,6 +882,7 @@ map.once("idle", () => {
 
 </body>
 </html>
+
 
 
 
