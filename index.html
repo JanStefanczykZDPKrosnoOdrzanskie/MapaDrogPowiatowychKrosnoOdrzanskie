@@ -675,16 +675,29 @@ if(!features.length){
 /* Podświetl wszystkie segmenty o tym samym ID */
 HIGHLIGHT_FEATURES_BY_ID(value);
   
-const coords = features[0].geometry.coordinates;
+const geojson = {
+    type:"FeatureCollection",
+    features: features
+};
 
 let bounds = new maplibregl.LngLatBounds();
 
-coords.forEach(segment=>{
-if(Array.isArray(segment[0])){
-segment.forEach(c=>bounds.extend(c));
-}else{
-bounds.extend(segment);
-}
+geojson.features.forEach(feature=>{
+    const geom = feature.geometry;
+
+    if(!geom) return;
+
+    const processCoords = (coords)=>{
+        coords.forEach(c=>{
+            if(Array.isArray(c[0])){
+                processCoords(c);
+            } else {
+                bounds.extend(c);
+            }
+        });
+    };
+
+    processCoords(geom.coordinates);
 });
 
 map.fitBounds(bounds,{
@@ -790,6 +803,7 @@ map.removeSource("search_highlight_source");
 
 </body>
 </html>
+
 
 
 
