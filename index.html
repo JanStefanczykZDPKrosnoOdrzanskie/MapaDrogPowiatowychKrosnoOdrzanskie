@@ -864,7 +864,9 @@ paint:{
 
 /* start animation */
 
-START_PULSE_ANIMATION();
+map.once("idle", () => {
+    START_PULSE_ANIMATION();
+});
 
 }
   
@@ -872,4 +874,5 @@ START_PULSE_ANIMATION();
 
 </body>
 </html>
+
 
