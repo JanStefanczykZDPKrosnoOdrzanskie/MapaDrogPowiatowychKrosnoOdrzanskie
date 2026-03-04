@@ -273,8 +273,8 @@ MAP INSTANCE
 const map = new maplibregl.Map({
 
 maxBounds:[
-    [14, 51.5],
-    [15.75, 52.25]
+    [14, 51.6],
+    [15.75, 52.35]
 ],
   
 container:'map',
@@ -668,6 +668,9 @@ alert("Nie znaleziono drogi o ID: " + value);
 return;
 }
 
+const feature = features[0];
+HIGHLIGHT_FEATURE(feature);
+  
 const coords = features[0].geometry.coordinates;
 
 let bounds = new maplibregl.LngLatBounds();
@@ -688,10 +691,48 @@ duration:800
 }
 
 }
+
+  /* ===============================
+SEARCH HIGHLIGHT
+=============================== */
+
+function HIGHLIGHT_FEATURE(feature){
+
+/* usuń poprzedni highlight */
+
+if(map.getLayer("search_highlight_layer")){
+map.removeLayer("search_highlight_layer");
+}
+
+if(map.getSource("search_highlight_source")){
+map.removeSource("search_highlight_source");
+}
+
+/* dodaj nowe źródło */
+
+map.addSource("search_highlight_source",{
+type:"geojson",
+data:feature
+});
+
+/* dodaj warstwę nad wszystkimi */
+
+map.addLayer({
+id:"search_highlight_layer",
+type:"line",
+source:"search_highlight_source",
+paint:{
+"line-color":"#00FFFF",
+"line-width":8,
+"line-opacity":0.9
+}
+});
+}
 </script>
 
 </body>
 </html>
+
 
 
 
