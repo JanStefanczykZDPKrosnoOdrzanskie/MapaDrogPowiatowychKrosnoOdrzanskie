@@ -12,7 +12,7 @@ Sprawdź poprawność.
 <style>
 
 :root{
---legend-width:250px;
+--legend-width:275px;
 }
 
   
@@ -128,6 +128,55 @@ max-width:180px;
 height:auto;
 }
 
+/* ===============================
+SEARCH CONTROL
+=============================== */
+
+#searchButton{
+position:absolute;
+top:10px;
+right:calc(var(--legend-width) + 10px);
+z-index:60;
+width:42px;
+height:42px;
+background:white;
+border-radius:6px;
+box-shadow:0 2px 5px rgba(0,0,0,0.3);
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+font-size:18px;
+font-family:Arial,sans-serif;
+}
+
+#searchPanel{
+position:absolute;
+top:60px;
+right:calc(var(--legend-width) + 10px);
+z-index:60;
+width:260px;
+background:white;
+border-radius:8px;
+box-shadow:0 4px 10px rgba(0,0,0,0.3);
+padding:15px;
+display:none;
+font-family:Arial,sans-serif;
+}
+
+#searchPanel input{
+width:100%;
+padding:8px;
+margin-bottom:10px;
+box-sizing:border-box;
+}
+
+#searchPanel button{
+width:100%;
+padding:8px;
+cursor:pointer;
+}
+  
 </style>
 </head>
 
@@ -206,7 +255,14 @@ Standard 6
 </div> <!-- KONIEC legend -->
 
 <div id="map"></div>
+  
+<div id="searchButton">🔍</div>
 
+<div id="searchPanel">
+<input type="text" id="searchInput" placeholder="Wpisz ID drogi...">
+<button id="searchSubmit">Szukaj</button>
+</div>
+  
 <script>
 
 /* ===============================
@@ -216,8 +272,8 @@ MAP INSTANCE
 const map = new maplibregl.Map({
 
 maxBounds:[
-    [14, 51.75],
-    [15.75, 52.5]
+    [14, 51.5],
+    [15.75, 52.25]
 ],
   
 container:'map',
@@ -456,6 +512,8 @@ ZDP_LEGEND_INIT();
 
 CREATE_BASEMAP_BUTTONS(map);
 
+INIT_SEARCH();
+  
 /* timestamp */
 
 document.getElementById("updateOverlay").innerText =
@@ -574,11 +632,67 @@ source:"osm"
 /* ===============================
 INIT AFTER MAP LOAD
 =============================== */
-  
+/* ===============================
+SEARCH FUNCTIONALITY
+=============================== */
+
+function INIT_SEARCH(){
+
+const btn = document.getElementById("searchButton");
+const panel = document.getElementById("searchPanel");
+const input = document.getElementById("searchInput");
+const submit = document.getElementById("searchSubmit");
+
+btn.addEventListener("click",()=>{
+panel.style.display = panel.style.display === "block" ? "none" : "block";
+input.focus();
+});
+
+submit.addEventListener("click", EXECUTE_SEARCH);
+input.addEventListener("keypress", e=>{
+if(e.key === "Enter") EXECUTE_SEARCH();
+});
+
+function EXECUTE_SEARCH(){
+
+const value = input.value.trim();
+if(!value) return;
+
+const features = map.querySourceFeatures("zdp_roads",{
+filter:["==",["get","ID"],value]
+});
+
+if(!features.length){
+alert("Nie znaleziono drogi o ID: " + value);
+return;
+}
+
+const coords = features[0].geometry.coordinates;
+
+let bounds = new maplibregl.LngLatBounds();
+
+coords.forEach(segment=>{
+if(Array.isArray(segment[0])){
+segment.forEach(c=>bounds.extend(c));
+}else{
+bounds.extend(segment);
+}
+});
+
+map.fitBounds(bounds,{
+padding:50,
+maxZoom:16,
+duration:800
+});
+
+}
+
+}
 </script>
 
 </body>
 </html>
+
 
 
 
