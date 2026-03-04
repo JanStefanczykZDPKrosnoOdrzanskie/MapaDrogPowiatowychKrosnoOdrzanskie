@@ -720,94 +720,24 @@ duration:800
 
 }
 
-  /* ===============================
-SEARCH HIGHLIGHT
-=============================== */
-
-function HIGHLIGHT_FEATURE(feature){
-
-/* usuń poprzedni highlight */
-
-if(map.getLayer("search_highlight_layer")){
-map.removeLayer("search_highlight_layer");
-}
-
-if(map.getSource("search_highlight_source")){
-map.removeSource("search_highlight_source");
-}
-
-/* dodaj nowe źródło */
-
-map.addSource("search_highlight_source",{
-type:"geojson",
-data:feature
-});
-
-/* dodaj warstwę nad wszystkimi */
-
-map.addLayer({
-id:"search_highlight_layer",
-type:"line",
-source:"search_highlight_source",
-paint:{
-"line-color":"#00FFFF",
-"line-width":8,
-"line-opacity":0.9
-}
-});
-}
-
-function HIGHLIGHT_FEATURES_BY_ID(id){
-
-const features = ZDP_ALL_FEATURES.filter(
-f => f.properties?.ID === id
-);
-
-if(!features.length) return;
-
-/* usuń poprzedni highlight */
-
-if(map.getLayer("search_highlight_layer")){
-map.removeLayer("search_highlight_layer");
-}
-
-if(map.getSource("search_highlight_source")){
-map.removeSource("search_highlight_source");
-}
-
-/* GeoJSON MultiFeature wrapper */
-
-const geojson = {
-type:"FeatureCollection",
-features:features
-};
-
-map.addSource("search_highlight_source",{
-type:"geojson",
-data:geojson
-});
-
-map.addLayer({
-id:"search_highlight_layer",
-type:"line",
-source:"search_highlight_source",
-paint:{
-"line-color":"#00FFFF",
-"line-width":8,
-"line-opacity":0.9
-}
-});
-}
-
 function CLEAR_HIGHLIGHT(){
 
+STOP_PULSE_ANIMATION();
+
 if(map.getLayer("search_highlight_layer")){
 map.removeLayer("search_highlight_layer");
+}
+
+if(map.getLayer("search_pulse_layer")){
+map.removeLayer("search_pulse_layer");
 }
 
 if(map.getSource("search_highlight_source")){
 map.removeSource("search_highlight_source");
 }
+
+pulseGrowing = true;
+pulseRadius = 2;
 
 }
 /* ===============================
@@ -822,35 +752,26 @@ function START_PULSE_ANIMATION(){
 
 STOP_PULSE_ANIMATION();
 
-pulseRadius = 2;
+pulseRadius = 4;
+pulseGrowing = true;
 
 function animate(){
 
-const source = map.getSource("search_highlight_source");
-if(!source){
-pulseAnimationFrame = requestAnimationFrame(animate);
-return;
-}
-
-/* pulse oscillation */
+if(!map.getLayer("search_pulse_layer")) return;
 
 if(pulseGrowing){
-pulseRadius += 0.3;
-if(pulseRadius > 14) pulseGrowing = false;
+pulseRadius += 0.4;
+if(pulseRadius > 16) pulseGrowing = false;
 }else{
-pulseRadius -= 0.3;
+pulseRadius -= 0.4;
 if(pulseRadius < 4) pulseGrowing = true;
 }
 
-/* update layer paint */
-
-if(map.getLayer("search_pulse_layer")){
 map.setPaintProperty(
 "search_pulse_layer",
 "line-width",
 pulseRadius
 );
-}
 
 pulseAnimationFrame = requestAnimationFrame(animate);
 }
@@ -951,3 +872,4 @@ START_PULSE_ANIMATION();
 
 </body>
 </html>
+
