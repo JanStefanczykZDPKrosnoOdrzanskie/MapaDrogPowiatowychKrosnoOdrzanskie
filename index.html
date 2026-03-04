@@ -747,7 +747,6 @@ PULSE HIGHLIGHT ANIMATION
 let pulseAnimationFrame = null;
 let pulseRadius = 0;
 let pulseGrowing = true;
-
 function START_PULSE_ANIMATION(){
 
 STOP_PULSE_ANIMATION();
@@ -757,11 +756,14 @@ pulseGrowing = true;
 
 function animate(){
 
-if(!map.getLayer("search_pulse_layer")) return;
+if(!map.getLayer("search_pulse_layer")){
+pulseAnimationFrame = requestAnimationFrame(animate);
+return;
+}
 
 if(pulseGrowing){
 pulseRadius += 0.4;
-if(pulseRadius > 16) pulseGrowing = false;
+if(pulseRadius > 18) pulseGrowing = false;
 }else{
 pulseRadius -= 0.4;
 if(pulseRadius < 4) pulseGrowing = true;
@@ -776,7 +778,7 @@ pulseRadius
 pulseAnimationFrame = requestAnimationFrame(animate);
 }
 
-animate();
+pulseAnimationFrame = requestAnimationFrame(animate);
 }
 
 function STOP_PULSE_ANIMATION(){
@@ -874,5 +876,6 @@ map.once("idle", () => {
 
 </body>
 </html>
+
 
 
