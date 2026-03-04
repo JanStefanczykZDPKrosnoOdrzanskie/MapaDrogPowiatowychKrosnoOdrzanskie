@@ -1,4 +1,3 @@
-Sprawdź poprawność.
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -265,6 +264,8 @@ Standard 6
   
 <script>
 
+let ZDP_ALL_FEATURES = [];
+  
 /* ===============================
 MAP INSTANCE
 =============================== */
@@ -328,6 +329,8 @@ features:[
 ]
 };
 
+ZDP_ALL_FEATURES = merged_roads.features;
+  
 if(map.getSource("zdp_roads")){
 map.removeSource("zdp_roads");
 }
@@ -658,9 +661,7 @@ function EXECUTE_SEARCH(){
 const value = input.value.trim();
 if(!value) return;
 
-const features = map.querySourceFeatures("zdp_roads",{
-filter:["==",["get","ID"],value]
-});
+const features = ZDP_ALL_FEATURES.filter(f => f.properties?.ID === value);
 
 if(!features.length){
 alert("Nie znaleziono drogi o ID: " + value);
@@ -680,8 +681,7 @@ bounds.extend(segment);
 });
 
 map.fitBounds(bounds,{
-padding:50,
-maxZoom:16,
+padding:80,
 duration:800
 });
 
@@ -692,6 +692,7 @@ duration:800
 
 </body>
 </html>
+
 
 
 
