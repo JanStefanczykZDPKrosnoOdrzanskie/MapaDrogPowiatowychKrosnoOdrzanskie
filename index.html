@@ -452,12 +452,12 @@ ADMINISTRATIVE LAYERS RENDER
 
 function ZDP_RENDER_ADMIN_STYLES(map){
 
-ADD_FILTER_LAYER(map,"layer_grn_powiat","admin_boundaries",["==",["get","GRN"],1],"#FF4500",3, true);
-ADD_FILTER_LAYER(map,"layer_grn_gmina","admin_boundaries",["==",["get","GRN"],2],"#32CD32",3, true);
-ADD_FILTER_LAYER(map,"layer_grn_miasto","admin_boundaries",["==",["get","GRN"],3],"#1E90FF",3, true);
+ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#FF4500",3, true);
+ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#32CD32",3, false);
+ADD_FILTER_LAYER(map,"layer_grn_3","admin_boundaries",["==",["get","GRN"],3],"#1E90FF",3, false);
 
-ADD_FILTER_LAYER(map,"layer_ew_jednostki","admin_boundaries",["==",["get","EW"],1],"#FFD700",2, true);
-ADD_FILTER_LAYER(map,"layer_ew_obreby","admin_boundaries",["==",["get","EW"],2],"#FF69B4",2, true);
+ADD_FILTER_LAYER(map,"layer_ew_1","admin_boundaries",["==",["get","EW"],1],"#FFD700",2, false);
+ADD_FILTER_LAYER(map,"layer_ew_2","admin_boundaries",["==",["get","EW"],2],"#FF69B4",2, false);
 
 }
 
@@ -966,6 +966,7 @@ map.once("idle", () => {
 
 </body>
 </html>
+
 
 
 
