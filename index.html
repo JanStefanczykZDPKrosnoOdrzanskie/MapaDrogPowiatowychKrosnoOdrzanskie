@@ -185,7 +185,7 @@ cursor:pointer;
 
 <div id="legendContent"> 
   
-<div id="updateOverlay">Aktualizacja 1: --</div>
+<div id="updateOverlay">Aktualizacja: --</div>
 
 <h2>Opcje Wyświetlania</h2>
   
@@ -244,6 +244,41 @@ Standard 4
 <span class="legend-line" style="background:#A1A1A1"></span>
 Standard 6
 </label>
+</div>
+
+<div class="legend-section">
+<h3>Granice Administracyjne</h3>
+
+<label>
+<input type="checkbox" data-layers="layer_grn_1" checked>
+<span class="legend-line" style="background:#000000"></span>
+Granica Powiatu
+</label>
+
+<label>
+<input type="checkbox" data-layers="layer_grn_2" checked>
+<span class="legend-line" style="background:#4444FF"></span>
+Granica Gminy
+</label>
+
+<label>
+<input type="checkbox" data-layers="layer_grn_3" checked>
+<span class="legend-line" style="background:#00AAAA"></span>
+Granica Miasta
+</label>
+
+<label>
+<input type="checkbox" data-layers="layer_ew_1">
+<span class="legend-line" style="background:#FF8800"></span>
+Jednostki Ewidencyjne
+</label>
+
+<label>
+<input type="checkbox" data-layers="layer_ew_2">
+<span class="legend-line" style="background:#AA00FF"></span>
+Obręby Ewidencyjne
+</label>
+
 </div>
 </div> <!-- KONIEC legendContent -->
   
@@ -931,6 +966,7 @@ map.once("idle", () => {
 
 </body>
 </html>
+
 
 
 
