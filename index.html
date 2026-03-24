@@ -175,13 +175,42 @@ width:100%;
 padding:8px;
 cursor:pointer;
 }
+
+/* ===============================
+LEGEND CONTROL
+=============================== */
   
+#legendToggle{
+position:absolute;
+left:-30px;
+top:50%;
+transform:translateY(-50%);
+width:30px;
+height:60px;
+background:white;
+border:1px solid #ccc;
+border-right:none;
+cursor:pointer;
+box-shadow:-2px 0 5px rgba(0,0,0,0.2);
+z-index:100;
+}
+
+#legend.collapsed{
+transform:translateX(var(--legend-width));
+}
+
+#legend{
+transition:transform 0.3s ease;
+}
+
 </style>
 </head>
 
 <body>
 
 <div id="legend">
+
+<button id="legendToggle">⮜</button>
 
 <div id="legendContent"> 
   
@@ -963,7 +992,21 @@ map.once("idle", () => {
 });
 
 }
-  
+/* ===============================
+LEGEND COLAPSE
+=============================== */
+const legend = document.getElementById("legend");
+const btn = document.getElementById("legendToggle");
+
+btn.addEventListener("click", () => {
+  legend.classList.toggle("collapsed");
+
+  if (legend.classList.contains("collapsed")) {
+    btn.innerHTML = "⮞";
+  } else {
+    btn.innerHTML = "⮜";
+  }
+});
 </script>
 
 </body>
