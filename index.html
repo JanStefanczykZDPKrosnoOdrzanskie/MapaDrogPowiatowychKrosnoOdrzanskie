@@ -257,25 +257,28 @@ Granica Powiatu
 
 <label>
 <input type="checkbox" data-layers="layer_grn_2" checked>
-<span class="legend-line" style="background:#4444FF"></span>
+<span class="legend-line" style="background:#555555"></span>
 Granica Gminy
 </label>
 
 <label>
 <input type="checkbox" data-layers="layer_grn_3" checked>
-<span class="legend-line" style="background:#00AAAA"></span>
+<span class="legend-line" style="background:#999999"></span>
 Granica Miasta
 </label>
 
+<div class="legend-section">
+<h3>Ewidencja Gruntów</h3>
+  
 <label>
 <input type="checkbox" data-layers="layer_ew_1">
-<span class="legend-line" style="background:#FF8800"></span>
+<span class="legend-line" style="background:#0066CC"></span>
 Jednostki Ewidencyjne
 </label>
 
 <label>
 <input type="checkbox" data-layers="layer_ew_2">
-<span class="legend-line" style="background:#AA00FF"></span>
+<span class="legend-line" style="background:#66B2FF"></span>
 Obręby Ewidencyjne
 </label>
 
@@ -451,14 +454,12 @@ ADMINISTRATIVE LAYERS RENDER
 =============================== */
 
 function ZDP_RENDER_ADMIN_STYLES(map){
-
-ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#FF4500",3, true);
-ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#32CD32",3, false);
-ADD_FILTER_LAYER(map,"layer_grn_3","admin_boundaries",["==",["get","GRN"],3],"#1E90FF",3, false);
-
-ADD_FILTER_LAYER(map,"layer_ew_1","admin_boundaries",["==",["get","EW"],1],"#FFD700",2, false);
-ADD_FILTER_LAYER(map,"layer_ew_2","admin_boundaries",["==",["get","EW"],2],"#FF69B4",2, false);
-
+ADD_FILTER_LAYER(map,"layer_ew_2","admin_boundaries",["==",["get","EW"],2],"#66B2FF",2, false);
+ADD_FILTER_LAYER(map,"layer_ew_1","admin_boundaries",["==",["get","EW"],1],"#0066CC",2, false);
+  
+ADD_FILTER_LAYER(map,"layer_grn_3","admin_boundaries",["==",["get","GRN"],3],"#999999",1, false);
+ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#555555",1,false);
+ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#000000",2, true);
 }
 
 /* ===============================
