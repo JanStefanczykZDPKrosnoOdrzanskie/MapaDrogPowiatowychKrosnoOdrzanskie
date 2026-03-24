@@ -415,7 +415,7 @@ ADMINISTRATIVE BOUNDARIES LOAD
 try{
 
 const admin_files = await Promise.all([
-fetch("GRN_Powiat.json").then(r=>r.json()),
+fetch("GRN_Powiat.geojson").then(r=>r.json()),
 fetch("GRN_Gminy.geojson").then(r=>r.json()),
 fetch("GRN_Miasta.geojson").then(r=>r.json()),
 fetch("EW_Jednostki.geojson").then(r=>r.json()),
