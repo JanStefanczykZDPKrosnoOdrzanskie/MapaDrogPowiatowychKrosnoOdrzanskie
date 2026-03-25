@@ -57,8 +57,13 @@ top:0;
 bottom:0;
 left:0;
 right:var(--legend-width);
+transition:right 0.3s ease;
 }
 
+body.legend-collapsed #map{
+right:0;
+}
+  
 #legend{
 position:absolute;
 top:0;
@@ -71,6 +76,11 @@ display:flex;
 flex-direction:column;
 z-index:50;
 font-family:Arial,sans-serif;
+transition:transform 0.3s ease;
+}
+
+body.legend-collapsed #legend{
+transform:translateX(100%);
 }
 
 #legend h2{
@@ -147,8 +157,13 @@ justify-content:center;
 cursor:pointer;
 font-size:18px;
 font-family:Arial,sans-serif;
+transition:right 0.3s ease;
 }
 
+body.legend-collapsed #searchButton{
+right:10px;
+}
+ 
 #searchPanel{
 position:absolute;
 top:60px;
@@ -161,6 +176,11 @@ box-shadow:0 4px 10px rgba(0,0,0,0.3);
 padding:15px;
 display:none;
 font-family:Arial,sans-serif;
+transition:right 0.3s ease;
+}
+
+body.legend-collapsed #searchPanel{
+right:10px;
 }
 
 #searchPanel input{
@@ -999,13 +1019,15 @@ const legend = document.getElementById("legend");
 const btn = document.getElementById("legendToggle");
 
 btn.addEventListener("click", () => {
-  legend.classList.toggle("collapsed");
 
-  if (legend.classList.contains("collapsed")) {
-    btn.innerHTML = "⮞";
-  } else {
-    btn.innerHTML = "⮜";
-  }
+document.body.classList.toggle("legend-collapsed");
+
+if (document.body.classList.contains("legend-collapsed")) {
+  btn.innerHTML = "⮜";
+} else {
+  btn.innerHTML = "⮞";
+}
+
 });
 </script>
 
