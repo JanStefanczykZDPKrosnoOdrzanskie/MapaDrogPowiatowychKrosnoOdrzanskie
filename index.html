@@ -1028,6 +1028,10 @@ if (document.body.classList.contains("legend-collapsed")) {
   btn.innerHTML = "⮞";
 }
 
+setTimeout(() => {
+  map.resize();
+}, 300);
+
 });
 </script>
 
