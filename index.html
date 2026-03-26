@@ -63,7 +63,7 @@ z-index:1;
 #legend{
 position:absolute;
 top:0;
-left:0;
+right:0;
 width:var(--legend-width);
 height:100vh;
 background:white;
@@ -73,6 +73,7 @@ flex-direction:column;
 z-index:50;
 font-family:Arial,sans-serif;
 transition:transform 0.3s ease;
+transform:translateX(0); 
 }
 
 body.legend-collapsed #legend{
@@ -1023,10 +1024,6 @@ if (document.body.classList.contains("legend-collapsed")) {
 } else {
   btn.innerHTML = "⮞";
 }
-
-setTimeout(() => {
-  map.resize();
-}, 300);
 
 });
 </script>
