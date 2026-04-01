@@ -414,7 +414,7 @@ MAP INSTANCE
 =============================== */
 
 const map = new maplibregl.Map({
-
+attributionControl: false,
 maxBounds:[
     [14, 51.6],
     [15.75, 52.35]
@@ -1131,13 +1131,6 @@ document.querySelectorAll(".section-toggle").forEach(toggle=>{
 });
 
 // kontrybucja  
-function SET_MAPLIBRE_ATTRIBUTION(){
-
-document.getElementById("mapAttribution").innerHTML =
-'© <a href="https://maplibre.org/" target="_blank">MapLibre</a>';
-
-} 
-
 function UPDATE_BASEMAP_ATTRIBUTION(){
 
 const cfg = BASE_MAPS[CURRENT_BASEMAP];
