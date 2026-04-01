@@ -91,6 +91,13 @@ margin-bottom:25px;
 .legend-section h3{
 margin-bottom:10px;
 font-size:16px;
+cursor:pointer;
+display:flex;
+justify-content:space-between;
+align-items:center;
+user-select:none;
+margin-left:10px;
+cursor:pointer;
 }
 
 #legend label{
@@ -211,14 +218,6 @@ box-shadow:-2px 0 5px rgba(0,0,0,0.2);
 z-index:100;
 }
 
-.legend-section h3{
-cursor:pointer;
-display:flex;
-justify-content:space-between;
-align-items:center;
-user-select:none;
-}
-
 .legend-items{
 max-height:500px;
 overflow:hidden;
@@ -258,30 +257,33 @@ transform:rotate(-90deg);
 <h2>Opcje Wyświetlania</h2>
   
 <div class="legend-section collapsed">
-  <h3>Administracja Dróg</h3>
+  <h3>
+    Administracja Dróg
+    <input type="checkbox" class="section-toggle" data-group="adm">
+  </h3>
 
   <div class="legend-items">
 
   <label>
-  <input type="checkbox" data-layers="layer_adm_1" checked>
+  <input type="checkbox" data-layers="layer_adm_1" data-group="adm" checked>
   <span class="legend-line" style="background:#FF0000"></span>
   Droga Krajowa
   </label>
 
   <label>
-  <input type="checkbox" data-layers="layer_adm_2" checked>
+  <input type="checkbox" data-layers="layer_adm_2" data-group="adm" checked>
   <span class="legend-line" style="background:#08FF00"></span>
   Droga Wojewódzka
   </label>
 
   <label>
-  <input type="checkbox" data-layers="layer_adm_3" checked>
+  <input type="checkbox" data-layers="layer_adm_3" data-group="adm" checked>
   <span class="legend-line" style="background:#A500AD"></span>
   Droga Powiatowa
   </label>
 
     <label>
-  <input type="checkbox" data-layers="layer_adm_4">
+  <input type="checkbox" data-layers="layer_adm_4" data-group="adm">
   <span class="legend-line" style="background:#808080"></span>
   Droga Gminna
   </label>
@@ -360,7 +362,7 @@ transform:rotate(-90deg);
   </div>
 </div>
   
-</div> ### KONIEC LEGENDY
+</div> <!-- KONIEC LEGENDY -->
   
 <div id="legendLogo">
 <img src="Logo ZDP.png" alt="ZDP Logo">
@@ -1058,12 +1060,51 @@ if (document.body.classList.contains("legend-collapsed")) {
 });
 
 document.querySelectorAll(".legend-section h3").forEach(header=>{
-  header.addEventListener("click", ()=>{
+  header.addEventListener("click", (e)=>{
+
+    if(e.target.tagName === "INPUT") return;
 
     const section = header.parentElement;
     section.classList.toggle("collapsed");
 
   });
+});
+
+document.querySelectorAll(".section-toggle").forEach(toggle=>{
+
+  toggle.addEventListener("click", e=>{
+    
+    // blokada rozwijanie sekcji
+    e.stopPropagation();
+
+    const group = toggle.dataset.group;
+    const checked = toggle.checked;
+
+    const inputs = document.querySelectorAll(
+      `.legend-section input[data-group="${group}"]:not(.section-toggle)`
+    );
+
+    inputs.forEach(input=>{
+      input.checked = checked;
+
+      const layers = input.dataset.layers.split(',');
+
+      layers.forEach(layerId=>{
+        if(!map.getLayer(layerId)) return;
+
+        map.setLayoutProperty(
+          layerId,
+          'visibility',
+          checked ? 'visible' : 'none'
+        );
+      });
+
+    });
+
+    UPDATE_LABEL_FILTER();
+
+  });
+
 });
   
 </script>
