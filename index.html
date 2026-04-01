@@ -239,7 +239,19 @@ transition:transform 0.3s ease;
 .legend-section.collapsed h3::after{
 transform:rotate(-90deg);
 }
-  
+
+/* kontrybucja */
+#mapAttribution{
+position:absolute;
+bottom:10px;
+left:calc(var(--legend-width) + 10px);
+z-index:80;
+background:white;
+padding:4px 8px;
+font-size:12px;
+border-radius:4px;
+box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}  
 </style>
 </head>
 
@@ -253,7 +265,7 @@ transform:rotate(-90deg);
   
 <div id="updateOverlay">Aktualizacja: --</div>
 
-<h2>Opcje Wyświetlania</h2>
+<h2>Legenda</h2>
   
 <div class="legend-section collapsed">
   <h3>
@@ -379,6 +391,8 @@ transform:rotate(-90deg);
 </div> <!-- KONIEC legend -->
 
 <div id="map"></div>
+
+<div id="mapAttribution"></div>
   
 <div id="searchButton">🔍</div>
 
@@ -694,6 +708,8 @@ INIT_SEARCH();
 document.getElementById("updateOverlay").innerText =
 "Aktualizacja: " + new Date().toLocaleString("pl-PL");
 
+/* kontrybucja */
+SET_MAPLIBRE_ATTRIBUTION();
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
@@ -722,14 +738,6 @@ tiles:[
 tileSize:256,
 attribution:'© OpenStreetMap contributors © CARTO'
 },
-
-"High Contrast Toner":{
-tiles:[
-"https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png"
-],
-tileSize:256,
-attribution:'Map tiles by Stamen Design, CC BY 3.0 — Data © OpenStreetMap contributors'
-}
 
 };
 
@@ -1114,7 +1122,14 @@ document.querySelectorAll(".section-toggle").forEach(toggle=>{
   });
 
 });
-  
+
+// kontrybucja  
+function SET_MAPLIBRE_ATTRIBUTION(){
+
+document.getElementById("mapAttribution").innerHTML =
+'© <a href="https://maplibre.org/" target="_blank">MapLibre</a>';
+
+}  
 </script>
 
 </body>
