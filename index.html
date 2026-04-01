@@ -13,7 +13,6 @@
 :root{
 --legend-width:275px;
 }
-
   
 #basemapButtons{
 position:absolute;
@@ -212,6 +211,37 @@ box-shadow:-2px 0 5px rgba(0,0,0,0.2);
 z-index:100;
 }
 
+.legend-section h3{
+cursor:pointer;
+display:flex;
+justify-content:space-between;
+align-items:center;
+user-select:none;
+}
+
+.legend-items{
+max-height:500px;
+overflow:hidden;
+transition:max-height 0.3s ease;
+}
+
+/* zamknięte */
+.legend-section.collapsed .legend-items{
+max-height:0;
+}
+
+/* strzałka */
+.legend-section h3::after{
+content:"▼";
+font-size:12px;
+transition:transform 0.3s ease;
+}
+
+/* obrót strzałki */
+.legend-section.collapsed h3::after{
+transform:rotate(-90deg);
+}
+  
 </style>
 </head>
 
@@ -219,7 +249,7 @@ z-index:100;
 
 <div id="legend">
 
-<button id="legendToggle">⮜</button>
+<button id="legendToggle">⮞</button>
 
 <div id="legendContent"> 
   
@@ -227,102 +257,110 @@ z-index:100;
 
 <h2>Opcje Wyświetlania</h2>
   
-<div class="legend-section">
-<h3>Administracja Dróg</h3>
+<div class="legend-section collapsed">
+  <h3>Administracja Dróg</h3>
 
-<label>
-<input type="checkbox" data-layers="layer_adm_1" checked>
-<span class="legend-line" style="background:#FF0000"></span>
-Droga Krajowa
-</label>
-
-<label>
-<input type="checkbox" data-layers="layer_adm_2" checked>
-<span class="legend-line" style="background:#08FF00"></span>
-Droga Wojewódzka
-</label>
-
-<label>
-<input type="checkbox" data-layers="layer_adm_3" checked>
-<span class="legend-line" style="background:#A500AD"></span>
-Droga Powiatowa
-</label>
+  <div class="legend-items">
 
   <label>
-<input type="checkbox" data-layers="layer_adm_4">
-<span class="legend-line" style="background:#808080"></span>
-Droga Gminna
-</label>
+  <input type="checkbox" data-layers="layer_adm_1" checked>
+  <span class="legend-line" style="background:#FF0000"></span>
+  Droga Krajowa
+  </label>
 
+  <label>
+  <input type="checkbox" data-layers="layer_adm_2" checked>
+  <span class="legend-line" style="background:#08FF00"></span>
+  Droga Wojewódzka
+  </label>
+
+  <label>
+  <input type="checkbox" data-layers="layer_adm_3" checked>
+  <span class="legend-line" style="background:#A500AD"></span>
+  Droga Powiatowa
+  </label>
+
+    <label>
+  <input type="checkbox" data-layers="layer_adm_4">
+  <span class="legend-line" style="background:#808080"></span>
+  Droga Gminna
+  </label>
+  </div>
 </div>
 
-<div class="legend-section">
-<h3>Zimowe Utrzymanie Dróg</h3> 
+<div class="legend-section collapsed">
+  <h3>Zimowe Utrzymanie Dróg</h3>
   
-<label>
-<input type="checkbox" data-layers="layer_zud_2">
-<span class="legend-line" style="background:#FFEE00"></span>
-Standard 2
-</label>
+  <div class="legend-items">  
+  <label>
+  <input type="checkbox" data-layers="layer_zud_2">
+  <span class="legend-line" style="background:#FFEE00"></span>
+  Standard 2
+  </label>
 
-<label>
-<input type="checkbox" data-layers="layer_zud_3">
-<span class="legend-line" style="background:#00FFFF"></span>
-Standard 3
-</label>
+  <label>
+  <input type="checkbox" data-layers="layer_zud_3">
+  <span class="legend-line" style="background:#00FFFF"></span>
+  Standard 3
+  </label>
 
-<label>
-<input type="checkbox" data-layers="layer_zud_4">
-<span class="legend-line" style="background:#FA9EFF"></span>
-Standard 4
-</label>
+  <label>
+  <input type="checkbox" data-layers="layer_zud_4">
+  <span class="legend-line" style="background:#FA9EFF"></span>
+  Standard 4
+  </label>
 
-<label>
-<input type="checkbox" data-layers="layer_zud_6">
-<span class="legend-line" style="background:#A1A1A1"></span>
-Standard 6
-</label>
-</div>
-
-<div class="legend-section">
-<h3>Granice Administracyjne</h3>
-
-<label>
-<input type="checkbox" data-layers="layer_grn_1" checked>
-<span class="legend-line" style="background:#000000"></span>
-Granica Powiatu
-</label>
-
-<label>
-<input type="checkbox" data-layers="layer_grn_2" checked>
-<span class="legend-line" style="background:#555555"></span>
-Granica Gminy
-</label>
-
-<label>
-<input type="checkbox" data-layers="layer_grn_3" checked>
-<span class="legend-line" style="background:#999999"></span>
-Granica Miasta
-</label>
+  <label>
+  <input type="checkbox" data-layers="layer_zud_6">
+  <span class="legend-line" style="background:#A1A1A1"></span>
+  Standard 6
+  </label>
+  </div>
 </div>
   
-<div class="legend-section">
-<h3>Ewidencja Gruntów</h3>
+<div class="legend-section collapsed">
+  <h3>Granice Administracyjne</h3>
   
-<label>
-<input type="checkbox" data-layers="layer_ew_1">
-<span class="legend-line" style="background:#0066CC"></span>
-Jednostki Ewidencyjne
-</label>
+  <div class="legend-items">
+  <label>
+  <input type="checkbox" data-layers="layer_grn_1" checked>
+  <span class="legend-line" style="background:#000000"></span>
+  Granica Powiatu
+  </label>
 
-<label>
-<input type="checkbox" data-layers="layer_ew_2">
-<span class="legend-line" style="background:#66B2FF"></span>
-Obręby Ewidencyjne
-</label>
+  <label>
+  <input type="checkbox" data-layers="layer_grn_2" checked>
+  <span class="legend-line" style="background:#555555"></span>
+  Granica Gminy
+  </label>
 
+  <label>
+  <input type="checkbox" data-layers="layer_grn_3" checked>
+  <span class="legend-line" style="background:#999999"></span>
+  Granica Miasta
+  </label>
+  </div>
 </div>
-</div> <!-- KONIEC legendContent -->
+  
+<div class="legend-section collapsed">
+  <h3>Ewidencja Gruntów</h3>
+  
+  <div class="legend-items">  
+  <label>
+  <input type="checkbox" data-layers="layer_ew_1">
+  <span class="legend-line" style="background:#0066CC"></span>
+  Jednostki Ewidencyjne
+  </label>
+
+  <label>
+  <input type="checkbox" data-layers="layer_ew_2">
+  <span class="legend-line" style="background:#66B2FF"></span>
+  Obręby Ewidencyjne
+  </label>
+  </div>
+</div>
+  
+</div> ### KONIEC LEGENDY
   
 <div id="legendLogo">
 <img src="Logo ZDP.png" alt="ZDP Logo">
@@ -1018,16 +1056,17 @@ if (document.body.classList.contains("legend-collapsed")) {
 }
 
 });
+
+document.querySelectorAll(".legend-section h3").forEach(header=>{
+  header.addEventListener("click", ()=>{
+
+    const section = header.parentElement;
+    section.classList.toggle("collapsed");
+
+  });
+});
+  
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
