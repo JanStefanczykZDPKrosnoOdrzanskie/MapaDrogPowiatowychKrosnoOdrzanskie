@@ -9,301 +9,258 @@
 <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
 
 <style>
-
 :root{
 --legend-width:275px;
 }
-  
 #basemapButtons{
-position:absolute;
-top:10px;
-left:10px;
-display:flex;
-gap:10px;
-z-index:60;
+  position:absolute;
+  top:10px;
+  left:10px;
+  display:flex;
+  gap:10px;
+  z-index:60;
 }
-
 .basemap-btn{
-padding:10px 18px;
-background:white;
-border-radius:6px;
-box-shadow:0 2px 5px rgba(0,0,0,0.3);
-cursor:pointer;
-font-family:Arial,sans-serif;
-font-size:14px;
-transition:all 0.2s ease;
+  padding:10px 18px;
+  background:white;
+  border-radius:6px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.3);
+  cursor:pointer;
+  font-family:Arial,sans-serif;
+  font-size:14px;
+  transition:all 0.2s ease;
 }
-
 .basemap-btn:hover{
-background:#f2f2f2;
+  background:#f2f2f2;
 }
-
 .basemap-btn.active{
-background:#2c3e50;
-color:white;
+  background:#2c3e50;
+  color:white;
 }
-  
 body{
-margin:0;
-padding:0;
-overflow:hidden;
-height:100vh
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  height:100vh
 }
-
 #map{
-position:absolute;
-top:0;
-bottom:0;
-left:0;
-right:0;
-z-index:1;
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:1;
 }
-  
 #legend{
-position:absolute;
-top:0;
-right:0;
-width:var(--legend-width);
-height:100vh;
-background:white;
-box-shadow:-3px 0 6px rgba(0,0,0,0.2);
-display:flex;
-flex-direction:column;
-z-index:50;
-font-family:Arial,sans-serif;
-transition:transform 0.3s ease;
-transform:translateX(0); 
+  position:absolute;
+  top:0;
+  right:0;
+  width:var(--legend-width);
+  height:100vh;
+  background:white;
+  box-shadow:-3px 0 6px rgba(0,0,0,0.2);
+  display:flex;
+  flex-direction:column;
+  z-index:50;
+  font-family:Arial,sans-serif;
+  transition:transform 0.3s ease;
+  transform:translateX(0); 
 }
-
 body.legend-collapsed #legend{
-transform:translateX(100%);
+  transform:translateX(100%);
 }
-
 #legend h2{
-margin-top:0;
-margin-bottom:20px;
+  margin-top:0;
+  margin-bottom:20px;
 }
-
 .legend-section{
-margin-bottom:25px;
+  margin-bottom:25px;
 }
-
 .legend-section h3{
-margin-bottom:10px;
-font-size:16px;
-cursor:pointer;
-display:flex;
-align-items:center;
-gap:8px;
-user-select:none;
-margin-left:10px;
+  margin-bottom:10px;
+  font-size:16px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  user-select:none;
+  margin-left:10px;
 }
-
 #legend label{
-display:block;
-margin-bottom:10px;
-cursor:pointer;
+  display:block;
+  margin-bottom:10px;
+  cursor:pointer;
 }
-
 .legend-line{
-display:inline-block;
-width:40px;
-height:4px;
-margin-right:8px;
-vertical-align:middle;
+  display:inline-block;
+  width:40px;
+  height:4px;
+  margin-right:8px;
+  vertical-align:middle;
 }
-
 #updateOverlay{
-margin-bottom:20px;
-padding:8px;
-background:#f2f2f2;
-border-radius:5px;
-font-size:13px;
+  margin-bottom:20px;
+  padding:8px;
+  background:#f2f2f2;
+  border-radius:5px;
+  font-size:13px;
 }
-
 #legendContent{
-flex:1;
-overflow-y:auto;
-padding:20px;
+  flex:1;
+  overflow-y:auto;
+  padding:20px;
 }
-  
 #legendLogo{
-padding:15px;
-text-align:center;
-border-top:1px solid #ddd;
-flex-shrink:0;
+  padding:15px;
+  text-align:center;
+  border-top:1px solid #ddd;
+  flex-shrink:0;
 }
-
 #legendLogo img{
-max-width:180px;
-height:auto;
+  max-width:180px;
+  height:auto;
 }
-
 /* ===============================
 SEARCH CONTROL
 =============================== */
-
 #searchButton{
-position:absolute;
-top:10px;
-right:calc(var(--legend-width) + 10px);
-z-index:60;
-width:42px;
-height:42px;
-background:white;
-border-radius:6px;
-box-shadow:0 2px 5px rgba(0,0,0,0.3);
-display:flex;
-align-items:center;
-justify-content:center;
-cursor:pointer;
-font-size:18px;
-font-family:Arial,sans-serif;
-transition:right 0.3s ease;
+  position:absolute;
+  top:10px;
+  right:calc(var(--legend-width) + 10px);
+  z-index:60;
+  width:42px;
+  height:42px;
+  background:white;
+  border-radius:6px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:18px;
+  font-family:Arial,sans-serif;
+  transition:right 0.3s ease;
 }
-
 body.legend-collapsed #searchButton{
-right:10px;
+  right:10px;
 }
- 
 #searchPanel{
-position:absolute;
-top:60px;
-right:calc(var(--legend-width) + 10px);
-z-index:60;
-width:260px;
-background:white;
-border-radius:8px;
-box-shadow:0 4px 10px rgba(0,0,0,0.3);
-padding:15px;
-display:none;
-font-family:Arial,sans-serif;
-transition:right 0.3s ease;
+  position:absolute;
+  top:60px;
+  right:calc(var(--legend-width) + 10px);
+  z-index:60;
+  width:260px;
+  background:white;
+  border-radius:8px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  padding:15px;
+  display:none;
+  font-family:Arial,sans-serif;
+  transition:right 0.3s ease;
 }
-
 body.legend-collapsed #searchPanel{
-right:10px;
+  right:10px;
 }
-
 #searchPanel input{
-width:100%;
-padding:8px;
-margin-bottom:10px;
-box-sizing:border-box;
+  width:100%;
+  padding:8px;
+  margin-bottom:10px;
+  box-sizing:border-box;
 }
-
 #searchPanel button{
-width:100%;
-padding:8px;
-cursor:pointer;
+  width:100%;
+  padding:8px;
+  cursor:pointer;
 }
-
 /* ===============================
 LEGEND CONTROL
 =============================== */
-  
 #legendToggle{
-position:absolute;
-left:-30px;
-top:50%;
-transform:translateY(-50%);
-width:30px;
-height:60px;
-background:white;
-border:1px solid #ccc;
-border-right:none;
-cursor:pointer;
-box-shadow:-2px 0 5px rgba(0,0,0,0.2);
-z-index:100;
+  position:absolute;
+  left:-30px;
+  top:50%;
+  transform:translateY(-50%);
+  width:30px;
+  height:60px;
+  background:white;
+  border:1px solid #ccc;
+  border-right:none;
+  cursor:pointer;
+  box-shadow:-2px 0 5px rgba(0,0,0,0.2);
+  z-index:100;
 }
-
 .legend-items{
-max-height:500px;
-overflow:hidden;
-transition:max-height 0.3s ease;
+  max-height:500px;
+  overflow:hidden;
+  transition:max-height 0.3s ease;
 }
-
 /* zamknięte */
 .legend-section.collapsed .legend-items{
-max-height:0;
+  max-height:0;
 }
-
 /* strzałka */
 .legend-section h3::after{
-content:"▼";
-font-size:12px;
-transition:transform 0.3s ease;
+  content:"▼";
+  font-size:12px;
+  transition:transform 0.3s ease;
 }
-
 /* obrót strzałki */
 .legend-section.collapsed h3::after{
-transform:rotate(-90deg);
+  transform:rotate(-90deg);
 }
-
 /* kontrybucja */
 #mapAttribution{
-position:absolute;
-bottom:10px;
-right:calc(var(--legend-width) + 10px);
-z-index:80;
-background:white;
-padding:4px 8px;
-font-size:12px;
-border-radius:4px;
-box-shadow:0 1px 4px rgba(0,0,0,0.3);
-transition:right 0.3s ease;
+  position:absolute;
+  bottom:10px;
+  right:calc(var(--legend-width) + 10px);
+  z-index:80;
+  background:white;
+  padding:4px 8px;
+  font-size:12px;
+  border-radius:4px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.3);
+  transition:right 0.3s ease;
 }
 body.legend-collapsed #mapAttribution{
-right:10px;
+  right:10px;
 }
 </style>
 </head>
 
 <body>
-
 <div id="legend">
-
-<button id="legendToggle">⮞</button>
-
-<div id="legendContent"> 
-  
-<div id="updateOverlay">Aktualizacja: --</div>
-
-<h2>Legenda</h2>
-  
-<div class="legend-section collapsed">
-  <h3>
-    <input type="checkbox" class="section-toggle" data-group="adm">
-    Administracja Dróg
-  </h3>
-
-  <div class="legend-items">
-
-  <label>
-  <input type="checkbox" data-layers="layer_adm_1" data-group="adm" checked>
-  <span class="legend-line" style="background:#FF0000"></span>
-  Droga Krajowa
-  </label>
-
-  <label>
-  <input type="checkbox" data-layers="layer_adm_2" data-group="adm" checked>
-  <span class="legend-line" style="background:#08FF00"></span>
-  Droga Wojewódzka
-  </label>
-
-  <label>
-  <input type="checkbox" data-layers="layer_adm_3" data-group="adm" checked>
-  <span class="legend-line" style="background:#A500AD"></span>
-  Droga Powiatowa
-  </label>
-
-    <label>
-  <input type="checkbox" data-layers="layer_adm_4" data-group="adm">
-  <span class="legend-line" style="background:#808080"></span>
-  Droga Gminna
-  </label>
-  </div>
-</div>
+  <button id="legendToggle">⮞</button>
+  <div id="legendContent"> 
+    <div id="updateOverlay">Aktualizacja: --</div>
+      <h2>Legenda</h2>
+        <div class="legend-section collapsed">
+          <h3>
+            <input type="checkbox" class="section-toggle" data-group="adm">
+            Administracja Dróg
+          </h3>
+          <div class="legend-items">
+            <label>
+              <input type="checkbox" data-layers="layer_adm_1" data-group="adm" checked>
+              <span class="legend-line" style="background:#FF0000"></span>
+              Droga Krajowa
+            </label>
+            <label>
+              <input type="checkbox" data-layers="layer_adm_2" data-group="adm" checked>
+              <span class="legend-line" style="background:#08FF00"></span>
+              Droga Wojewódzka
+            </label>
+            <label>
+              <input type="checkbox" data-layers="layer_adm_3" data-group="adm" checked>
+              <span class="legend-line" style="background:#A500AD"></span>
+              Droga Powiatowa
+            </label>
+            <label>
+              <input type="checkbox" data-layers="layer_adm_4" data-group="adm">
+              <span class="legend-line" style="background:#808080"></span>
+              Droga Gminna
+            </label>
+          </div>
+        </div>
 
 <div class="legend-section collapsed">
   <h3>
@@ -646,7 +603,7 @@ function ZDP_LEGEND_INIT(){
             );
         UPDATE_LABEL_FILTER();
       });
-      UPDATE_GEOPORTAL_ATTRIBUTION();
+      UPDATE_BASEMAP_ATTRIBUTION();
     });
   });
 }
@@ -706,7 +663,6 @@ document.getElementById("updateOverlay").innerText =
 
 /* kontrybucja */
 UPDATE_BASEMAP_ATTRIBUTION();
-UPDATE_GEOPORTAL_ATTRIBUTION();
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
@@ -1127,15 +1083,11 @@ document.querySelectorAll(".section-toggle").forEach(toggle=>{
 function UPDATE_BASEMAP_ATTRIBUTION(){
 
 const cfg = BASE_MAPS[CURRENT_BASEMAP];
-
 if(!cfg) return;
 
-document.getElementById("mapAttribution").innerHTML =
-`© <a href="https://maplibre.org/" target="_blank">MapLibre</a> | ${cfg.attribution}`;
+let html = `© <a href="https://maplibre.org/" target="_blank">MapLibre</a> | ${cfg.attribution}`;
 
-}
-function UPDATE_GEOPORTAL_ATTRIBUTION(){
-
+/* sprawdzenie Geoportalu */
 const geoCheckboxes = document.querySelectorAll(
   'input[data-group="grn"], input[data-group="ew"]'
 );
@@ -1146,22 +1098,13 @@ geoCheckboxes.forEach(chk=>{
   if(chk.checked) geoActive = true;
 });
 
-const attributionEl = document.getElementById("mapAttribution");
-
-let baseHTML = attributionEl.innerHTML;
-
-/* usuń starą wersję Geoportalu */
-baseHTML = baseHTML.replace(
-  /(\|)?\s*Geoportal.*$/i,
-  ""
-);
-
-/* dodaj jeśli aktywny */
+/* dodaj Geoportal tylko raz */
 if(geoActive){
-  baseHTML += ' | Dane: <a href="https://www.geoportal.gov.pl" target="_blank">Geoportal</a>';
+  html += ' | Dane: <a href="https://www.geoportal.gov.pl" target="_blank">Geoportal</a>';
 }
 
-attributionEl.innerHTML = baseHTML;
+document.getElementById("mapAttribution").innerHTML = html;
+
 }
 </script>
 
