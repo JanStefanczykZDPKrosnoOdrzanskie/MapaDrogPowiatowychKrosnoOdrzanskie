@@ -634,29 +634,21 @@ LEGEND CONTROL
 =============================== */
 
 function ZDP_LEGEND_INIT(){
-
-document.querySelectorAll('#legend input').forEach(chk=>{
-
-chk.addEventListener('change',e=>{
-
-const layers = e.target.dataset.layers.split(',');
-
-layers.forEach(layerId=>{
-
-if(!map.getLayer(layerId)) return;
-
-map.setLayoutProperty(
-layerId,
-'visibility',
-e.target.checked ? 'visible':'none'
-);
-  UPDATE_LABEL_FILTER();
-});
-
-});
-
-});
-
+  document.querySelectorAll('#legend input').forEach(chk=>{
+    chk.addEventListener('change',e=>{
+      const layers = e.target.dataset.layers.split(',');
+      layers.forEach(layerId=>{
+        if(!map.getLayer(layerId)) return;
+        map.setLayoutProperty(
+           layerId,
+           'visibility',
+            e.target.checked ? 'visible':'none'
+            );
+        UPDATE_LABEL_FILTER();
+      });
+      UPDATE_GEOPORTAL_ATTRIBUTION();
+    });
+  });
 }
 
 function UPDATE_LABEL_FILTER(){
@@ -714,6 +706,7 @@ document.getElementById("updateOverlay").innerText =
 
 /* kontrybucja */
 UPDATE_BASEMAP_ATTRIBUTION();
+UPDATE_GEOPORTAL_ATTRIBUTION();
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
@@ -1140,7 +1133,36 @@ if(!cfg) return;
 document.getElementById("mapAttribution").innerHTML =
 `© <a href="https://maplibre.org/" target="_blank">MapLibre</a> | ${cfg.attribution}`;
 
-} 
+}
+function UPDATE_GEOPORTAL_ATTRIBUTION(){
+
+const geoCheckboxes = document.querySelectorAll(
+  'input[data-group="grn"], input[data-group="ew"]'
+);
+
+let geoActive = false;
+
+geoCheckboxes.forEach(chk=>{
+  if(chk.checked) geoActive = true;
+});
+
+const attributionEl = document.getElementById("mapAttribution");
+
+let baseHTML = attributionEl.innerHTML;
+
+/* usuń starą wersję Geoportalu */
+baseHTML = baseHTML.replace(
+  /(\|)?\s*Geoportal.*$/i,
+  ""
+);
+
+/* dodaj jeśli aktywny */
+if(geoActive){
+  baseHTML += ' | Dane: <a href="https://www.geoportal.gov.pl" target="_blank">Geoportal</a>';
+}
+
+attributionEl.innerHTML = baseHTML;
+}
 </script>
 
 </body>
