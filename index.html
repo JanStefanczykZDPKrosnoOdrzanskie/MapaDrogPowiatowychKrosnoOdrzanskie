@@ -93,11 +93,10 @@ margin-bottom:10px;
 font-size:16px;
 cursor:pointer;
 display:flex;
-justify-content:space-between;
 align-items:center;
+gap:8px;
 user-select:none;
 margin-left:10px;
-cursor:pointer;
 }
 
 #legend label{
@@ -258,8 +257,8 @@ transform:rotate(-90deg);
   
 <div class="legend-section collapsed">
   <h3>
-    Administracja Dróg
     <input type="checkbox" class="section-toggle" data-group="adm">
+    Administracja Dróg
   </h3>
 
   <div class="legend-items">
@@ -291,29 +290,32 @@ transform:rotate(-90deg);
 </div>
 
 <div class="legend-section collapsed">
-  <h3>Zimowe Utrzymanie Dróg</h3>
+  <h3>
+    <input type="checkbox" class="section-toggle" data-group="zud">
+    Zimowe Utrzymanie Dróg
+  </h3>
   
   <div class="legend-items">  
   <label>
-  <input type="checkbox" data-layers="layer_zud_2">
+  <input type="checkbox" data-layers="layer_zud_2" data-group="zud">
   <span class="legend-line" style="background:#FFEE00"></span>
   Standard 2
   </label>
 
   <label>
-  <input type="checkbox" data-layers="layer_zud_3">
+  <input type="checkbox" data-layers="layer_zud_3" data-group="zud">
   <span class="legend-line" style="background:#00FFFF"></span>
   Standard 3
   </label>
 
   <label>
-  <input type="checkbox" data-layers="layer_zud_4">
+  <input type="checkbox" data-layers="layer_zud_4" data-group="zud">
   <span class="legend-line" style="background:#FA9EFF"></span>
   Standard 4
   </label>
 
   <label>
-  <input type="checkbox" data-layers="layer_zud_6">
+  <input type="checkbox" data-layers="layer_zud_6" data-group="zud">
   <span class="legend-line" style="background:#A1A1A1"></span>
   Standard 6
   </label>
@@ -321,23 +323,26 @@ transform:rotate(-90deg);
 </div>
   
 <div class="legend-section collapsed">
-  <h3>Granice Administracyjne</h3>
+  <h3>
+    <input type="checkbox" class="section-toggle" data-group="grn">
+    Granice Administracyjne
+  </h3>
   
   <div class="legend-items">
   <label>
-  <input type="checkbox" data-layers="layer_grn_1" checked>
+  <input type="checkbox" data-layers="layer_grn_1" data-group="grn" checked>
   <span class="legend-line" style="background:#000000"></span>
   Granica Powiatu
   </label>
 
   <label>
-  <input type="checkbox" data-layers="layer_grn_2" checked>
+  <input type="checkbox" data-layers="layer_grn_2" data-group="grn">
   <span class="legend-line" style="background:#555555"></span>
   Granica Gminy
   </label>
 
   <label>
-  <input type="checkbox" data-layers="layer_grn_3" checked>
+  <input type="checkbox" data-layers="layer_grn_3" data-group="grn">
   <span class="legend-line" style="background:#999999"></span>
   Granica Miasta
   </label>
@@ -345,17 +350,20 @@ transform:rotate(-90deg);
 </div>
   
 <div class="legend-section collapsed">
-  <h3>Ewidencja Gruntów</h3>
+  <h3>
+    <input type="checkbox" class="section-toggle" data-group="ew">
+    Ewidencja Gruntów
+  </h3>
   
   <div class="legend-items">  
   <label>
-  <input type="checkbox" data-layers="layer_ew_1">
+  <input type="checkbox" data-layers="layer_ew_1" data-group="ew">
   <span class="legend-line" style="background:#0066CC"></span>
   Jednostki Ewidencyjne
   </label>
 
   <label>
-  <input type="checkbox" data-layers="layer_ew_2">
+  <input type="checkbox" data-layers="layer_ew_2" data-group="ew">
   <span class="legend-line" style="background:#66B2FF"></span>
   Obręby Ewidencyjne
   </label>
