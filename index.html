@@ -408,7 +408,7 @@ right:10px;
 <script>
 
 let ZDP_ALL_FEATURES = [];
-  
+let CURRENT_BASEMAP = "OSM Standard";
 /* ===============================
 MAP INSTANCE
 =============================== */
@@ -713,7 +713,7 @@ document.getElementById("updateOverlay").innerText =
 "Aktualizacja: " + new Date().toLocaleString("pl-PL");
 
 /* kontrybucja */
-SET_MAPLIBRE_ATTRIBUTION();
+UPDATE_BASEMAP_ATTRIBUTION();
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
@@ -789,6 +789,9 @@ container.querySelector(".basemap-btn").classList.add("active");
 /* ---------- BASE LAYER SWITCH ---------- */
 
 function SWITCH_BASEMAP(name){
+
+  CURRENT_BASEMAP = name;
+UPDATE_BASEMAP_ATTRIBUTION();
 
 const cfg = BASE_MAPS[name];
 if(!cfg) return;
@@ -1133,7 +1136,18 @@ function SET_MAPLIBRE_ATTRIBUTION(){
 document.getElementById("mapAttribution").innerHTML =
 '© <a href="https://maplibre.org/" target="_blank">MapLibre</a>';
 
-}  
+} 
+
+function UPDATE_BASEMAP_ATTRIBUTION(){
+
+const cfg = BASE_MAPS[CURRENT_BASEMAP];
+
+if(!cfg) return;
+
+document.getElementById("mapAttribution").innerHTML =
+`© <a href="https://maplibre.org/" target="_blank">MapLibre</a> | ${cfg.attribution}`;
+
+} 
 </script>
 
 </body>
