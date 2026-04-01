@@ -231,183 +231,156 @@ body.legend-collapsed #mapAttribution{
 <div id="legend">
   <button id="legendToggle">⮞</button>
   <div id="legendContent"> 
-    <div id="updateOverlay">Aktualizacja: --</div>
-      <h2>Legenda</h2>
-        <div class="legend-section collapsed">
-          <h3>
-            <input type="checkbox" class="section-toggle" data-group="adm">
-            Administracja Dróg
-          </h3>
-          <div class="legend-items">
-            <label>
-              <input type="checkbox" data-layers="layer_adm_1" data-group="adm" checked>
-              <span class="legend-line" style="background:#FF0000"></span>
-              Droga Krajowa
-            </label>
-            <label>
-              <input type="checkbox" data-layers="layer_adm_2" data-group="adm" checked>
-              <span class="legend-line" style="background:#08FF00"></span>
-              Droga Wojewódzka
-            </label>
-            <label>
-              <input type="checkbox" data-layers="layer_adm_3" data-group="adm" checked>
-              <span class="legend-line" style="background:#A500AD"></span>
-              Droga Powiatowa
-            </label>
-            <label>
-              <input type="checkbox" data-layers="layer_adm_4" data-group="adm">
-              <span class="legend-line" style="background:#808080"></span>
-              Droga Gminna
-            </label>
-          </div>
-        </div>
-
-<div class="legend-section collapsed">
-  <h3>
-    <input type="checkbox" class="section-toggle" data-group="zud">
-    Zimowe Utrzymanie Dróg
-  </h3>
-  
-  <div class="legend-items">  
-  <label>
-  <input type="checkbox" data-layers="layer_zud_2" data-group="zud">
-  <span class="legend-line" style="background:#FFEE00"></span>
-  Standard 2
-  </label>
-
-  <label>
-  <input type="checkbox" data-layers="layer_zud_3" data-group="zud">
-  <span class="legend-line" style="background:#00FFFF"></span>
-  Standard 3
-  </label>
-
-  <label>
-  <input type="checkbox" data-layers="layer_zud_4" data-group="zud">
-  <span class="legend-line" style="background:#FA9EFF"></span>
-  Standard 4
-  </label>
-
-  <label>
-  <input type="checkbox" data-layers="layer_zud_6" data-group="zud">
-  <span class="legend-line" style="background:#A1A1A1"></span>
-  Standard 6
-  </label>
+    <div id="updateOverlay">Aktualizacja: --
+    </div>
+      <h2>
+        Legenda
+      </h2>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="adm">
+        Administracja Dróg
+      </h3>
+      <div class="legend-items">
+        <label>
+          <input type="checkbox" data-layers="layer_adm_1" data-group="adm" checked>
+          <span class="legend-line" style="background:#FF0000"></span>
+          Droga Krajowa
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_adm_2" data-group="adm" checked>
+          <span class="legend-line" style="background:#08FF00"></span>
+          Droga Wojewódzka
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_adm_3" data-group="adm" checked>
+          <span class="legend-line" style="background:#A500AD"></span>
+         Droga Powiatowa
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_adm_4" data-group="adm">
+          <span class="legend-line" style="background:#808080"></span>
+          Droga Gminna
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="zud">
+        Zimowe Utrzymanie Dróg
+      </h3>
+      <div class="legend-items">  
+        <label>
+          <input type="checkbox" data-layers="layer_zud_2" data-group="zud">
+          <span class="legend-line" style="background:#FFEE00"></span>
+          Standard 2
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_zud_3" data-group="zud">
+          <span class="legend-line" style="background:#00FFFF"></span>
+          Standard 3
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_zud_4" data-group="zud">
+          <span class="legend-line" style="background:#FA9EFF"></span>
+          Standard 4
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_zud_6" data-group="zud">
+          <span class="legend-line" style="background:#A1A1A1"></span>
+          Standard 6
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="grn">
+        Granice Administracyjne
+      </h3>
+      <div class="legend-items">
+        <label>
+          <input type="checkbox" data-layers="layer_grn_1" data-group="grn" checked>
+          <span class="legend-line" style="background:#000000"></span>
+          Granica Powiatu
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_grn_2" data-group="grn">
+          <span class="legend-line" style="background:#555555"></span>
+          Granica Gminy
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_grn_3" data-group="grn">
+          <span class="legend-line" style="background:#999999"></span>
+          Granica Miasta
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="ew">
+        Ewidencja Gruntów
+      </h3>
+      <div class="legend-items">  
+        <label>
+          <input type="checkbox" data-layers="layer_ew_1" data-group="ew">
+          <span class="legend-line" style="background:#0066CC"></span>
+          Jednostki Ewidencyjne
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_ew_2" data-group="ew">
+          <span class="legend-line" style="background:#66B2FF"></span>
+          Obręby Ewidencyjne
+        </label>
+      </div>
+    </div>
   </div>
-</div>
-  
-<div class="legend-section collapsed">
-  <h3>
-    <input type="checkbox" class="section-toggle" data-group="grn">
-    Granice Administracyjne
-  </h3>
-  
-  <div class="legend-items">
-  <label>
-  <input type="checkbox" data-layers="layer_grn_1" data-group="grn" checked>
-  <span class="legend-line" style="background:#000000"></span>
-  Granica Powiatu
-  </label>
-
-  <label>
-  <input type="checkbox" data-layers="layer_grn_2" data-group="grn">
-  <span class="legend-line" style="background:#555555"></span>
-  Granica Gminy
-  </label>
-
-  <label>
-  <input type="checkbox" data-layers="layer_grn_3" data-group="grn">
-  <span class="legend-line" style="background:#999999"></span>
-  Granica Miasta
-  </label>
+  <div id="legendLogo">
+    <img src="Logo ZDP.png" alt="ZDP Logo">
   </div>
-</div>
-  
-<div class="legend-section collapsed">
-  <h3>
-    <input type="checkbox" class="section-toggle" data-group="ew">
-    Ewidencja Gruntów
-  </h3>
-  
-  <div class="legend-items">  
-  <label>
-  <input type="checkbox" data-layers="layer_ew_1" data-group="ew">
-  <span class="legend-line" style="background:#0066CC"></span>
-  Jednostki Ewidencyjne
-  </label>
-
-  <label>
-  <input type="checkbox" data-layers="layer_ew_2" data-group="ew">
-  <span class="legend-line" style="background:#66B2FF"></span>
-  Obręby Ewidencyjne
-  </label>
-  </div>
-</div>
-  
-</div> <!-- KONIEC LEGENDY -->
-  
-<div id="legendLogo">
-<img src="Logo ZDP.png" alt="ZDP Logo">
-</div>
-
 </div> <!-- KONIEC legend -->
 
 <div id="map"></div>
-
 <div id="mapAttribution"></div>
-  
 <div id="searchButton">🔍</div>
-
 <div id="searchPanel">
-<input type="text" id="searchInput" placeholder="Wpisz ID drogi...">
-<button id="searchSubmit">Szukaj</button>
+  <input type="text" id="searchInput" placeholder="Wpisz ID drogi...">
+  <button id="searchSubmit">Szukaj</button>
 </div>
   
 <script>
-
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
 /* ===============================
 MAP INSTANCE
 =============================== */
-
 const map = new maplibregl.Map({
-attributionControl: false,
-maxBounds:[
+  attributionControl: false,
+  maxBounds:[
     [14, 51.6],
     [15.75, 52.35]
-],
-  
-container:'map',
-
-style:{
-version:8,
-
-glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-
-sources:{
-osm:{
-type:"raster",
-tiles:[
-"https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-],
-tileSize:256,
-attribution:"© OpenStreetMap contributors"
-}
-},
-
-layers:[
-{
-id:"osm",
-type:"raster",
-source:"osm"
-}
-]
-
-},
-
-center:[14.8953712,52.01625],
-zoom:10
-
+  ],
+  container:'map',
+  style:{
+    version:8,
+    glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    sources:{
+      osm:{
+        type:"raster",
+        tiles:[
+          "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        ],
+        tileSize:256,
+        attribution:"© OpenStreetMap contributors"
+      }
+    },
+    layers:[{
+      id:"osm",
+      type:"raster",
+      source:"osm"
+    }]
+  },
+  center:[14.8953712,52.01625],
+  zoom:10
 });
     
 /* ===============================
