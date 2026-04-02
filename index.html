@@ -236,7 +236,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 4
+        Legenda 5
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -552,31 +552,18 @@ function ADD_EW_LABELS(map){
 function UPDATE_EW_LABELS(){
   const source = map.getSource("admin_boundaries");
   if(!source) return;
-  const data = source._data;  if(!data) return;
+  const data = source._data;
+  if(!data) return;
   const bounds = map.getBounds();
   const visibleFeatures = [];
   data.features.forEach(f=>{
     if(f.properties?.EW != 2) return;
-    let geom = f.geometry;
-    try {
-      // 1. Przycinamy poligon do widocznego viewportu
-      const bboxPolygon = turf.bboxPolygon([
-        bounds.getWest(),
-        bounds.getSouth(),
-        bounds.getEast(),
-        bounds.getNorth()
-      ]);
-      const clipped = turf.intersect(geom, bboxPolygon);
-      let point = null;
-      if(clipped){
-        // 2. Jeśli mamy fragment — liczymy centroid tego fragmentu
-        point = turf.centroid(clipped);
-      } else {
-        // fallback: centroid całego poligonu
-        point = turf.centroid(f);
-      }
+    let polygon = f;
+    try{
+      // 1. Punkt zawsze W WEWNĄTRZ poligonu
+      let point = turf.pointOnFeature(polygon);
       const [lng, lat] = point.geometry.coordinates;
-      // 3. Sprawdzenie czy punkt faktycznie jest w viewport
+      // 2. Dodatkowe zabezpieczenie – tylko jeśli widoczny
       if(bounds.contains([lng, lat])){
         visibleFeatures.push({
           type: "Feature",
@@ -589,8 +576,9 @@ function UPDATE_EW_LABELS(){
           }
         });
       }
-    } catch(e){
-      // awaryjnie centroid
+    }
+    catch(e){
+      // fallback (rzadki przypadek)
       const point = turf.centroid(f);
       const [lng, lat] = point.geometry.coordinates;
       if(bounds.contains([lng, lat])){
@@ -607,6 +595,7 @@ function UPDATE_EW_LABELS(){
       }
     }
   });
+
   map.getSource("ew_labels_source").setData({
     type: "FeatureCollection",
     features: visibleFeatures
