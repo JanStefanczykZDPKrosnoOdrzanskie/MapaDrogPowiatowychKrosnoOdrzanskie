@@ -562,20 +562,20 @@ paint:{
 /* ===============================
 LEGEND CONTROL
 =============================== */
-
 function ZDP_LEGEND_INIT(){
   document.querySelectorAll('#legend input').forEach(chk=>{
     chk.addEventListener('change',e=>{
+      if(!e.target.dataset.layers) return;
       const layers = e.target.dataset.layers.split(',');
       layers.forEach(layerId=>{
         if(!map.getLayer(layerId)) return;
         map.setLayoutProperty(
-           layerId,
-           'visibility',
-            e.target.checked ? 'visible':'none'
-            );
-        UPDATE_LABEL_FILTER();
+          layerId,
+          'visibility',
+          e.target.checked ? 'visible':'none'
+        );
       });
+      UPDATE_LABEL_FILTER();
       UPDATE_BASEMAP_ATTRIBUTION();
     });
   });
@@ -1016,40 +1016,29 @@ document.querySelectorAll(".legend-section h3").forEach(header=>{
 });
 
 document.querySelectorAll(".section-toggle").forEach(toggle=>{
-
   toggle.addEventListener("click", e=>{
-    
     // blokada rozwijanie sekcji
     e.stopPropagation();
-
     const group = toggle.dataset.group;
     const checked = toggle.checked;
-
     const inputs = document.querySelectorAll(
       `.legend-section input[data-group="${group}"]:not(.section-toggle)`
     );
-
     inputs.forEach(input=>{
       input.checked = checked;
-
       const layers = input.dataset.layers.split(',');
-
       layers.forEach(layerId=>{
         if(!map.getLayer(layerId)) return;
-
         map.setLayoutProperty(
           layerId,
           'visibility',
           checked ? 'visible' : 'none'
         );
       });
-
     });
-
     UPDATE_LABEL_FILTER();
-
+    UPDATE_BASEMAP_ATTRIBUTION();
   });
-
 });
 
 // kontrybucja  
