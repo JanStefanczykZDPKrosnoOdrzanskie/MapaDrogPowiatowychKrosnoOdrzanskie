@@ -234,7 +234,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 3
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -520,41 +520,13 @@ function ADD_LABEL_LAYER(map){
     }
   });
 }
-function ADD_ADMIN_LABELS(map){
-  const features = map.getSource("admin_boundaries")._data.features;
-  const points = features
-    .filter(f => f.properties?.EW === 2)
-    .map(f => turf.centroid(f)); // ← centroid
-  map.addSource("admin_labels_source", {
-    type:"geojson",
-    data:{
-      type:"FeatureCollection",
-      features: points
-    }
-  });
-  map.addLayer({
-    id:"admin_labels",
-    type:"symbol",
-    source:"admin_labels_source",
-    layout:{
-      "text-field":["get","NAME"],
-      "text-font":["Open Sans Regular"],
-      "text-size":12,
-      "text-anchor":"center"
-    },
-    paint:{
-      "text-color":"#003366",
-      "text-halo-color":"#FFFFFF",
-      "text-halo-width":2
-    }
-  });
-}
 /* ===============================
 LEGEND CONTROL
 =============================== */
 function ZDP_LEGEND_INIT(){
   document.querySelectorAll('#legend input').forEach(chk=>{
     chk.addEventListener('change',e=>{
+      if(!e.target.dataset.layers) return;
       const layers = e.target.dataset.layers.split(',');
       layers.forEach(layerId=>{
         if(!map.getLayer(layerId)) return;
@@ -597,7 +569,6 @@ map.on('load',async()=>{
   ZDP_RENDER_ROAD_STYLES(map);
   ZDP_RENDER_ADMIN_STYLES(map);
   ADD_LABEL_LAYER(map);
-  ADD_ADMIN_LABELS(map);
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
   INIT_SEARCH();
