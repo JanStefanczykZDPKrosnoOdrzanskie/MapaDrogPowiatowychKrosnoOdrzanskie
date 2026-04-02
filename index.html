@@ -382,183 +382,144 @@ const map = new maplibregl.Map({
   center:[14.8953712,52.01625],
   zoom:10
 });
-    
 /* ===============================
 GEOJSON SOURCE LOADER
 =============================== */
-
 async function ZDP_LOAD_GEO_SOURCES(map){
-
-const [roads_main, roads_dp] = await Promise.all([
-fetch("DK_i_DW.geojson").then(r=>r.json()),
-fetch("DP.geojson").then(r=>r.json())
-]);
-
-const merged_roads = {
-type:"FeatureCollection",
-features:[
-...(roads_main?.features || []),
-...(roads_dp?.features || [])
-]
-};
-
-ZDP_ALL_FEATURES = merged_roads.features;
-  
-if(map.getSource("zdp_roads")){
-map.removeSource("zdp_roads");
+  const [roads_main, roads_dp] = await Promise.all([
+    fetch("DK_i_DW.geojson").then(r=>r.json()),
+    fetch("DP.geojson").then(r=>r.json())
+  ]);
+  const merged_roads = {
+    type:"FeatureCollection",
+    features:[
+      ...(roads_main?.features || []),
+      ...(roads_dp?.features || [])
+    ]
+  };
+  ZDP_ALL_FEATURES = merged_roads.features;
+  if(map.getSource("zdp_roads")){
+    map.removeSource("zdp_roads");
+  }
+  map.addSource("zdp_roads",{
+    type:"geojson",
+    data:merged_roads
+  });
+  /* ===============================
+  ADMINISTRATIVE BOUNDARIES LOAD
+  =============================== */
+  try{
+    const admin_files = await Promise.all([
+      fetch("GRN_Powiat.geojson").then(r=>r.json()),
+      fetch("GRN_Gminy.geojson").then(r=>r.json()),
+      fetch("GRN_Miasta.geojson").then(r=>r.json()),
+      fetch("EW_Jednostki.geojson").then(r=>r.json()),
+      fetch("EW_Obręby.geojson").then(r=>r.json())
+    ]);
+    const admin_merged = {
+      type:"FeatureCollection",
+      features:[
+        ...admin_files.flatMap(f => f.features || [])
+        ]
+    };
+    if(map.getSource("admin_boundaries")){
+        map.removeSource("admin_boundaries");
+    }
+    map.addSource("admin_boundaries",{
+      type:"geojson",
+      data:admin_merged
+    });
+  }
+  catch(e){
+    console.error("Admin boundaries load error:",e);
+  }
 }
-
-map.addSource("zdp_roads",{
-type:"geojson",
-data:merged_roads
-});
-
-/* ===============================
-ADMINISTRATIVE BOUNDARIES LOAD
-=============================== */
-
-try{
-
-const admin_files = await Promise.all([
-fetch("GRN_Powiat.geojson").then(r=>r.json()),
-fetch("GRN_Gminy.geojson").then(r=>r.json()),
-fetch("GRN_Miasta.geojson").then(r=>r.json()),
-fetch("EW_Jednostki.geojson").then(r=>r.json()),
-fetch("EW_Obręby.geojson").then(r=>r.json())
-]);
-
-const admin_merged = {
-type:"FeatureCollection",
-features:[
-...admin_files.flatMap(f => f.features || [])
-]
-};
-
-if(map.getSource("admin_boundaries")){
-map.removeSource("admin_boundaries");
-}
-
-map.addSource("admin_boundaries",{
-type:"geojson",
-data:admin_merged
-});
-
-}catch(e){
-console.error("Admin boundaries load error:",e);
-}
-
-}
-
 /* ===============================
 ROAD LAYERS
 =============================== */
-
 function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, visible=true){
-
-    if(map.getLayer(layerId)) return;
-
-    map.addLayer({
-        id:layerId,
-        type:"line",
-        source:source,
-        filter:filterExpression,
-        layout:{
+  if(map.getLayer(layerId)) return;
+  map.addLayer({
+      id:layerId,
+      type:"line",
+      source:source,
+      filter:filterExpression,
+      layout:{
         visibility: visible ? "visible" : "none"
-        },
-        paint:{
-            "line-color":color,
-            "line-width":width
-        }
-    });
+      },
+      paint:{
+        "line-color":color,
+        "line-width":width
+      }
+  });
 }
 function ZDP_RENDER_ROAD_STYLES(map){
-
-ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","Adm"],1],"#FF0000",4);
-ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","Adm"],2],"#08FF00",4);
-
-ADD_FILTER_LAYER(map,"layer_zud_2","zdp_roads",["==",["get","ZUD"],2],"#FFEE00",6, false);
-ADD_FILTER_LAYER(map,"layer_zud_3","zdp_roads",["==",["get","ZUD"],3],"#00FFFF",6, false);
-ADD_FILTER_LAYER(map,"layer_zud_4","zdp_roads",["==",["get","ZUD"],4],"#FA9EFF",6, false);
-ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1",6, false);
-
-ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","Adm"],3],"#A500AD",3);
-ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","Adm"],4],"#808080",3, false);
+  ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","Adm"],1],"#FF0000",4);
+  ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","Adm"],2],"#08FF00",4);
+  
+  ADD_FILTER_LAYER(map,"layer_zud_2","zdp_roads",["==",["get","ZUD"],2],"#FFEE00",6, false);
+  ADD_FILTER_LAYER(map,"layer_zud_3","zdp_roads",["==",["get","ZUD"],3],"#00FFFF",6, false);
+  ADD_FILTER_LAYER(map,"layer_zud_4","zdp_roads",["==",["get","ZUD"],4],"#FA9EFF",6, false);
+  ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1",6, false);
+  
+  ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","Adm"],3],"#A500AD",3);
+  ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","Adm"],4],"#808080",3, false);
 }
 /* ===============================
 ADMINISTRATIVE LAYERS RENDER
 =============================== */
-
 function ZDP_RENDER_ADMIN_STYLES(map){
-ADD_FILTER_LAYER(map,"layer_ew_2","admin_boundaries",["==",["get","EW"],2],"#66B2FF",2, false);
-ADD_FILTER_LAYER(map,"layer_ew_1","admin_boundaries",["==",["get","EW"],1],"#0066CC",2, false);
+  ADD_FILTER_LAYER(map,"layer_ew_2","admin_boundaries",["==",["get","EW"],2],"#66B2FF",2, false);
+  ADD_FILTER_LAYER(map,"layer_ew_1","admin_boundaries",["==",["get","EW"],1],"#0066CC",2, false);
   
-ADD_FILTER_LAYER(map,"layer_grn_3","admin_boundaries",["==",["get","GRN"],3],"#999999",1, false);
-ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#555555",1,false);
-ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#000000",2, true);
+  ADD_FILTER_LAYER(map,"layer_grn_3","admin_boundaries",["==",["get","GRN"],3],"#999999",1, false);
+  ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#555555",1,false);
+  ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#000000",2, true);
 }
-
 /* ===============================
 LABELS
 =============================== */
-
 function ADD_LABEL_LAYER(map){
-
-if(map.getLayer("road_id_labels")) return;
-
-map.addLayer({
-id:"road_id_labels",
-type:"symbol",
-source:"zdp_roads",
-filter:["match",["get","Adm"],[1,2,3],true,false],
-
-layout:{
-"symbol-placement":"line",
-"text-field":["get","ID"],
-"text-font":["Open Sans Semibold"],
-"text-size":12,
-"text-anchor":"center",
-"text-allow-overlap":false,
-"text-ignore-placement":false,
-"text-max-angle":30
-},
-
-paint:{
-
-/* ===== Kolor tekstu zależny od Adm ===== */
-
-"text-color":[
-"case",
-
-["==", ["get","Adm"], 1], "#FFFFFF",
-["==", ["get","Adm"], 2], "#000000",
-["==", ["get","Adm"], 3], "#FFFFFF",
-["==", ["get","Adm"], 4], "#FFFFFF",
-
-"#000000"
-],
-
-/* ===== Halo / ramka ===== */
-
-"text-halo-color":[
-"case",
-
-["==", ["get","Adm"], 1], "#FF0000",
-["==", ["get","Adm"], 2], "#FFEE00",
-["==", ["get","Adm"], 3], "#A500AD",
-["==", ["get","Adm"], 4], "#808080",
-  
-"#FFFFFF"
-],
-
-"text-halo-width":3,
-"text-halo-blur":0.5
-
+  if(map.getLayer("road_id_labels")) return;
+  map.addLayer({
+    id:"road_id_labels",
+    type:"symbol",
+    source:"zdp_roads",
+    filter:["match",["get","Adm"],[1,2,3],true,false],
+    layout:{
+      "symbol-placement":"line",
+      "text-field":["get","ID"],
+      "text-font":["Open Sans Semibold"],
+      "text-size":12,
+      "text-anchor":"center",
+      "text-allow-overlap":false,
+      "text-ignore-placement":false,
+      "text-max-angle":30
+    },
+  paint:{
+    /* ===== Kolor tekstu zależny od Adm ===== */
+    "text-color":[
+    "case",
+      ["==", ["get","Adm"], 1], "#FFFFFF",
+      ["==", ["get","Adm"], 2], "#000000",
+      ["==", ["get","Adm"], 3], "#FFFFFF",
+      ["==", ["get","Adm"], 4], "#FFFFFF",
+      "#000000"
+    ],
+    /* ===== Halo / ramka ===== */
+    "text-halo-color":[
+      "case",
+      ["==", ["get","Adm"], 1], "#FF0000",
+      ["==", ["get","Adm"], 2], "#FFEE00",
+      ["==", ["get","Adm"], 3], "#A500AD",
+      ["==", ["get","Adm"], 4], "#808080",
+      "#FFFFFF"
+    ],
+      "text-halo-width":3,
+      "text-halo-blur":0.5
+    }
+  });
 }
-
-});
-
-}
-
 /* ===============================
 LEGEND CONTROL
 =============================== */
@@ -580,441 +541,315 @@ function ZDP_LEGEND_INIT(){
     });
   });
 }
-
 function UPDATE_LABEL_FILTER(){
-
-if(!map.getLayer("road_id_labels")) return;
-
-const visibleAdm = [];
-
-if(map.getLayoutProperty("layer_adm_1","visibility") !== "none") visibleAdm.push(1);
-if(map.getLayoutProperty("layer_adm_2","visibility") !== "none") visibleAdm.push(2);
-if(map.getLayoutProperty("layer_adm_3","visibility") !== "none") visibleAdm.push(3);
-if(map.getLayoutProperty("layer_adm_4","visibility") !== "none") visibleAdm.push(4);
-  
-if(visibleAdm.length === 0){
-
+  if(!map.getLayer("road_id_labels")) return;
+  const visibleAdm = [];
+  if(map.getLayoutProperty("layer_adm_1","visibility") !== "none") visibleAdm.push(1);
+  if(map.getLayoutProperty("layer_adm_2","visibility") !== "none") visibleAdm.push(2);
+  if(map.getLayoutProperty("layer_adm_3","visibility") !== "none") visibleAdm.push(3);
+  if(map.getLayoutProperty("layer_adm_4","visibility") !== "none") visibleAdm.push(4);
+  if(visibleAdm.length === 0){
     map.setFilter(
-        "road_id_labels",
-        ["==",["get","Adm"],-999]
+      "road_id_labels",
+      ["==",["get","Adm"],-999]
     );
-
-}else{
-
+  }
+  else{
     map.setFilter(
-        "road_id_labels",
-        ["match",["get","Adm"],visibleAdm,true,false]
+      "road_id_labels",
+      ["match",["get","Adm"],visibleAdm,true,false]
     );
-
+  }
 }
-
-}
-
 /* ===============================
 PIPELINE LOAD
 =============================== */
-
 map.on('load',async()=>{
-
-await ZDP_LOAD_GEO_SOURCES(map);
-
-ZDP_RENDER_ROAD_STYLES(map);
-ZDP_RENDER_ADMIN_STYLES(map);
-
-ADD_LABEL_LAYER(map);
-
-ZDP_LEGEND_INIT();
-
-CREATE_BASEMAP_BUTTONS(map);
-
-INIT_SEARCH();
-  
-/* timestamp */
-
-document.getElementById("updateOverlay").innerText =
-"Aktualizacja: " + new Date().toLocaleString("pl-PL");
-
-/* kontrybucja */
-UPDATE_BASEMAP_ATTRIBUTION();
+  await ZDP_LOAD_GEO_SOURCES(map);
+  ZDP_RENDER_ROAD_STYLES(map);
+  ZDP_RENDER_ADMIN_STYLES(map);
+  ADD_LABEL_LAYER(map);
+  ZDP_LEGEND_INIT();
+  CREATE_BASEMAP_BUTTONS(map);
+  INIT_SEARCH();
+  /* timestamp */
+  document.getElementById("updateOverlay").innerText =
+  "Aktualizacja: " + new Date().toLocaleString("pl-PL");
+  /* kontrybucja */
+  UPDATE_BASEMAP_ATTRIBUTION();
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
 =============================== */
-
 const BASE_MAPS = {
-
-"OSM Standard":{
-tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-tileSize:256,
-attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
-},
-
-"ESRI Satellite":{
-tiles:[
-"https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-],
-tileSize:256,
-attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'
-},
-
-"Dark Night":{
-tiles:[
-"https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
-],
-tileSize:256,
-attribution:'© OpenStreetMap contributors © CARTO'
-},
-
+  "OSM Standard":{
+    tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+    tileSize:256,
+    attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+  },
+  "ESRI Satellite":{
+    tiles:["https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+    tileSize:256,
+    attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'
+  },
+  "Dark Night":{
+    tiles:["https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"],
+    tileSize:256,
+    attribution:'© OpenStreetMap contributors © CARTO'
+  },
 };
-
 /* ---------- CREATE UI ---------- */
-
 function CREATE_BASEMAP_BUTTONS(map){
-
-const container = document.createElement("div");
-
-container.id = "basemapButtons";
-document.body.appendChild(container);
-
-const buttons = [
-{label:"Mapa", map:"OSM Standard"},
-{label:"Satelita", map:"ESRI Satellite"},
-{label:"Nocna", map:"Dark Night"}
-];
-
-buttons.forEach(cfg=>{
-
-const btn = document.createElement("div");
-btn.className = "basemap-btn";
-btn.innerText = cfg.label;
-
-btn.addEventListener("click",()=>{
-
-document.querySelectorAll(".basemap-btn")
-.forEach(b=>b.classList.remove("active"));
-
-btn.classList.add("active");
-
-SWITCH_BASEMAP(cfg.map);
-
-});
-
-container.appendChild(btn);
-
-});
-
-/* ustaw pierwszy jako aktywny */
-container.querySelector(".basemap-btn").classList.add("active");
-
+  const container = document.createElement("div");
+  container.id = "basemapButtons";
+  document.body.appendChild(container);
+  const buttons = [
+    {label:"Mapa", map:"OSM Standard"},
+    {label:"Satelita", map:"ESRI Satellite"},
+    {label:"Nocna", map:"Dark Night"}
+  ];
+  buttons.forEach(cfg=>{
+    const btn = document.createElement("div");
+    btn.className = "basemap-btn";
+    btn.innerText = cfg.label;
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".basemap-btn")
+      .forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      SWITCH_BASEMAP(cfg.map);
+    });
+    container.appendChild(btn);
+  });
+  /* ustaw pierwszy jako aktywny */
+  container.querySelector(".basemap-btn").classList.add("active");
 }
-
 /* ---------- BASE LAYER SWITCH ---------- */
-
 function SWITCH_BASEMAP(name){
-
   CURRENT_BASEMAP = name;
-UPDATE_BASEMAP_ATTRIBUTION();
-
-const cfg = BASE_MAPS[name];
-if(!cfg) return;
-
-if(map.getLayer("osm")){
-map.removeLayer("osm");
+  UPDATE_BASEMAP_ATTRIBUTION();
+  const cfg = BASE_MAPS[name];
+  if(!cfg) return;
+  if(map.getLayer("osm")){
+    map.removeLayer("osm");
+  }
+  if(map.getSource("osm")){
+    map.removeSource("osm");
+  }
+  map.addSource("osm",{
+    type:"raster",
+    tiles:cfg.tiles,
+    tileSize:cfg.tileSize,
+    attribution:cfg.attribution
+  });
+  map.addLayer({
+    id:"osm",
+    type:"raster",
+    source:"osm"
+  }, map.getStyle().layers[0].id);
 }
-
-if(map.getSource("osm")){
-map.removeSource("osm");
-}
-
-map.addSource("osm",{
-type:"raster",
-tiles:cfg.tiles,
-tileSize:cfg.tileSize,
-attribution:cfg.attribution
-});
-
-map.addLayer({
-id:"osm",
-type:"raster",
-source:"osm"
-}, map.getStyle().layers[0].id);
-
-}
-
 /* ===============================
 INIT AFTER MAP LOAD
 =============================== */
 /* ===============================
 SEARCH FUNCTIONALITY
 =============================== */
-
 function INIT_SEARCH(){
-
-const btn = document.getElementById("searchButton");
-const panel = document.getElementById("searchPanel");
-const input = document.getElementById("searchInput");
-const submit = document.getElementById("searchSubmit");
-
-btn.addEventListener("click",()=>{
-panel.style.display = panel.style.display === "block" ? "none" : "block";
-input.focus();
-});
-
-submit.addEventListener("click", EXECUTE_SEARCH);
-input.addEventListener("keypress", e=>{
-if(e.key === "Enter") EXECUTE_SEARCH();
-});
-
-function EXECUTE_SEARCH(){
-
-CLEAR_HIGHLIGHT();
-
-const value = input.value.trim();
-if(!value) return;
-
-const normalize = str =>
-    str.toString()
+  const btn = document.getElementById("searchButton");
+  const panel = document.getElementById("searchPanel");
+  const input = document.getElementById("searchInput");
+  const submit = document.getElementById("searchSubmit");
+  btn.addEventListener("click",()=>{
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+    input.focus();
+  });
+  submit.addEventListener("click", EXECUTE_SEARCH);
+  input.addEventListener("keypress", e=>{
+    if(e.key === "Enter") EXECUTE_SEARCH();
+  });
+  function EXECUTE_SEARCH(){
+    CLEAR_HIGHLIGHT();
+    const value = input.value.trim();
+    if(!value) return;
+    const normalize = str =>
+     str.toString()
     .replace(/\s+/g,'')
     .toUpperCase();
-
-const query = normalize(value);
-
-const features = ZDP_ALL_FEATURES.filter(f => {
-
-const roadId = f.properties?.ID;
-if(!roadId) return false;
-
-return normalize(roadId).startsWith(query);
-
-});
-if(!features.length){
-    alert("Nie znaleziono drogi o ID: " + value);
-    return;
-}
-
-/* Podświetl wszystkie segmenty o tym samym ID */
-HIGHLIGHT_FEATURES_BY_ID(value);
-  
-const geojson = {
-    type:"FeatureCollection",
-    features: features
-};
-
-let bounds = new maplibregl.LngLatBounds();
-
-geojson.features.forEach(feature=>{
-    const geom = feature.geometry;
-
-    if(!geom) return;
-
-    const processCoords = (coords)=>{
+    const query = normalize(value);
+    const features = ZDP_ALL_FEATURES.filter(f => {
+      const roadId = f.properties?.ID;
+      if(!roadId) return false;
+      return normalize(roadId).startsWith(query);
+    });
+    if(!features.length){
+      alert("Nie znaleziono drogi o ID: " + value);
+      return;
+    }
+    /* Podświetl wszystkie segmenty o tym samym ID */
+    HIGHLIGHT_FEATURES_BY_ID(value);
+    const geojson = {
+      type:"FeatureCollection",
+      features: features
+    };
+    let bounds = new maplibregl.LngLatBounds();
+    geojson.features.forEach(feature=>{
+      const geom = feature.geometry;
+      if(!geom) return;
+      const processCoords = (coords)=>{
         coords.forEach(c=>{
-            if(Array.isArray(c[0])){
-                processCoords(c);
+          if(Array.isArray(c[0])){
+            processCoords(c);
             } else {
                 bounds.extend(c);
             }
         });
-    };
-
+      };
     processCoords(geom.coordinates);
-});
-
-map.fitBounds(bounds,{
-padding:80,
-duration:800
-});
-
+    });
+    map.fitBounds(bounds,{
+      padding:80,
+      duration:800
+    });
+  }
 }
-
-}
-
 function CLEAR_HIGHLIGHT(){
-
-STOP_PULSE_ANIMATION();
-
-if(map.getLayer("search_highlight_layer")){
-map.removeLayer("search_highlight_layer");
-}
-
-if(map.getLayer("search_pulse_layer")){
-map.removeLayer("search_pulse_layer");
-}
-
-if(map.getSource("search_highlight_source")){
-map.removeSource("search_highlight_source");
-}
-
-pulseGrowing = true;
-pulseRadius = 2;
-
+  STOP_PULSE_ANIMATION();
+  if(map.getLayer("search_highlight_layer")){
+    map.removeLayer("search_highlight_layer");
+  }
+  if(map.getLayer("search_pulse_layer")){
+    map.removeLayer("search_pulse_layer");
+  }
+  if(map.getSource("search_highlight_source")){
+    map.removeSource("search_highlight_source");
+  }
+  pulseGrowing = true;
+  pulseRadius = 2;
 }
 /* ===============================
 PULSE HIGHLIGHT ANIMATION
 =============================== */
-
 let pulseAnimationFrame = null;
 let pulseRadius = 0;
 let pulseGrowing = true;
 function START_PULSE_ANIMATION(){
-
-STOP_PULSE_ANIMATION();
-
-pulseRadius = 4;
-pulseGrowing = true;
-
-function animate(){
-
-if(!map.getLayer("search_pulse_layer")){
-pulseAnimationFrame = requestAnimationFrame(animate);
-return;
+  STOP_PULSE_ANIMATION();
+  pulseRadius = 4;
+  pulseGrowing = true;
+  function animate(){
+    if(!map.getLayer("search_pulse_layer")){
+      pulseAnimationFrame = requestAnimationFrame(animate);
+      return;
+    }
+    if(pulseGrowing){
+      pulseRadius += 0.4;
+      if(pulseRadius > 18) pulseGrowing = false;
+    }else{
+      pulseRadius -= 0.4;
+      if(pulseRadius < 4) pulseGrowing = true;
+    }
+    map.setPaintProperty(
+      "search_pulse_layer",
+      "line-width",
+      pulseRadius
+    );
+    pulseAnimationFrame = requestAnimationFrame(animate);
+  }
+  pulseAnimationFrame = requestAnimationFrame(animate);
 }
-
-if(pulseGrowing){
-pulseRadius += 0.4;
-if(pulseRadius > 18) pulseGrowing = false;
-}else{
-pulseRadius -= 0.4;
-if(pulseRadius < 4) pulseGrowing = true;
-}
-
-map.setPaintProperty(
-"search_pulse_layer",
-"line-width",
-pulseRadius
-);
-
-pulseAnimationFrame = requestAnimationFrame(animate);
-}
-
-pulseAnimationFrame = requestAnimationFrame(animate);
-}
-
 function STOP_PULSE_ANIMATION(){
-
-if(pulseAnimationFrame){
-cancelAnimationFrame(pulseAnimationFrame);
-pulseAnimationFrame = null;
+  if(pulseAnimationFrame){
+    cancelAnimationFrame(pulseAnimationFrame);
+    pulseAnimationFrame = null;
+  }
+  if(map.getLayer("search_pulse_layer")){
+    map.removeLayer("search_pulse_layer");
+  }
 }
-
-if(map.getLayer("search_pulse_layer")){
-map.removeLayer("search_pulse_layer");
-}
-
-}
-
 /* ===============================
 MODIFY HIGHLIGHT FUNCTION
 =============================== */
-
 function HIGHLIGHT_FEATURES_BY_ID(id){
-
-const features = ZDP_ALL_FEATURES.filter(
-f => f.properties?.ID && f.properties.ID.toString().toUpperCase().startsWith(
-id.toString().toUpperCase()
-)
-);
-
-if(!features.length) return;
-
-/* cleanup */
-
-if(map.getLayer("search_highlight_layer")){
-map.removeLayer("search_highlight_layer");
-}
-
-if(map.getLayer("search_pulse_layer")){
-map.removeLayer("search_pulse_layer");
-}
-
-if(map.getSource("search_highlight_source")){
-map.removeSource("search_highlight_source");
-}
-
-/* geojson wrapper */
-
-const geojson = {
-type:"FeatureCollection",
-features:features
-};
-
-map.addSource("search_highlight_source",{
-type:"geojson",
-data:geojson
-});
-
-/* main highlight line */
-
-const labelLayer = "road_id_labels";
-
-map.addLayer(
-{
-    id:"search_highlight_layer",
+  const features = ZDP_ALL_FEATURES.filter(
+    f => f.properties?.ID && f.properties.ID.toString().toUpperCase().startsWith(
+      id.toString().toUpperCase()
+    )
+  );
+  if(!features.length) return;
+  /* cleanup */
+  if(map.getLayer("search_highlight_layer")){
+    map.removeLayer("search_highlight_layer");
+  }
+  if(map.getLayer("search_pulse_layer")){
+    map.removeLayer("search_pulse_layer");
+  }
+  if(map.getSource("search_highlight_source")){
+    map.removeSource("search_highlight_source");
+  }
+  /* geojson wrapper */
+  const geojson = {
+    type:"FeatureCollection",
+    features:features
+  };
+  map.addSource("search_highlight_source",{
+    type:"geojson",
+    data:geojson
+  });
+  /* main highlight line */
+  const labelLayer = "road_id_labels";
+  map.addLayer(
+    {
+      id:"search_highlight_layer",
+      type:"line",
+      source:"search_highlight_source",
+      paint:{
+          "line-color":"#00008B",
+          "line-width":6,
+          "line-opacity":0.95
+      },
+      layout:{
+        "line-cap":"round",
+        "line-join":"round"
+      }
+    },
+    /* Wstaw highlight POD numerami dróg */
+    map.getLayer(labelLayer) ? labelLayer : undefined
+  );
+  /* pulse halo layer */
+  map.addLayer({
+    id:"search_pulse_layer",
     type:"line",
     source:"search_highlight_source",
     paint:{
-        "line-color":"#00008B",
-        "line-width":6,
-        "line-opacity":0.95
-    },
-    layout:{
-        "line-cap":"round",
-        "line-join":"round"
+      "line-color":"#FFFF00",
+      "line-width":2,
+      "line-opacity":0.5
     }
-},
-/* Wstaw highlight POD numerami dróg */
-map.getLayer(labelLayer) ? labelLayer : undefined
-);
-
-/* pulse halo layer */
-
-map.addLayer({
-id:"search_pulse_layer",
-type:"line",
-source:"search_highlight_source",
-paint:{
-"line-color":"#FFFF00",
-"line-width":2,
-"line-opacity":0.5
-}
-});
-
-/* start animation */
-
-map.once("idle", () => {
+  });
+  /* start animation */
+  map.once("idle", () => {
     START_PULSE_ANIMATION();
-});
-
+  });
 }
 /* ===============================
 LEGEND COLAPSE
 =============================== */
 const legend = document.getElementById("legend");
 const btn = document.getElementById("legendToggle");
-
 btn.addEventListener("click", () => {
-
-document.body.classList.toggle("legend-collapsed");
-
-if (document.body.classList.contains("legend-collapsed")) {
-  btn.innerHTML = "⮜";
-} else {
-  btn.innerHTML = "⮞";
-}
-
+  document.body.classList.toggle("legend-collapsed");
+  if (document.body.classList.contains("legend-collapsed")) {
+    btn.innerHTML = "⮜";
+  } else {
+    btn.innerHTML = "⮞";
+  }
 });
-
 document.querySelectorAll(".legend-section h3").forEach(header=>{
   header.addEventListener("click", (e)=>{
-
     if(e.target.tagName === "INPUT") return;
-
     const section = header.parentElement;
     section.classList.toggle("collapsed");
-
   });
 });
-
 document.querySelectorAll(".section-toggle").forEach(toggle=>{
   toggle.addEventListener("click", e=>{
     // blokada rozwijanie sekcji
@@ -1040,35 +875,25 @@ document.querySelectorAll(".section-toggle").forEach(toggle=>{
     UPDATE_BASEMAP_ATTRIBUTION();
   });
 });
-
 // kontrybucja  
 function UPDATE_BASEMAP_ATTRIBUTION(){
-
-const cfg = BASE_MAPS[CURRENT_BASEMAP];
-if(!cfg) return;
-
-let html = `© <a href="https://maplibre.org/" target="_blank">MapLibre</a> | ${cfg.attribution}`;
-
-/* sprawdzenie Geoportalu */
-const geoCheckboxes = document.querySelectorAll(
-  'input[data-group="grn"], input[data-group="ew"]'
-);
-
-let geoActive = false;
-
-geoCheckboxes.forEach(chk=>{
-  if(chk.checked) geoActive = true;
-});
-
-/* dodaj Geoportal tylko raz */
-if(geoActive){
-  html += ' | Dane: <a href="https://www.geoportal.gov.pl" target="_blank">Geoportal</a>';
-}
-
-document.getElementById("mapAttribution").innerHTML = html;
-
+  const cfg = BASE_MAPS[CURRENT_BASEMAP];
+  if(!cfg) return;
+  let html = `© <a href="https://maplibre.org/" target="_blank">MapLibre</a> | ${cfg.attribution}`;
+  /* sprawdzenie Geoportalu */
+  const geoCheckboxes = document.querySelectorAll(
+    'input[data-group="grn"], input[data-group="ew"]'
+  );
+  let geoActive = false;
+  geoCheckboxes.forEach(chk=>{
+    if(chk.checked) geoActive = true;
+  });
+  /* dodaj Geoportal tylko raz */
+  if(geoActive){
+    html += ' | Dane: <a href="https://www.geoportal.gov.pl" target="_blank">Geoportal</a>';
+  }
+  document.getElementById("mapAttribution").innerHTML = html;
 }
 </script>
-
 </body>
 </html>
