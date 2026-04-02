@@ -236,7 +236,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legend
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -522,6 +522,48 @@ function ADD_LABEL_LAYER(map){
     }
   });
 }
+function ADD_EW_LABELS(map){
+  if(map.getLayer("ew_labels")) return;
+  const source = map.getSource("admin_boundaries");
+  if(!source) return;
+  const data = source._data || source._data; // fallback dla MapLibre
+  // filtr tylko EW = 2
+  const filtered = {
+    type: "FeatureCollection",
+    features: data.features.filter(f => f.properties?.EW == 2)
+  };
+  // centroidy (Turf)
+  const labelFeatures = filtered.features.map(f=>{
+    const center = turf.centroid(f);
+    center.properties = {
+      name: f.properties?.NAME || ""
+    };
+    return center;
+  });
+  map.addSource("ew_labels_source", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: labelFeatures
+    }
+  });
+  map.addLayer({
+    id: "ew_labels",
+    type: "symbol",
+    source: "ew_labels_source",
+    layout: {
+      "text-field": ["get","name"],
+      "text-size": 12,
+      "text-anchor": "center",
+      "text-allow-overlap": false
+    },
+    paint: {
+      "text-color": "#003366",
+      "text-halo-color": "#FFFFFF",
+      "text-halo-width": 2
+    }
+  });
+}
 /* ===============================
 LEGEND CONTROL
 =============================== */
@@ -570,6 +612,7 @@ map.on('load',async()=>{
   await ZDP_LOAD_GEO_SOURCES(map);
   ZDP_RENDER_ROAD_STYLES(map);
   ZDP_RENDER_ADMIN_STYLES(map);
+  ADD_EW_LABELS(map);
   ADD_LABEL_LAYER(map);
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
