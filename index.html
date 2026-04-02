@@ -236,7 +236,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 6
+        Legenda 7
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -609,12 +609,13 @@ function UPDATE_EW_LABELS(){
   });
 }
 let EW_LABELS_TIMEOUT = null;
-function UPDATE_EW_LABELS_THROTTLED(){
-  if(EW_LABELS_TIMEOUT) return;
+function UPDATE_EW_LABELS_DEBOUNCED(){
+  if(EW_LABELS_TIMEOUT){
+    clearTimeout(EW_LABELS_TIMEOUT);
+  }
   EW_LABELS_TIMEOUT = setTimeout(()=>{
     UPDATE_EW_LABELS();
-    EW_LABELS_TIMEOUT = null;
-  }, 100);
+  }, 250); // 0.25s
 }
 /* ===============================
 LEGEND CONTROL
@@ -678,8 +679,8 @@ map.on('load',async()=>{
   ZDP_RENDER_ADMIN_STYLES(map);
   ADD_EW_LABELS(map);
   UPDATE_EW_LABELS_VISIBILITY();
-  map.on("move", UPDATE_EW_LABELS_THROTTLED);
-  map.on("zoom", UPDATE_EW_LABELS_THROTTLED);
+  map.on("move", UPDATE_EW_LABELS_DEBOUNCED);
+  map.on("zoom", UPDATE_EW_LABELS_DEBOUNCED);
   ADD_LABEL_LAYER(map);
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
