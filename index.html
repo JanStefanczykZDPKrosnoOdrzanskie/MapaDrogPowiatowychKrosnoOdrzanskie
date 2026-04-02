@@ -236,7 +236,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 3
+        Legenda 4
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -552,43 +552,73 @@ function ADD_EW_LABELS(map){
 function UPDATE_EW_LABELS(){
   const source = map.getSource("admin_boundaries");
   if(!source) return;
-  const data = source._data;
-  if(!data) return;
+  const data = source._data;  if(!data) return;
   const bounds = map.getBounds();
   const visibleFeatures = [];
   data.features.forEach(f=>{
     if(f.properties?.EW != 2) return;
-    // próbujemy centroid
-    let point = turf.centroid(f);
-    const [lng, lat] = point.geometry.coordinates;
-    // jeśli centroid NIE jest w widoku → próbujemy bbox
-    if(!bounds.contains([lng, lat])){
-      const bbox = turf.bbox(f);
-      const center = [
-        (bbox[0] + bbox[2]) / 2,
-        (bbox[1] + bbox[3]) / 2
-      ];
-      point = turf.point(center);
-    }
-    // finalnie sprawdzamy czy punkt jest w viewport
-    const [clng, clat] = point.geometry.coordinates;
-    if(bounds.contains([clng, clat])){
-      visibleFeatures.push({
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [clng, clat]
-        },
-        properties: {
-          name: f.properties?.NAME || ""
-        }
-      });
+    let geom = f.geometry;
+    try {
+      // 1. Przycinamy poligon do widocznego viewportu
+      const bboxPolygon = turf.bboxPolygon([
+        bounds.getWest(),
+        bounds.getSouth(),
+        bounds.getEast(),
+        bounds.getNorth()
+      ]);
+      const clipped = turf.intersect(geom, bboxPolygon);
+      let point = null;
+      if(clipped){
+        // 2. Jeśli mamy fragment — liczymy centroid tego fragmentu
+        point = turf.centroid(clipped);
+      } else {
+        // fallback: centroid całego poligonu
+        point = turf.centroid(f);
+      }
+      const [lng, lat] = point.geometry.coordinates;
+      // 3. Sprawdzenie czy punkt faktycznie jest w viewport
+      if(bounds.contains([lng, lat])){
+        visibleFeatures.push({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [lng, lat]
+          },
+          properties: {
+            name: f.properties?.NAME || ""
+          }
+        });
+      }
+    } catch(e){
+      // awaryjnie centroid
+      const point = turf.centroid(f);
+      const [lng, lat] = point.geometry.coordinates;
+      if(bounds.contains([lng, lat])){
+        visibleFeatures.push({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [lng, lat]
+          },
+          properties: {
+            name: f.properties?.NAME || ""
+          }
+        });
+      }
     }
   });
   map.getSource("ew_labels_source").setData({
     type: "FeatureCollection",
     features: visibleFeatures
   });
+}
+let EW_LABELS_TIMEOUT = null;
+function UPDATE_EW_LABELS_THROTTLED(){
+  if(EW_LABELS_TIMEOUT) return;
+  EW_LABELS_TIMEOUT = setTimeout(()=>{
+    UPDATE_EW_LABELS();
+    EW_LABELS_TIMEOUT = null;
+  }, 100);
 }
 /* ===============================
 LEGEND CONTROL
@@ -653,8 +683,8 @@ map.on('load',async()=>{
   ZDP_RENDER_ADMIN_STYLES(map);
   ADD_EW_LABELS(map);
   UPDATE_EW_LABELS_VISIBILITY();
-  map.on("moveend", UPDATE_EW_LABELS);
-  map.on("zoomend", UPDATE_EW_LABELS);
+  map.on("move", UPDATE_EW_LABELS_THROTTLED);
+  map.on("zoom", UPDATE_EW_LABELS_THROTTLED);
   ADD_LABEL_LAYER(map);
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
