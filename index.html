@@ -234,7 +234,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -475,7 +475,30 @@ function ZDP_RENDER_ADMIN_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_grn_3","admin_boundaries",["==",["get","GRN"],3],"#999999",1, false);
   ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#555555",1,false);
   ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#000000",2, true);
+
+  ADD_LABEL_EW_2(map);
 }
+function ADD_LABEL_EW_2(map){
+  if(map.getLayer("label_ew_2")) return;
+  map.addLayer({
+    id:"label_ew_2",
+    type:"symbol",
+    source:"admin_boundaries",
+    filter:["==",["get","EW"],2],
+    layout:{
+      "symbol-placement":"point",
+      "text-field":["get","NAME"],
+      "text-font":["Open Sans Regular"],
+      "text-size":12,
+      "text-anchor":"center"
+    },
+    paint:{
+      "text-color":"#000000",
+      "text-halo-color":"#FFFFFF",
+      "text-halo-width":1
+    }
+  });
+}  
 /* ===============================
 LABELS
 =============================== */
@@ -567,6 +590,7 @@ PIPELINE LOAD
 map.on('load',async()=>{
   await ZDP_LOAD_GEO_SOURCES(map);
   ZDP_RENDER_ROAD_STYLES(map);
+  ADD_LABEL_EW_2(map);
   ZDP_RENDER_ADMIN_STYLES(map);
   ADD_LABEL_LAYER(map);
   ZDP_LEGEND_INIT();
