@@ -236,7 +236,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -581,6 +581,7 @@ function ZDP_LEGEND_INIT(){
         );
       });
       UPDATE_LABEL_FILTER();
+      UPDATE_EW_LABELS_VISIBILITY();
       UPDATE_BASEMAP_ATTRIBUTION();
     });
   });
@@ -605,6 +606,18 @@ function UPDATE_LABEL_FILTER(){
     );
   }
 }
+function UPDATE_EW_LABELS_VISIBILITY(){
+  if(!map.getLayer("ew_labels")) return;
+  const ewCheckbox = document.querySelector(
+    'input[data-group="ew"][data-layers="layer_ew_2"]'
+  );
+  if(!ewCheckbox) return;
+  map.setLayoutProperty(
+    "ew_labels",
+    "visibility",
+    ewCheckbox.checked ? "visible" : "none"
+  );
+}
 /* ===============================
 PIPELINE LOAD
 =============================== */
@@ -613,6 +626,7 @@ map.on('load',async()=>{
   ZDP_RENDER_ROAD_STYLES(map);
   ZDP_RENDER_ADMIN_STYLES(map);
   ADD_EW_LABELS(map);
+  UPDATE_EW_LABELS_VISIBILITY();
   ADD_LABEL_LAYER(map);
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
