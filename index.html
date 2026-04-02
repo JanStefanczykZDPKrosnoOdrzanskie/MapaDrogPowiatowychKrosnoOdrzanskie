@@ -236,7 +236,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 7
+        Legenda 8
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -580,7 +580,33 @@ function UPDATE_EW_LABELS(){
           center
         );
       }
-      const [lng, lat] = point.geometry.coordinates;
+      let [lng, lat] = point.geometry.coordinates;
+        /* ===============================
+        PIXEL OFFSET OD KRAWĘDZI
+        =============================== */
+      const OFFSET_PX = 20; // <- regulacja
+        try{
+          const screenPoint = map.project([lng, lat]);
+          // zamień polygon na linię (granice)
+          const polygonLine = turf.polygonToLine(polygon);
+          // znajdź najbliższy punkt na granicy
+          const nearest = turf.nearestPointOnLine(polygonLine, point);
+          const nearestScreen = map.project(nearest.geometry.coordinates);
+          // dystans w pixelach
+          const dx = screenPoint.x - nearestScreen.x;
+          const dy = screenPoint.y - nearestScreen.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if(dist < OFFSET_PX && dist > 0){
+            const factor = (OFFSET_PX - dist) / dist;
+            screenPoint.x += dx * factor;
+            screenPoint.y += dy * factor;
+            const newLngLat = map.unproject(screenPoint);
+            lng = newLngLat.lng;
+            lat = newLngLat.lat;
+          }
+        } catch(e) {
+          // fallback – zostaw jak było
+        }
       visibleFeatures.push({
         type: "Feature",
         geometry: {
