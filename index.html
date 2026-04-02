@@ -236,7 +236,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 5
+        Legenda 6
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -555,50 +555,57 @@ function UPDATE_EW_LABELS(){
   const data = source._data;
   if(!data) return;
   const bounds = map.getBounds();
+  const bboxPolygon = turf.bboxPolygon([
+    bounds.getWest(),
+    bounds.getSouth(),
+    bounds.getEast(),
+    bounds.getNorth()
+  ]);
   const visibleFeatures = [];
   data.features.forEach(f=>{
     if(f.properties?.EW != 2) return;
-    let polygon = f;
     try{
-      // 1. Punkt zawsze W WEWNĄTRZ poligonu
-      let point = turf.pointOnFeature(polygon);
-      const [lng, lat] = point.geometry.coordinates;
-      // 2. Dodatkowe zabezpieczenie – tylko jeśli widoczny
-      if(bounds.contains([lng, lat])){
-        visibleFeatures.push({
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [lng, lat]
-          },
-          properties: {
-            name: f.properties?.NAME || ""
-          }
-        });
+      let polygon = f;
+      // 1. Spróbuj przecięcia z viewportem
+      let clipped = turf.intersect(polygon, bboxPolygon);
+      let point;
+      if(clipped){
+        // ✔ label "wciągnięty" do widocznej części
+        point = turf.pointOnFeature(clipped);
+      }else{
+        // ✔ fallback: najbliższy punkt do viewportu
+        const center = turf.center(bboxPolygon);
+        point = turf.nearestPointOnLine(
+          turf.polygonToLine(polygon),
+          center
+        );
       }
-    }
-    catch(e){
-      // fallback (rzadki przypadek)
-      const point = turf.centroid(f);
       const [lng, lat] = point.geometry.coordinates;
-      if(bounds.contains([lng, lat])){
-        visibleFeatures.push({
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [lng, lat]
-          },
-          properties: {
-            name: f.properties?.NAME || ""
-          }
-        });
-      }
+      visibleFeatures.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [lng, lat]
+        },
+        properties: {
+          name: f.properties?.NAME || ""
+        }
+      });
+    }catch(e){
+      // ostateczny fallback
+      const point = turf.pointOnFeature(f);
+      visibleFeatures.push({
+        type:"Feature",
+        geometry: point.geometry,
+        properties:{
+          name: f.properties?.NAME || ""
+        }
+      });
     }
   });
-
   map.getSource("ew_labels_source").setData({
-    type: "FeatureCollection",
-    features: visibleFeatures
+    type:"FeatureCollection",
+    features:visibleFeatures
   });
 }
 let EW_LABELS_TIMEOUT = null;
@@ -643,8 +650,7 @@ function UPDATE_LABEL_FILTER(){
       "road_id_labels",
       ["==",["get","Adm"],-999]
     );
-  }
-  else{
+  } else {
     map.setFilter(
       "road_id_labels",
       ["match",["get","Adm"],visibleAdm,true,false]
@@ -849,7 +855,7 @@ function START_PULSE_ANIMATION(){
     if(pulseGrowing){
       pulseRadius += 0.4;
       if(pulseRadius > 18) pulseGrowing = false;
-    }else{
+    } else {
       pulseRadius -= 0.4;
       if(pulseRadius < 4) pulseGrowing = true;
     }
