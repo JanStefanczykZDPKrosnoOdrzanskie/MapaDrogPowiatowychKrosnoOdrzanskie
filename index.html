@@ -236,7 +236,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 2
+        Legenda 3
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -524,27 +524,11 @@ function ADD_LABEL_LAYER(map){
 }
 function ADD_EW_LABELS(map){
   if(map.getLayer("ew_labels")) return;
-  const source = map.getSource("admin_boundaries");
-  if(!source) return;
-  const data = source._data || source._data; // fallback dla MapLibre
-  // filtr tylko EW = 2
-  const filtered = {
-    type: "FeatureCollection",
-    features: data.features.filter(f => f.properties?.EW == 2)
-  };
-  // centroidy (Turf)
-  const labelFeatures = filtered.features.map(f=>{
-    const center = turf.centroid(f);
-    center.properties = {
-      name: f.properties?.NAME || ""
-    };
-    return center;
-  });
   map.addSource("ew_labels_source", {
     type: "geojson",
     data: {
       type: "FeatureCollection",
-      features: labelFeatures
+      features: []
     }
   });
   map.addLayer({
@@ -562,6 +546,48 @@ function ADD_EW_LABELS(map){
       "text-halo-color": "#FFFFFF",
       "text-halo-width": 2
     }
+  });
+  UPDATE_EW_LABELS();
+}
+function UPDATE_EW_LABELS(){
+  const source = map.getSource("admin_boundaries");
+  if(!source) return;
+  const data = source._data;
+  if(!data) return;
+  const bounds = map.getBounds();
+  const visibleFeatures = [];
+  data.features.forEach(f=>{
+    if(f.properties?.EW != 2) return;
+    // próbujemy centroid
+    let point = turf.centroid(f);
+    const [lng, lat] = point.geometry.coordinates;
+    // jeśli centroid NIE jest w widoku → próbujemy bbox
+    if(!bounds.contains([lng, lat])){
+      const bbox = turf.bbox(f);
+      const center = [
+        (bbox[0] + bbox[2]) / 2,
+        (bbox[1] + bbox[3]) / 2
+      ];
+      point = turf.point(center);
+    }
+    // finalnie sprawdzamy czy punkt jest w viewport
+    const [clng, clat] = point.geometry.coordinates;
+    if(bounds.contains([clng, clat])){
+      visibleFeatures.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [clng, clat]
+        },
+        properties: {
+          name: f.properties?.NAME || ""
+        }
+      });
+    }
+  });
+  map.getSource("ew_labels_source").setData({
+    type: "FeatureCollection",
+    features: visibleFeatures
   });
 }
 /* ===============================
@@ -627,6 +653,8 @@ map.on('load',async()=>{
   ZDP_RENDER_ADMIN_STYLES(map);
   ADD_EW_LABELS(map);
   UPDATE_EW_LABELS_VISIBILITY();
+  map.on("moveend", UPDATE_EW_LABELS);
+  map.on("zoomend", UPDATE_EW_LABELS);
   ADD_LABEL_LAYER(map);
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
