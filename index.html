@@ -234,7 +234,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -521,20 +521,26 @@ function ADD_LABEL_LAYER(map){
   });
 }
 function ADD_ADMIN_LABELS(map){
-  if(map.getLayer("admin_labels")) return;
+  const features = map.getSource("admin_boundaries")._data.features;
+  const points = features
+    .filter(f => f.properties?.EW === 2)
+    .map(f => turf.centroid(f)); // ← centroid
+  map.addSource("admin_labels_source", {
+    type:"geojson",
+    data:{
+      type:"FeatureCollection",
+      features: points
+    }
+  });
   map.addLayer({
     id:"admin_labels",
     type:"symbol",
-    source:"admin_boundaries",
-    filter:["==",["get","EW"],2],
+    source:"admin_labels_source",
     layout:{
-      "symbol-placement":"point",
       "text-field":["get","NAME"],
       "text-font":["Open Sans Regular"],
       "text-size":12,
-      "text-anchor":"center",
-      "text-justify":"center",
-      "text-allow-overlap":false
+      "text-anchor":"center"
     },
     paint:{
       "text-color":"#003366",
