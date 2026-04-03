@@ -226,6 +226,24 @@ LEGEND CONTROL
 body.legend-collapsed #mapAttribution{
   right:10px;
 }
+
+#zoomSliderContainer{
+  position:absolute;
+  top:60px;
+  left:10px;
+  z-index:70;
+  background:white;
+  padding:8px;
+  border-radius:6px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.3);
+}
+#zoomSlider{
+  writing-mode: bt-lr; /* Safari fallback */
+  -webkit-appearance: slider-vertical;
+  width:30px;
+  height:150px;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -342,6 +360,9 @@ body.legend-collapsed #mapAttribution{
 </div> <!-- KONIEC legend -->
 
 <div id="map"></div>
+<div id="zoomSliderContainer">
+  <input id="zoomSlider" type="range" min="6" max="18" step="0.1">
+</div>
 <div id="mapAttribution"></div>
 <div id="searchButton">🔍</div>
 <div id="searchPanel">
@@ -716,7 +737,24 @@ map.on('load',async()=>{
   "Aktualizacja: " + new Date().toLocaleString("pl-PL");
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
+  INIT_ZOOM_SLIDER();
 });
+/* ===============================
+SUWAK ZOOM'A
+=============================== */
+function INIT_ZOOM_SLIDER(){
+  const slider = document.getElementById("zoomSlider");
+  // wartość startowa
+  slider.value = map.getZoom();
+  // ZMIANA SUWAKA → ZOOM MAPY
+  slider.addEventListener("input", () => {
+    map.setZoom(parseFloat(slider.value));
+  });
+  // ZOOM MAPY → SUWAK (scroll, +/-, animacje)
+  map.on("zoom", () => {
+    slider.value = map.getZoom();
+  });
+}
 /* ===============================
 BASE MAP DROPDOWN CONTROL
 =============================== */
