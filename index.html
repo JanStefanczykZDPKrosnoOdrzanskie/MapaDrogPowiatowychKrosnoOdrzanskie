@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -583,6 +583,14 @@ function ADD_EW_LABELS(map){
   UPDATE_EW_LABELS();
 }
 function UPDATE_EW_LABELS(){
+  const zoom = map.getZoom();
+  if (zoom < 12 || zoom > 17) {
+    map.getSource("ew_labels_source").setData({
+      type: "FeatureCollection",
+      features: []
+    });
+    return;
+  }
   const source = map.getSource("admin_boundaries");
   if(!source) return;
   const data = source._data;
