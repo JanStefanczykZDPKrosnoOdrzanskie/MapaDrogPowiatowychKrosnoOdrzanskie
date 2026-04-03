@@ -583,14 +583,20 @@ function ADD_EW_LABELS(map){
   UPDATE_EW_LABELS();
 }
 function UPDATE_EW_LABELS(){
-  const zoom = map.getZoom();
-  if (zoom < 12 || zoom > 17) {
-    map.getSource("ew_labels_source").setData({
-      type: "FeatureCollection",
-      features: []
-    });
-    return;
-  }
+const zoom = map.getZoom();
+/* ===============================
+   ZAKRESY LABELI EW
+=============================== */
+const showEW1 = zoom >= 9.5 && zoom < 12;
+const showEW2 = zoom >= 12 && zoom <= 17;
+/* jeśli nic nie powinno być widoczne */
+if (!showEW1 && !showEW2) {
+  map.getSource("ew_labels_source").setData({
+    type: "FeatureCollection",
+    features: []
+  });
+  return;
+}
   const source = map.getSource("admin_boundaries");
   if(!source) return;
   const data = source._data;
@@ -604,7 +610,10 @@ function UPDATE_EW_LABELS(){
   ]);
   const visibleFeatures = [];
   data.features.forEach(f=>{
-    if(f.properties?.EW != 2) return;
+    const ew = f.properties?.EW;
+    if (ew === 2 && !showEW2) return;
+    if (ew === 1 && !showEW1) return;
+    if (ew !== 1 && ew !== 2) return;
     try{
       let polygon = f;
       // 1. Spróbuj przecięcia z viewportem
