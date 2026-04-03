@@ -226,49 +226,6 @@ LEGEND CONTROL
 body.legend-collapsed #mapAttribution{
   right:10px;
 }
-/* suwak */
-#zoomSliderContainer{
-  position:absolute;
-  top:60px;
-  left:10px;
-  z-index:70;
-  background:white;
-  padding:10px;
-  border-radius:6px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.3);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-#zoomSlider{
-  -webkit-appearance: none;
-  width:150px;
-  height:30px;
-  transform: rotate(-90deg);
-  cursor:pointer;
-}
-#zoomValue{
-  margin-top:8px;
-  font-size:13px;
-  font-family:Arial,sans-serif;
-  text-align:center;
-}
-/* track */
-#zoomSlider::-webkit-slider-runnable-track{
-  height:6px;
-  background:#ccc;
-  border-radius:3px;
-}
-/* thumb */
-#zoomSlider::-webkit-slider-thumb{
-  -webkit-appearance:none;
-  width:14px;
-  height:14px;
-  background:#2c3e50;
-  border-radius:50%;
-  margin-top:-4px;
-}
-}
 </style>
 </head>
 
@@ -385,10 +342,6 @@ body.legend-collapsed #mapAttribution{
 </div> <!-- KONIEC legend -->
 
 <div id="map"></div>
-<div id="zoomSliderContainer">
-  <input id="zoomSlider" type="range" min="6" max="18" step="0.1">
-  <div id="zoomValue">Zoom: 10.0</div>
-</div>
 <div id="mapAttribution"></div>
 <div id="searchButton">🔍</div>
 <div id="searchPanel">
@@ -763,33 +716,7 @@ map.on('load',async()=>{
   "Aktualizacja: " + new Date().toLocaleString("pl-PL");
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
-  INIT_ZOOM_SLIDER();
 });
-/* ===============================
-SUWAK ZOOM'A
-=============================== */
-function INIT_ZOOM_SLIDER(){
-  const slider = document.getElementById("zoomSlider");
-  const zoomLabel = document.getElementById("zoomValue");
-  function updateLabel(z){
-    zoomLabel.innerText = "Zoom: " + z.toFixed(2);
-  }
-  // start
-  slider.value = map.getZoom();
-  updateLabel(map.getZoom());
-  // slider → mapa
-  slider.addEventListener("input", () => {
-    const z = parseFloat(slider.value);
-    map.setZoom(z);
-    updateLabel(z);
-  });
-  // mapa → slider
-  map.on("zoom", () => {
-    const z = map.getZoom();
-    slider.value = z;
-    updateLabel(z);
-  });
-}
 /* ===============================
 BASE MAP DROPDOWN CONTROL
 =============================== */
