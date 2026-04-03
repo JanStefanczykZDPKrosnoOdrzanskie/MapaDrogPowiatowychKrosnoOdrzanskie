@@ -9,7 +9,10 @@
 
 <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  
+
+<link href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
+
 <style>
 :root{
 --legend-width:275px;
@@ -226,6 +229,32 @@ LEGEND CONTROL
 body.legend-collapsed #mapAttribution{
   right:10px;
 }
+/* suwak */
+#zoomControl{
+  position:absolute;
+  top:70px; /* dokładnie poniżej basemapButtons (10px + przyciski) */
+  right:calc(var(--legend-width) + 10px);
+  height:200px;
+  width:40px;
+  z-index:70;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+}
+#zoomSlider{
+  height:150px;
+  margin-top:10px;
+}
+#zoomValue{
+  margin-top:8px;
+  font-size:13px;
+  font-family:Arial,sans-serif;
+  background:white;
+  padding:2px 6px;
+  border-radius:4px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 
@@ -342,6 +371,10 @@ body.legend-collapsed #mapAttribution{
 </div> <!-- KONIEC legend -->
 
 <div id="map"></div>
+<div id="zoomControl">
+  <div id="zoomSlider"></div>
+  <div id="zoomValue">Zoom: 10.0</div>
+</div>
 <div id="mapAttribution"></div>
 <div id="searchButton">🔍</div>
 <div id="searchPanel">
@@ -1034,6 +1067,33 @@ function UPDATE_BASEMAP_ATTRIBUTION(){
   }
   document.getElementById("mapAttribution").innerHTML = html;
 }
+ /* ===============================
+ZOOM SLIDER (noUiSlider)
+=============================== */
+const zoomSlider = document.getElementById('zoomSlider');
+const zoomValue = document.getElementById('zoomValue');
+noUiSlider.create(zoomSlider, {
+  start: map.getZoom(),
+  orientation: 'vertical',
+  direction: 'rtl',
+  step: 0.1,
+  range: {
+    min: 5,
+    max: 18
+  }
+});
+/* slider -> mapa */
+zoomSlider.noUiSlider.on('update', function(values){
+  const zoom = parseFloat(values[0]);
+  map.setZoom(zoom);
+  zoomValue.innerText = "Zoom: " + zoom.toFixed(1);
+});
+/* mapa -> slider */
+map.on('zoom', () => {
+  const z = map.getZoom();
+  zoomSlider.noUiSlider.set(z);
+  zoomValue.innerText = "Zoom: " + z.toFixed(1);
+});
 </script>
 </body>
 </html>
