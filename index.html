@@ -232,8 +232,8 @@ body.legend-collapsed #mapAttribution{
 /* suwak */
 #zoomControl{
   position:absolute;
-  top:70px; /* dokładnie poniżej basemapButtons (10px + przyciski) */
-  right:calc(var(--legend-width) + 10px);
+  top:60px;
+  left:10px;
   height:200px;
   width:40px;
   z-index:70;
@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 9
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -1072,6 +1072,7 @@ ZOOM SLIDER (noUiSlider)
 =============================== */
 const zoomSlider = document.getElementById('zoomSlider');
 const zoomValue = document.getElementById('zoomValue');
+let isSyncingZoom = false;
 noUiSlider.create(zoomSlider, {
   start: map.getZoom(),
   orientation: 'vertical',
@@ -1083,16 +1084,19 @@ noUiSlider.create(zoomSlider, {
   }
 });
 /* slider -> mapa */
-zoomSlider.noUiSlider.on('update', function(values){
+zoomSlider.noUiSlider.on('slide', function(values){
   const zoom = parseFloat(values[0]);
   map.setZoom(zoom);
   zoomValue.innerText = "Zoom: " + zoom.toFixed(1);
 });
 /* mapa -> slider */
 map.on('zoom', () => {
+  if (isSyncingZoom) return;
+  isSyncingZoom = true;
   const z = map.getZoom();
   zoomSlider.noUiSlider.set(z);
   zoomValue.innerText = "Zoom: " + z.toFixed(1);
+  isSyncingZoom = false;
 });
 </script>
 </body>
