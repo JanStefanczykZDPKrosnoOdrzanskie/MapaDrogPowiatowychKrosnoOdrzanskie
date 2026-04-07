@@ -526,21 +526,6 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     type:"geojson",
     data: pr_geo
   });
-function ZDP_RENDER_PR_LAYER(map){
-  if(map.getLayer("layer_pr")) return;
-  map.addLayer({
-    id: "layer_pr",
-    type: "line",
-    source: "pr_source",
-    layout: {
-      visibility: "none" // domyślnie wyłączone
-    },
-    paint: {
-      "line-color": "#FF4500",
-      "line-width": 3
-    }
-  });
-}
   /* ===============================
   ADMINISTRATIVE BOUNDARIES LOAD
   =============================== */
@@ -569,6 +554,60 @@ function ZDP_RENDER_PR_LAYER(map){
   catch(e){
     console.error("Admin boundaries load error:",e);
   }
+}
+function ZDP_RENDER_PR_LAYER(map){
+  if(map.getLayer("layer_pr")) return;
+  map.addLayer({
+    id: "layer_pr",
+    type: "line",
+    source: "pr_source",
+    layout: {
+      visibility: "none" // domyślnie wyłączone
+    },
+    paint: {
+      "line-color": "#FF4500",
+      "line-width": 3
+    }
+  });
+}
+function GET_OFFSET_COORDS(map, coords, offsetPx){
+  const result = [];
+  for(let i=0; i<coords.length; i++){
+    const [lng, lat] = coords[i];
+    const screen = map.project([lng, lat]);
+    // wektor przesunięcia (prosty, tymczasowy – do poprawy później kierunkowo)
+    const offsetScreen = {
+      x: screen.x,
+      y: screen.y - offsetPx
+    };
+    const newLngLat = map.unproject(offsetScreen);
+    result.push([newLngLat.lng, newLngLat.lat]);
+  }
+  return result;
+}
+function GET_PR_OFFSET(pr){
+  const value = GET_PR_VALUE(pr);
+  if(value <= 0) return 0;
+  // przelicznik – do dostrojenia
+  const SCALE = 0.02;
+  return value * SCALE;
+}
+function BUILD_PR_OFFSET_GEOMETRY(feature, offsetPx){
+  const geom = feature.geometry;
+  if(!geom || geom.type !== "LineString") return feature;
+  const coords = geom.coordinates;
+  // bardzo uproszczone przesunięcie
+  const offsetCoords = coords.map(coord=>{
+    const screen = map.project(coord);
+    return map.unproject([screen.x, screen.y - offsetPx]).toArray();
+  });
+  return {
+    ...feature,
+    geometry: {
+      type: "LineString",
+      coordinates: offsetCoords
+    }
+  };
 }
 /* ===============================
 ROAD LAYERS
@@ -648,13 +687,27 @@ function INIT_PR_CONTROLS(){
 }
 function UPDATE_PR_VALUES(){
   if(!PR_ENABLED) return;
-
-  // tu będziemy liczyć:
-  // - wartość do labela
-  // - wartość do offsetu
-
-  // na razie tylko log (kontrola)
-  // console.log(PR_ACTIVE_TYPES);
+  const source = map.getSource("pr_source");
+  if(!source) return;
+  const data = source._data;
+  const updatedFeatures = data.features.map(f=>{
+    const prId = f.properties?.PR;
+    const offset = GET_PR_OFFSET(prId);
+    const value = GET_PR_VALUE(prId);
+    const newFeature = BUILD_PR_OFFSET_GEOMETRY(f, offset);
+    return {
+      ...newFeature,
+      properties: {
+        ...f.properties,
+        PR_VALUE: value,
+        OFFSET: offset
+      }
+    };
+  });
+  source.setData({
+    type: "FeatureCollection",
+    features: updatedFeatures
+  });
 }
 /* ===============================
 PR VALUE
@@ -927,6 +980,12 @@ map.on('load',async()=>{
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
   INIT_PR_CONTROLS();
+  map.on("zoom", ()=>{
+    UPDATE_PR_VALUES();
+  });
+  map.on("move", ()=>{
+    UPDATE_PR_VALUES();
+  });
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
