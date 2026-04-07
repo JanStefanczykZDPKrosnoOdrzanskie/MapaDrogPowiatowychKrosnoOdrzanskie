@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 7
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -857,6 +857,7 @@ function ZDP_LEGEND_INIT(){
             chk.checked = e.target.checked;
             PR_SELECTED[chk.dataset.pr] = chk.checked;
           });
+          // tylko raz przeliczamy dane
           GENERATE_PR_OFFSET();
         }
         return;
@@ -1249,6 +1250,7 @@ document.querySelectorAll(".section-toggle").forEach(toggle=>{
     );
     inputs.forEach(input=>{
       input.checked = checked;
+      if(!input.dataset.layers) return;
       const layers = input.dataset.layers.split(',');
       layers.forEach(layerId=>{
         if(!map.getLayer(layerId)) return;
