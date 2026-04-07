@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 3
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -324,15 +324,16 @@ body.legend-collapsed #mapAttribution{
       </div>
     </div>
     <div class="legend-section">
+      <input type="checkbox" class="section-toggle" data-group="pr">
       <h3>Pomiar Ruchu</h3>
       <div class="legend-items">
-        <label><input type="checkbox" data-pr="MOTO" checked> Motocykle</label>
-        <label><input type="checkbox" data-pr="SOMB" checked> Osobowe</label>
-        <label><input type="checkbox" data-pr="LSMC" checked> Lekkie ciężarowe</label>
-        <label><input type="checkbox" data-pr="SCBP" checked> Ciężarowe bez przycz.</label>
-        <label><input type="checkbox" data-pr="SCZP" checked> Ciężarowe z przycz.</label>
-        <label><input type="checkbox" data-pr="ATBS" checked> Autobusy</label>
-        <label><input type="checkbox" data-pr="CGNR" checked> Ciągniki</label>
+        <label><input type="checkbox" data-pr="MOTO" data-group="pr"> Motocykle</label>
+        <label><input type="checkbox" data-pr="SOMB" data-group="pr"> Sam. Os. i Mikrobusy</label>
+        <label><input type="checkbox" data-pr="LSMC" data-group="pr"> Lekkie ciężarowe</label>
+        <label><input type="checkbox" data-pr="SCBP" data-group="pr"> Ciężarowe bez przycz.</label>
+        <label><input type="checkbox" data-pr="SCZP" data-group="pr"> Ciężarowe z przycz.</label>
+        <label><input type="checkbox" data-pr="ATBS" data-group="pr"> Autobusy</label>
+        <label><input type="checkbox" data-pr="CGNR" data-group="pr"> Ciągniki rolne</label>
       </div>
     </div>
     <div class="legend-section collapsed">
@@ -558,18 +559,7 @@ function GENERATE_PR_OFFSET(){
     const OFFSET_SCALE = 0.00002;
     const offset = val * OFFSET_SCALE;
     try{
-      // uproszczenie geometrii
-      const simplified = turf.simplify(f, {
-        tolerance: 0.00001,
-        highQuality: true
-      });
-      // wygładzenie osi
-      const smoothed = turf.bezierSpline(simplified, {
-        resolution: 10000,
-        sharpness: 0.85
-      });
-      // offset na wygładzonej linii
-      const offsetLine = turf.lineOffset(smoothed, offset, {units: 'degrees'});
+      const offsetLine = turf.lineOffset(f, offset, {units: 'degrees'});
       return {
         type: "Feature",
         geometry: offsetLine.geometry,
