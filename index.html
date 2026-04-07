@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 3
+        Legenda 4
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -550,7 +550,7 @@ function GENERATE_PR_OFFSET(){
   // funkcja uproszczenia PR
   function SIMPLIFY_PR(line){
     return turf.simplify(line, {
-      tolerance: 0.00001, // bardzo mała wartość → delikatne uproszczenie
+      tolerance: 0.0009, // bardzo mała wartość → delikatne uproszczenie
       highQuality: true
     });
   }
@@ -573,7 +573,7 @@ function GENERATE_PR_OFFSET(){
       const centerline = simplifiedLine;
       /* uproszczenie tylko dla offsetu */
         const simplified = turf.simplify(f, {
-        tolerance: 0.00002, // kluczowy parametr – regulujesz płynność
+        tolerance: 0.0009, // kluczowy parametr – regulujesz płynność
         highQuality: true
       });
       /* offset liczony od uproszczonej linii */
