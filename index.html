@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 6
+        Legenda 7
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -851,7 +851,7 @@ function ZDP_LEGEND_INIT(){
         if(map.getLayer("pr_labels")){
           map.setLayoutProperty("pr_labels","visibility",visible);
         }
-        // sterowanie checkboxami PR (tylko jeśli to sekcja)
+        // sterowanie checkboxami PR
         if(e.target.classList.contains("section-toggle")){
           document.querySelectorAll('[data-group="pr"][data-pr]').forEach(chk=>{
             chk.checked = e.target.checked;
@@ -861,14 +861,6 @@ function ZDP_LEGEND_INIT(){
         }
         return;
       }
-      if(map.getLayer("pr_offset_layer")){
-        map.setLayoutProperty("pr_offset_layer","visibility",visible);
-      }
-      if(map.getLayer("pr_labels")){
-        map.setLayoutProperty("pr_labels","visibility",visible);
-      }
-      return;
-    }
       UPDATE_LABEL_FILTER();
       UPDATE_EW_LABELS_VISIBILITY();
       UPDATE_BASEMAP_ATTRIBUTION();
