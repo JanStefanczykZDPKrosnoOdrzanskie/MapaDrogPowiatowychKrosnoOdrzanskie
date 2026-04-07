@@ -563,7 +563,8 @@ function GENERATE_PR_OFFSET(){
       r.nr == f.properties?.PR && r.id === f.properties?.ID
     );
     if(!csvRow) return null;
-    const val = CALCULATE_PR_VALUE(csvRow);
+    const val = csvRow ? CALCULATE_PR_VALUE(csvRow) : null;
+    if(val === null || isNaN(val)) return null;
     // SKALA
     const OFFSET_SCALE = 0.00002;
     try{
@@ -848,6 +849,20 @@ function ZDP_LEGEND_INIT(){
       UPDATE_LABEL_FILTER();
       UPDATE_EW_LABELS_VISIBILITY();
       UPDATE_BASEMAP_ATTRIBUTION();
+      if(e.target.dataset.group === "pr" && e.target.classList.contains("section-toggle")){
+        const visible = e.target.checked ? "visible" : "none";
+        if(map.getLayer("pr_offset_layer")){
+          map.setLayoutProperty("pr_offset_layer","visibility",visible);
+        }
+        if(map.getLayer("pr_labels")){
+          map.setLayoutProperty("pr_labels","visibility",visible);
+        }
+        document.querySelectorAll('[data-group="pr"][data-pr]').forEach(c=>{
+          c.checked = e.target.checked;
+          PR_SELECTED[c.dataset.pr] = c.checked;
+        });
+        GENERATE_PR_OFFSET();
+      }
     });
   });
 }
@@ -1298,27 +1313,6 @@ map.on('zoom', () => {
   zoomSlider.noUiSlider.set(z);
   zoomValue.innerText = "Zoom: " + z.toFixed(1);
   isSyncingZoom = false;
-});
- /* ===============================
-Pomiar Ruchu
-=============================== */
-document.querySelectorAll('.section-toggle[data-group="pr"]').forEach(chk=>{
-  chk.addEventListener('change', ()=>{
-    const visible = chk.checked ? "visible" : "none";
-    if(map.getLayer("pr_offset_layer")){
-      map.setLayoutProperty("pr_offset_layer","visibility",visible);
-    }
-    if(map.getLayer("pr_labels")){
-      map.setLayoutProperty("pr_labels","visibility",visible);
-    }
-    // zaznacz/odznacz dzieci
-    document.querySelectorAll('[data-group="pr"][data-pr]').forEach(c=>{
-      c.checked = chk.checked;
-      PR_SELECTED[c.dataset.pr] = c.checked;
-    });
-    // przelicz dane
-    GENERATE_PR_OFFSET();
-  });
 });
 </script>
 </body>
