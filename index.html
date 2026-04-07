@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -545,6 +545,13 @@ function ZDP_RENDER_ADMIN_STYLES(map){
 PR OFFSET (POMIAR RUCHU)
 =============================== */
 function GENERATE_PR_OFFSET(){
+  // funkcja uproszczenia PR
+  function SIMPLIFY_PR(line){
+    return turf.simplify(line, {
+      tolerance: 0.00001, // bardzo mała wartość → delikatne uproszczenie
+      highQuality: true
+    });
+  }
   const source = map.getSource("pr_data");
   if(!source) return;
   const data = source._data;
@@ -559,7 +566,16 @@ function GENERATE_PR_OFFSET(){
     const OFFSET_SCALE = 0.00002;
     const offset = val * OFFSET_SCALE;
     try{
-      const offsetLine = turf.lineOffset(f, offset, {units: 'degrees'});
+      const simplifiedLine = SIMPLIFY_PR(f);
+      /* Zamiana na linię osi */
+      const centerline = simplifiedLine;
+      /* Opcjonalne dodatkowe wygładzenie osi (lepsza geometria) */
+      const smoothed = turf.bezierSpline(centerline, {
+        resolution: 10000,
+        sharpness: 0.85
+      });
+      /* Offset liczony od osi */
+      const offsetLine = turf.lineOffset(smoothed, offset, {units: 'degrees'});
       return {
         type: "Feature",
         geometry: offsetLine.geometry,
