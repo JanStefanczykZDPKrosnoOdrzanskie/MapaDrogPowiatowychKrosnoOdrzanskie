@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -324,8 +324,10 @@ body.legend-collapsed #mapAttribution{
       </div>
     </div>
     <div class="legend-section">
+      <h3>
       <input type="checkbox" class="section-toggle" data-group="pr">
-      <h3>Pomiar Ruchu</h3>
+      Pomiar Ruchu
+      </h3>
       <div class="legend-items">
         <label><input type="checkbox" data-pr="MOTO" data-group="pr"> Motocykle</label>
         <label><input type="checkbox" data-pr="SOMB" data-group="pr"> Sam. Os. i Mikrobusy</label>
@@ -638,6 +640,14 @@ function INIT_PR_CONTROLS(){
     });
   });
 }
+function TOGGLE_PR_GROUP(checked){
+  document.querySelectorAll('input[data-group="pr"]').forEach(chk=>{
+    chk.checked = checked;
+  });
+
+  // przeliczenie widoku
+  GENERATE_PR_OFFSET();
+}
 /* ===============================
 LABELS
 =============================== */
@@ -839,6 +849,9 @@ function ZDP_LEGEND_INIT(){
       UPDATE_LABEL_FILTER();
       UPDATE_EW_LABELS_VISIBILITY();
       UPDATE_BASEMAP_ATTRIBUTION();
+      if(e.target.classList.contains("section-toggle") && e.target.dataset.group === "pr"){
+        TOGGLE_PR_GROUP(e.target.checked);
+      }
     });
   });
 }
