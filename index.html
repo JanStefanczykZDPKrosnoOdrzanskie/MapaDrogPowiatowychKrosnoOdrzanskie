@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -487,6 +487,8 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     fetch("PR.geojson").then(r=>r.json()),
     LOAD_PR_CSV()
   ]);
+  console.log(PR_CSV_DATA);
+  console.log(pr_geo);
   if(map.getSource("pr_data")){
     map.getSource("pr_data").setData(pr_geo);
   } else {
