@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -321,21 +321,6 @@ body.legend-collapsed #mapAttribution{
           <span class="legend-line" style="background:#A1A1A1"></span>
           Standard 6
         </label>
-      </div>
-    </div>
-    <div class="legend-section">
-      <h3>
-      <input type="checkbox" class="section-toggle" data-group="pr">
-      Pomiar Ruchu
-      </h3>
-      <div class="legend-items">
-        <label><input type="checkbox" data-pr="MOTO" checked data-group="pr"> Motocykle</label>
-        <label><input type="checkbox" data-pr="SOMB" checked data-group="pr"> Sam. Os. i Mikrobusy</label>
-        <label><input type="checkbox" data-pr="LSMC" checked data-group="pr"> Lekkie ciężarowe</label>
-        <label><input type="checkbox" data-pr="SCBP" checked data-group="pr"> Ciężarowe bez przycz.</label>
-        <label><input type="checkbox" data-pr="SCZP" checked data-group="pr"> Ciężarowe z przycz.</label>
-        <label><input type="checkbox" data-pr="ATBS" checked data-group="pr"> Autobusy</label>
-        <label><input type="checkbox" data-pr="CGNR" checked data-group="pr"> Ciągniki rolne</label>
       </div>
     </div>
     <div class="legend-section collapsed">
@@ -483,23 +468,6 @@ async function ZDP_LOAD_GEO_SOURCES(map){
   catch(e){
     console.error("Admin boundaries load error:",e);
   }
-  /* ===============================
-  POMIAR RUCHU - ŁADOWANIE
-  =============================== */  
-  const [pr_geo] = await Promise.all([
-    fetch("PR.geojson").then(r=>r.json()),
-    LOAD_PR_CSV()
-  ]);
-  console.log(PR_CSV_DATA);
-  console.log(pr_geo);
-  if(map.getSource("pr_data")){
-    map.getSource("pr_data").setData(pr_geo);
-  } else {
-    map.addSource("pr_data",{
-      type:"geojson",
-      data:pr_geo
-    });
-  }
 }
 /* ===============================
 ROAD LAYERS
@@ -542,111 +510,6 @@ function ZDP_RENDER_ADMIN_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_grn_3","admin_boundaries",["==",["get","GRN"],3],"#999999",1, false);
   ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#555555",1,false);
   ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#000000",2, true);
-}
-/* ===============================
-PR OFFSET (POMIAR RUCHU)
-=============================== */
-function GENERATE_PR_OFFSET(){
-  // funkcja uproszczenia PR
-  function SIMPLIFY_PR(line){
-    return turf.simplify(line, {
-      tolerance: 0.001, 
-      highQuality: true
-    });
-  }
-  const source = map.getSource("pr_data");
-  if(!source) return;
-  const data = source._data;
-  if(!data) return;
-  const features = data.features.map(f => {
-    const csvRow = PR_CSV_DATA.find(r => 
-      r.nr == f.properties?.PR && r.id === f.properties?.ID
-    );
-    if(!csvRow) return null;
-    const val = csvRow ? CALCULATE_PR_VALUE(csvRow) : null;
-    if(val === null || isNaN(val)) return null;
-    // SKALA
-    const OFFSET_SCALE = 0.00002;
-    try{
-      const simplifiedLine = SIMPLIFY_PR(f);
-      /* Zamiana na linię osi */
-      const centerline = simplifiedLine;
-      /* uproszczenie tylko dla offsetu */
-        const simplified = turf.simplify(f, {
-        tolerance: 0.001,
-        highQuality: true
-      });
-      return {
-        type: "Feature",
-        geometry: offsetLine.geometry,
-        properties: {
-          value: val,
-          label: val.toString()
-        }
-      };
-    }catch(e){
-      return null;
-    }
-  }).filter(Boolean);
-  const geojson = {
-    type: "FeatureCollection",
-    features: features
-  };
-  if(map.getSource("pr_offset")){
-    map.getSource("pr_offset").setData(geojson);
-  } else {
-    map.addSource("pr_offset", {
-      type: "geojson",
-      data: geojson
-    });
-    map.addLayer({
-      id: "pr_offset_layer",
-      type: "line",
-      source: "pr_offset",
-      layout: {
-        visibility: "none"
-      },
-      paint: {
-        "line-color": "#0000FF",
-        "line-width": 4
-      }
-    });
-    map.addLayer({
-      id: "pr_labels",
-      type: "symbol",
-      source: "pr_offset",
-      layout: {
-        "visibility": "none",
-        "symbol-placement": "line",
-        "text-field": ["get","label"],
-        "text-size": 12
-      },
-      paint: {
-        "line-color": "#0000FF",
-        "line-width": 4,
-        "line-offset": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          9.5, ["*", ["get", "value"], 0.000001],
-          22, ["*", ["get", "value"], 0.00001]
-        ]
-      }
-    });
-  }
-}
-function ADD_PR_LAYER(map){
-  GENERATE_PR_OFFSET();
-}
-function INIT_PR_CONTROLS(){
-  document.querySelectorAll('[data-pr]').forEach(chk=>{
-    chk.addEventListener('change', ()=>{
-      const key = chk.dataset.pr;
-      PR_SELECTED[key] = chk.checked;
-
-      GENERATE_PR_OFFSET();
-    });
-  });
 }
 /* ===============================
 LABELS
@@ -849,20 +712,6 @@ function ZDP_LEGEND_INIT(){
       UPDATE_LABEL_FILTER();
       UPDATE_EW_LABELS_VISIBILITY();
       UPDATE_BASEMAP_ATTRIBUTION();
-      if(e.target.dataset.group === "pr" && e.target.classList.contains("section-toggle")){
-        const visible = e.target.checked ? "visible" : "none";
-        if(map.getLayer("pr_offset_layer")){
-          map.setLayoutProperty("pr_offset_layer","visibility",visible);
-        }
-        if(map.getLayer("pr_labels")){
-          map.setLayoutProperty("pr_labels","visibility",visible);
-        }
-        document.querySelectorAll('[data-group="pr"][data-pr]').forEach(c=>{
-          c.checked = e.target.checked;
-          PR_SELECTED[c.dataset.pr] = c.checked;
-        });
-        GENERATE_PR_OFFSET();
-      }
     });
   });
 }
@@ -898,50 +747,6 @@ function UPDATE_EW_LABELS_VISIBILITY(){
   );
 }
 /* ===============================
-KALKULACJA SDR
-=============================== */
-let PR_SELECTED = {
-  MOTO: true,
-  SOMB: true,
-  LSMC: true,
-  SCBP: true,
-  SCZP: true,
-  ATBS: true,
-  CGNR: true
-};
-function CALCULATE_PR_VALUE(props){
-  let sum = 0;
-  if(PR_SELECTED.MOTO) sum += Number(props.MOTO) || 0;
-  if(PR_SELECTED.SOMB) sum += Number(props.SOMB) || 0;
-  if(PR_SELECTED.LSMC) sum += Number(props.LSMC) || 0;
-  if(PR_SELECTED.SCBP) sum += Number(props.SCBP) || 0;
-  if(PR_SELECTED.SCZP) sum += Number(props.SCZP) || 0;
-  if(PR_SELECTED.ATBS) sum += Number(props.ATBS) || 0;
-  if(PR_SELECTED.CGNR) sum += Number(props.CGNR) || 0;
-  return sum;
-}
-let PR_CSV_DATA = [];
-async function LOAD_PR_CSV(){
-  const response = await fetch("PR.csv");
-  const text = await response.text();
-  const rows = text.split("\n").slice(1); // pomijamy nagłówek
-  PR_CSV_DATA = rows.map(row=>{
-    const cols = row.split(",");
-    return {
-      nr: cols[0],
-      id: cols[1],
-      opis: cols[2],
-      MOTO: Number(cols[3]) || 0,
-      SOMB: Number(cols[4]) || 0,
-      LSMC: Number(cols[5]) || 0,
-      SCBP: Number(cols[6]) || 0,
-      SCZP: Number(cols[7]) || 0,
-      ATBS: Number(cols[8]) || 0,
-      CGNR: Number(cols[9]) || 0
-    };
-  });
-}
-/* ===============================
 PIPELINE LOAD
 =============================== */
 map.on('load',async()=>{
@@ -961,9 +766,6 @@ map.on('load',async()=>{
   "Aktualizacja: " + new Date().toLocaleString("pl-PL");
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
-  await LOAD_PR_CSV();
-  ADD_PR_LAYER(map);
-  INIT_PR_CONTROLS();
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
@@ -1248,7 +1050,6 @@ document.querySelectorAll(".section-toggle").forEach(toggle=>{
     );
     inputs.forEach(input=>{
       input.checked = checked;
-      if(!input.dataset.layers) return;
       const layers = input.dataset.layers.split(',');
       layers.forEach(layerId=>{
         if(!map.getLayer(layerId)) return;
