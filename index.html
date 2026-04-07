@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -506,7 +506,19 @@ async function ZDP_LOAD_GEO_SOURCES(map){
   /* ===============================
   PR LOAD
   =============================== */
-  const pr_geo = await fetch("PR.geojson").then(r=>r.json());
+  let pr_geo = await fetch("PR.geojson").then(r=>r.json());
+  // przypisanie danych z CSV do feature'ów
+  pr_geo.features = pr_geo.features.map(f=>{
+    const prId = f.properties?.PR;
+    const data = PR_DATA[prId];
+    return {
+      ...f,
+      properties: {
+        ...f.properties,
+        ...data
+      }
+    };
+  });
   if(map.getSource("pr_source")){
     map.removeSource("pr_source");
   }
@@ -514,6 +526,21 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     type:"geojson",
     data: pr_geo
   });
+function ZDP_RENDER_PR_LAYER(map){
+  if(map.getLayer("layer_pr")) return;
+  map.addLayer({
+    id: "layer_pr",
+    type: "line",
+    source: "pr_source",
+    layout: {
+      visibility: "none" // domyślnie wyłączone
+    },
+    paint: {
+      "line-color": "#FF4500",
+      "line-width": 3
+    }
+  });
+}
   /* ===============================
   ADMINISTRATIVE BOUNDARIES LOAD
   =============================== */
@@ -594,8 +621,14 @@ function INIT_PR_CONTROLS(){
   mainToggle.addEventListener("change", e=>{
     PR_ENABLED = e.target.checked;
     const section = e.target.closest(".legend-section");
-    // pokaż/ukryj odcinki PR (na razie placeholder)
-    UPDATE_PR_VISIBILITY();
+    function UPDATE_PR_VISIBILITY(){
+      if(!map.getLayer("layer_pr")) return;
+      map.setLayoutProperty(
+        "layer_pr",
+        "visibility",
+        PR_ENABLED ? "visible" : "none"
+      );
+    }
     typeCheckboxes.forEach(chk=>{
       chk.disabled = !PR_ENABLED;
       if(!PR_ENABLED){
@@ -616,9 +649,12 @@ function INIT_PR_CONTROLS(){
 function UPDATE_PR_VALUES(){
   if(!PR_ENABLED) return;
 
-  // tutaj w przyszłości:
-  // - label
-  // - offset
+  // tu będziemy liczyć:
+  // - wartość do labela
+  // - wartość do offsetu
+
+  // na razie tylko log (kontrola)
+  // console.log(PR_ACTIVE_TYPES);
 }
 /* ===============================
 PR VALUE
@@ -876,6 +912,7 @@ map.on('load',async()=>{
   await LOAD_PR_CSV();
   ZDP_RENDER_ROAD_STYLES(map);
   ZDP_RENDER_ADMIN_STYLES(map);
+  ZDP_RENDER_PR_LAYER(map);
   ADD_EW_LABELS(map);
   UPDATE_EW_LABELS_VISIBILITY();
   map.on("move", UPDATE_EW_LABELS_DEBOUNCED);
