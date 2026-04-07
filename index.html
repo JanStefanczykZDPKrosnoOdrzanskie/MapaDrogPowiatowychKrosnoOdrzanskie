@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 5
+        Legenda 6
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -550,7 +550,7 @@ function GENERATE_PR_OFFSET(){
   // funkcja uproszczenia PR
   function SIMPLIFY_PR(line){
     return turf.simplify(line, {
-      tolerance: 0.0009, // bardzo mała wartość → delikatne uproszczenie
+      tolerance: 0.001, 
       highQuality: true
     });
   }
@@ -573,7 +573,7 @@ function GENERATE_PR_OFFSET(){
       const centerline = simplifiedLine;
       /* uproszczenie tylko dla offsetu */
         const simplified = turf.simplify(f, {
-        tolerance: 0.0009, // kluczowy parametr – regulujesz płynność
+        tolerance: 0.001,
         highQuality: true
       });
       /* offset liczony od uproszczonej linii */
@@ -605,6 +605,9 @@ function GENERATE_PR_OFFSET(){
       id: "pr_offset_layer",
       type: "line",
       source: "pr_offset",
+      layout: {
+        visibility: "none"
+      },
       paint: {
         "line-color": "#0000FF",
         "line-width": 4
@@ -615,6 +618,7 @@ function GENERATE_PR_OFFSET(){
       type: "symbol",
       source: "pr_offset",
       layout: {
+        "visibility": "none",
         "symbol-placement": "line",
         "text-field": ["get","label"],
         "text-size": 12
@@ -839,7 +843,24 @@ function ZDP_LEGEND_INIT(){
         );
       });
       if(e.target.dataset.group === "pr"){
-      const visible = e.target.checked ? "visible" : "none";
+        const visible = e.target.checked ? "visible" : "none";
+        // sterowanie warstwą PR
+        if(map.getLayer("pr_offset_layer")){
+          map.setLayoutProperty("pr_offset_layer","visibility",visible);
+        }
+        if(map.getLayer("pr_labels")){
+          map.setLayoutProperty("pr_labels","visibility",visible);
+        }
+        // sterowanie checkboxami PR (tylko jeśli to sekcja)
+        if(e.target.classList.contains("section-toggle")){
+          document.querySelectorAll('[data-group="pr"][data-pr]').forEach(chk=>{
+            chk.checked = e.target.checked;
+            PR_SELECTED[chk.dataset.pr] = chk.checked;
+          });
+          GENERATE_PR_OFFSET();
+        }
+        return;
+      }
       if(map.getLayer("pr_offset_layer")){
         map.setLayoutProperty("pr_offset_layer","visibility",visible);
       }
