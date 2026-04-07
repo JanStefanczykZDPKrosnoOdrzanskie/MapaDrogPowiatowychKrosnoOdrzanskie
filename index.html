@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 2
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -321,6 +321,18 @@ body.legend-collapsed #mapAttribution{
           <span class="legend-line" style="background:#A1A1A1"></span>
           Standard 6
         </label>
+      </div>
+    </div>
+    <div class="legend-section">
+      <h3>Pomiar Ruchu</h3>
+      <div class="legend-items">
+        <label><input type="checkbox" data-pr="MOTO" checked> Motocykle</label>
+        <label><input type="checkbox" data-pr="SOMB" checked> Osobowe</label>
+        <label><input type="checkbox" data-pr="LSMC" checked> Lekkie ciężarowe</label>
+        <label><input type="checkbox" data-pr="SCBP" checked> Ciężarowe bez przycz.</label>
+        <label><input type="checkbox" data-pr="SCZP" checked> Ciężarowe z przycz.</label>
+        <label><input type="checkbox" data-pr="ATBS" checked> Autobusy</label>
+        <label><input type="checkbox" data-pr="CGNR" checked> Ciągniki</label>
       </div>
     </div>
     <div class="legend-section collapsed">
@@ -468,6 +480,11 @@ async function ZDP_LOAD_GEO_SOURCES(map){
   catch(e){
     console.error("Admin boundaries load error:",e);
   }
+  const pr_data = await fetch("PR.geojson").then(r=>r.json());
+  map.addSource("pr_data", {
+    type: "geojson",
+    data: pr_data
+  });
 }
 /* ===============================
 ROAD LAYERS
@@ -510,6 +527,83 @@ function ZDP_RENDER_ADMIN_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_grn_3","admin_boundaries",["==",["get","GRN"],3],"#999999",1, false);
   ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#555555",1,false);
   ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#000000",2, true);
+}
+/* ===============================
+PR OFFSET (POMIAR RUCHU)
+=============================== */
+function GENERATE_PR_OFFSET(){
+  const source = map.getSource("pr_data");
+  if(!source) return;
+  const data = source._data;
+  if(!data) return;
+  const features = data.features.map(f => {
+    const val = CALCULATE_PR_VALUE(f.properties);
+    // SKALA
+    const OFFSET_SCALE = 0.00002;
+    const offset = val * OFFSET_SCALE;
+    try{
+      const offsetLine = turf.lineOffset(f, offset, {units: 'degrees'});
+      return {
+        type: "Feature",
+        geometry: offsetLine.geometry,
+        properties: {
+          value: val,
+          label: val.toString()
+        }
+      };
+    }catch(e){
+      return null;
+    }
+  }).filter(Boolean);
+  const geojson = {
+    type: "FeatureCollection",
+    features: features
+  };
+  if(map.getSource("pr_offset")){
+    map.getSource("pr_offset").setData(geojson);
+  } else {
+    map.addSource("pr_offset", {
+      type: "geojson",
+      data: geojson
+    });
+    map.addLayer({
+      id: "pr_offset_layer",
+      type: "line",
+      source: "pr_offset",
+      paint: {
+        "line-color": "#0000FF",
+        "line-width": 4
+      }
+    });
+    map.addLayer({
+      id: "pr_labels",
+      type: "symbol",
+      source: "pr_offset",
+      layout: {
+        "symbol-placement": "line",
+        "text-field": ["get","label"],
+        "text-size": 12
+      },
+      paint: {
+        "text-color": "#0000FF",
+        "text-halo-color": "#FFFFFF",
+        "text-halo-width": 2
+      }
+    });
+  }
+}
+function ADD_PR_LAYER(map){
+  GENERATE_PR_OFFSET();
+}
+function INIT_PR_CONTROLS(){
+  document.querySelectorAll('[data-pr]').forEach(chk=>{
+    chk.addEventListener('change', ()=>{
+      const key = chk.dataset.pr;
+      PR_SELECTED[key] = chk.checked;
+
+      GENERATE_PR_OFFSET();
+    });
+  });
 }
 /* ===============================
 LABELS
@@ -747,6 +841,29 @@ function UPDATE_EW_LABELS_VISIBILITY(){
   );
 }
 /* ===============================
+KALKULACJA SDR
+=============================== */
+let PR_SELECTED = {
+  MOTO: true,
+  SOMB: true,
+  LSMC: true,
+  SCBP: true,
+  SCZP: true,
+  ATBS: true,
+  CGNR: true
+};
+function CALCULATE_PR_VALUE(props){
+  let sum = 0;
+  if(PR_SELECTED.MOTO) sum += Number(props.MOTO) || 0;
+  if(PR_SELECTED.SOMB) sum += Number(props.SOMB) || 0;
+  if(PR_SELECTED.LSMC) sum += Number(props.LSMC) || 0;
+  if(PR_SELECTED.SCBP) sum += Number(props.SCBP) || 0;
+  if(PR_SELECTED.SCZP) sum += Number(props.SCZP) || 0;
+  if(PR_SELECTED.ATBS) sum += Number(props.ATBS) || 0;
+  if(PR_SELECTED.CGNR) sum += Number(props.CGNR) || 0;
+  return sum;
+}
+/* ===============================
 PIPELINE LOAD
 =============================== */
 map.on('load',async()=>{
@@ -766,6 +883,8 @@ map.on('load',async()=>{
   "Aktualizacja: " + new Date().toLocaleString("pl-PL");
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
+  ADD_PR_LAYER(map);
+  INIT_PR_CONTROLS();
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
