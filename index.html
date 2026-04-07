@@ -480,11 +480,11 @@ async function ZDP_LOAD_GEO_SOURCES(map){
   catch(e){
     console.error("Admin boundaries load error:",e);
   }
-  const pr_data = await fetch("PR.geojson").then(r=>r.json());
-  map.addSource("pr_data", {
-    type: "geojson",
-    data: pr_data
-  });
+  const [pr_geo, pr_csv] = await Promise.all([
+    fetch("PR.geojson").then(r=>r.json()),
+    LOAD_PR_CSV()
+  ]);
+  const pr_data = pr_geo;
 }
 /* ===============================
 ROAD LAYERS
@@ -537,7 +537,11 @@ function GENERATE_PR_OFFSET(){
   const data = source._data;
   if(!data) return;
   const features = data.features.map(f => {
-    const val = CALCULATE_PR_VALUE(f.properties);
+    const csvRow = PR_CSV_DATA.find(r => 
+      r.nr === f.properties?.NR && r.id === f.properties?.ID
+    );
+    if(!csvRow) return null;
+    const val = CALCULATE_PR_VALUE(csvRow);
     // SKALA
     const OFFSET_SCALE = 0.00002;
     const offset = val * OFFSET_SCALE;
@@ -863,6 +867,27 @@ function CALCULATE_PR_VALUE(props){
   if(PR_SELECTED.CGNR) sum += Number(props.CGNR) || 0;
   return sum;
 }
+let PR_CSV_DATA = [];
+async function LOAD_PR_CSV(){
+  const response = await fetch("PR.csv");
+  const text = await response.text();
+  const rows = text.split("\n").slice(1); // pomijamy nagłówek
+  PR_CSV_DATA = rows.map(row=>{
+    const cols = row.split(",");
+    return {
+      nr: cols[0],
+      id: cols[1],
+      opis: cols[2],
+      MOTO: Number(cols[3]) || 0,
+      SOMB: Number(cols[4]) || 0,
+      LSMC: Number(cols[5]) || 0,
+      SCBP: Number(cols[6]) || 0,
+      SCZP: Number(cols[7]) || 0,
+      ATBS: Number(cols[8]) || 0,
+      CGNR: Number(cols[9]) || 0
+    };
+  });
+}
 /* ===============================
 PIPELINE LOAD
 =============================== */
@@ -883,6 +908,7 @@ map.on('load',async()=>{
   "Aktualizacja: " + new Date().toLocaleString("pl-PL");
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
+  await LOAD_PR_CSV();
   ADD_PR_LAYER(map);
   INIT_PR_CONTROLS();
 });
