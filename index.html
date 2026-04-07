@@ -842,26 +842,6 @@ function ZDP_LEGEND_INIT(){
           e.target.checked ? 'visible':'none'
         );
       });
-      if(e.target.dataset.group === "pr"){
-        const visible = e.target.checked ? "visible" : "none";
-        // sterowanie warstwą PR
-        if(map.getLayer("pr_offset_layer")){
-          map.setLayoutProperty("pr_offset_layer","visibility",visible);
-        }
-        if(map.getLayer("pr_labels")){
-          map.setLayoutProperty("pr_labels","visibility",visible);
-        }
-        // sterowanie checkboxami PR
-        if(e.target.classList.contains("section-toggle")){
-          document.querySelectorAll('[data-group="pr"][data-pr]').forEach(chk=>{
-            chk.checked = e.target.checked;
-            PR_SELECTED[chk.dataset.pr] = chk.checked;
-          });
-          // tylko raz przeliczamy dane
-          GENERATE_PR_OFFSET();
-        }
-        return;
-      }
       UPDATE_LABEL_FILTER();
       UPDATE_EW_LABELS_VISIBILITY();
       UPDATE_BASEMAP_ATTRIBUTION();
@@ -1315,6 +1295,27 @@ map.on('zoom', () => {
   zoomSlider.noUiSlider.set(z);
   zoomValue.innerText = "Zoom: " + z.toFixed(1);
   isSyncingZoom = false;
+});
+ /* ===============================
+Pomiar Ruchu
+=============================== */
+document.querySelectorAll('.section-toggle[data-group="pr"]').forEach(chk=>{
+  chk.addEventListener('change', ()=>{
+    const visible = chk.checked ? "visible" : "none";
+    if(map.getLayer("pr_offset_layer")){
+      map.setLayoutProperty("pr_offset_layer","visibility",visible);
+    }
+    if(map.getLayer("pr_labels")){
+      map.setLayoutProperty("pr_labels","visibility",visible);
+    }
+    // zaznacz/odznacz dzieci
+    document.querySelectorAll('[data-group="pr"][data-pr]').forEach(c=>{
+      c.checked = chk.checked;
+      PR_SELECTED[c.dataset.pr] = c.checked;
+    });
+    // przelicz dane
+    GENERATE_PR_OFFSET();
+  });
 });
 </script>
 </body>
