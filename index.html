@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 2
+        Legenda 3
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -558,7 +558,18 @@ function GENERATE_PR_OFFSET(){
     const OFFSET_SCALE = 0.00002;
     const offset = val * OFFSET_SCALE;
     try{
-      const offsetLine = turf.lineOffset(f, offset, {units: 'degrees'});
+      // uproszczenie geometrii
+      const simplified = turf.simplify(f, {
+        tolerance: 0.00001,
+        highQuality: true
+      });
+      // wygładzenie osi
+      const smoothed = turf.bezierSpline(simplified, {
+        resolution: 10000,
+        sharpness: 0.85
+      });
+      // offset na wygładzonej linii
+      const offsetLine = turf.lineOffset(smoothed, offset, {units: 'degrees'});
       return {
         type: "Feature",
         geometry: offsetLine.geometry,
