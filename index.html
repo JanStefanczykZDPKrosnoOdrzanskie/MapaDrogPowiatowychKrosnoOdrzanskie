@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -566,7 +566,6 @@ function GENERATE_PR_OFFSET(){
     const val = CALCULATE_PR_VALUE(csvRow);
     // SKALA
     const OFFSET_SCALE = 0.00002;
-    const offset = val * OFFSET_SCALE;
     try{
       const simplifiedLine = SIMPLIFY_PR(f);
       /* Zamiana na linię osi */
@@ -576,8 +575,6 @@ function GENERATE_PR_OFFSET(){
         tolerance: 0.001,
         highQuality: true
       });
-      /* offset liczony od uproszczonej linii */
-      const offsetLine = turf.lineOffset(simplified, offset, {units: 'degrees'});
       return {
         type: "Feature",
         geometry: offsetLine.geometry,
@@ -624,9 +621,15 @@ function GENERATE_PR_OFFSET(){
         "text-size": 12
       },
       paint: {
-        "text-color": "#0000FF",
-        "text-halo-color": "#FFFFFF",
-        "text-halo-width": 2
+        "line-color": "#0000FF",
+        "line-width": 4,
+        "line-offset": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          9.5, ["*", ["get", "value"], 0.000001],
+          22, ["*", ["get", "value"], 0.00001]
+        ]
       }
     });
   }
