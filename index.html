@@ -550,7 +550,7 @@ function GENERATE_PR_OFFSET(){
   if(!data) return;
   const features = data.features.map(f => {
     const csvRow = PR_CSV_DATA.find(r => 
-      r.nr === f.properties?.NR && r.id === f.properties?.ID
+      r.nr == f.properties?.PR && r.id === f.properties?.ID
     );
     if(!csvRow) return null;
     const val = CALCULATE_PR_VALUE(csvRow);
