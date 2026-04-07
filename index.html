@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 4
+        Legenda 5
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -329,13 +329,13 @@ body.legend-collapsed #mapAttribution{
       Pomiar Ruchu
       </h3>
       <div class="legend-items">
-        <label><input type="checkbox" data-pr="MOTO" data-group="pr"> Motocykle</label>
-        <label><input type="checkbox" data-pr="SOMB" data-group="pr"> Sam. Os. i Mikrobusy</label>
-        <label><input type="checkbox" data-pr="LSMC" data-group="pr"> Lekkie ciężarowe</label>
-        <label><input type="checkbox" data-pr="SCBP" data-group="pr"> Ciężarowe bez przycz.</label>
-        <label><input type="checkbox" data-pr="SCZP" data-group="pr"> Ciężarowe z przycz.</label>
-        <label><input type="checkbox" data-pr="ATBS" data-group="pr"> Autobusy</label>
-        <label><input type="checkbox" data-pr="CGNR" data-group="pr"> Ciągniki rolne</label>
+        <label><input type="checkbox" data-pr="MOTO" checked data-group="pr"> Motocykle</label>
+        <label><input type="checkbox" data-pr="SOMB" checked data-group="pr"> Sam. Os. i Mikrobusy</label>
+        <label><input type="checkbox" data-pr="LSMC" checked data-group="pr"> Lekkie ciężarowe</label>
+        <label><input type="checkbox" data-pr="SCBP" checked data-group="pr"> Ciężarowe bez przycz.</label>
+        <label><input type="checkbox" data-pr="SCZP" checked data-group="pr"> Ciężarowe z przycz.</label>
+        <label><input type="checkbox" data-pr="ATBS" checked data-group="pr"> Autobusy</label>
+        <label><input type="checkbox" data-pr="CGNR" checked data-group="pr"> Ciągniki rolne</label>
       </div>
     </div>
     <div class="legend-section collapsed">
@@ -640,14 +640,6 @@ function INIT_PR_CONTROLS(){
     });
   });
 }
-function TOGGLE_PR_GROUP(checked){
-  document.querySelectorAll('input[data-group="pr"]').forEach(chk=>{
-    chk.checked = checked;
-  });
-
-  // przeliczenie widoku
-  GENERATE_PR_OFFSET();
-}
 /* ===============================
 LABELS
 =============================== */
@@ -846,12 +838,19 @@ function ZDP_LEGEND_INIT(){
           e.target.checked ? 'visible':'none'
         );
       });
+      if(e.target.dataset.group === "pr"){
+      const visible = e.target.checked ? "visible" : "none";
+      if(map.getLayer("pr_offset_layer")){
+        map.setLayoutProperty("pr_offset_layer","visibility",visible);
+      }
+      if(map.getLayer("pr_labels")){
+        map.setLayoutProperty("pr_labels","visibility",visible);
+      }
+      return;
+    }
       UPDATE_LABEL_FILTER();
       UPDATE_EW_LABELS_VISIBILITY();
       UPDATE_BASEMAP_ATTRIBUTION();
-      if(e.target.classList.contains("section-toggle") && e.target.dataset.group === "pr"){
-        TOGGLE_PR_GROUP(e.target.checked);
-      }
     });
   });
 }
