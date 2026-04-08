@@ -302,31 +302,31 @@ body.legend-collapsed #mapAttribution{
       </h3>
       <div class="legend-items">
         <label>
-          <input type="checkbox" data-group="pr" data-pr-type="MOTO">
+          <input type="checkbox" data-pr-type="MOTO">
           MOTO
         </label>
         <label>
-          <input type="checkbox" data-group="pr" data-pr-type="SOMB">
+          <input type="checkbox" data-pr-type="SOMB">
           SOMB
         </label>
         <label>
-          <input type="checkbox" data-group="pr" data-pr-type="LSMC">
+          <input type="checkbox" data-pr-type="LSMC">
            LSMC
         </label>
         <label>
-          <input type="checkbox" data-group="pr" data-pr-type="SCBP">
+          <input type="checkbox" data-pr-type="SCBP">
           SCBP
         </label>
         <label>
-          <input type="checkbox" data-group="pr" data-pr-type="SCZP">
+          <input type="checkbox" data-pr-type="SCZP">
           SCZP
         </label>
         <label>
-          <input type="checkbox" data-group="pr" data-pr-type="ATBS">
+          <input type="checkbox" data-pr-type="ATBS">
           ATBS
         </label>
         <label>
-          <input type="checkbox" data-group="pr" data-pr-type="CGNR">
+          <input type="checkbox" data-pr-type="CGNR">
           CGNR
         </label>
       </div>
@@ -421,6 +421,10 @@ body.legend-collapsed #mapAttribution{
 <script>
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
+let PR_DATA = {}; // mapa: PR -> dane z CSV
+let PR_GEO_FEATURES = []; // geometria PR
+let PR_SELECTED_TYPES = new Set(); // zaznaczone checkboxy
+let PR_VISIBLE = false; // czy sekcja PR aktywna
 /* ===============================
 MAP INSTANCE
 =============================== */
@@ -504,6 +508,45 @@ async function ZDP_LOAD_GEO_SOURCES(map){
   catch(e){
     console.error("Admin boundaries load error:",e);
   }
+}
+/* ===============================
+  PR
+=============================== */
+async function LOAD_PR_DATA(){
+  const [geo, csvText] = await Promise.all([
+    fetch("PR.geojson").then(r=>r.json()),
+    fetch("PR.csv").then(r=>r.text())
+  ]);
+  PR_GEO_FEATURES = geo.features || [];
+  /* ===============================
+     PARSOWANIE CSV
+  =============================== */
+  const lines = csvText.split("\n").map(l => l.trim()).filter(l => l);
+  const headers = lines[0].split(",");
+  for(let i=1;i<lines.length;i++){
+    const row = lines[i].split(",");
+    const obj = {};
+    headers.forEach((h, idx)=>{
+      obj[h] = row[idx];
+    });
+    const key = obj.PR;
+    if(!key) continue;
+    PR_DATA[key] = obj;
+  }
+  /* ===============================
+     PRZYPISANIE DO GEOJSON
+  =============================== */
+  PR_GEO_FEATURES.forEach(f=>{
+    const key = f.properties?.PR;
+    if(!key) return;
+    if(PR_DATA[key]){
+      f.properties = {
+        ...f.properties,
+        ...PR_DATA[key]
+      };
+    }
+  });
+  console.log("PR loaded:", PR_DATA);
 }
 /* ===============================
 ROAD LAYERS
@@ -750,6 +793,26 @@ function ZDP_LEGEND_INIT(){
       UPDATE_BASEMAP_ATTRIBUTION();
     });
   });
+  /* ===============================
+     PR CHECKBOXES
+  =============================== */
+  document.querySelectorAll('input[data-pr-type]').forEach(chk=>{
+    chk.addEventListener('change', e=>{
+      const type = e.target.dataset.prType;
+      if(e.target.checked){
+        PR_SELECTED_TYPES.add(type);
+      } else {
+        PR_SELECTED_TYPES.delete(type);
+      }
+      console.log("Selected PR types:", [...PR_SELECTED_TYPES]);
+    });
+  });
+  /* główny checkbox sekcji PR */
+  document.querySelector('input.section-toggle[data-group="pr"]')
+  ?.addEventListener('change', e=>{
+    PR_VISIBLE = e.target.checked;
+    console.log("PR visible:", PR_VISIBLE);
+  });
 }
 function UPDATE_LABEL_FILTER(){
   if(!map.getLayer("road_id_labels")) return;
@@ -788,6 +851,7 @@ PIPELINE LOAD
 map.on('load',async()=>{
   await ZDP_LOAD_GEO_SOURCES(map);
   ZDP_RENDER_ROAD_STYLES(map);
+  await LOAD_PR_DATA();
   ZDP_RENDER_ADMIN_STYLES(map);
   ADD_EW_LABELS(map);
   UPDATE_EW_LABELS_VISIBILITY();
