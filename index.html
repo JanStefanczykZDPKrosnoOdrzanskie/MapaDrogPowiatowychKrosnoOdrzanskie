@@ -265,7 +265,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -466,7 +466,7 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     type:"FeatureCollection",
     features:[
       ...(roads_main?.features || []),
-      ...(roads_dp?.features || [])
+      ...(roads_dp?.features || []),
       ...(pr_data?.features || [])
     ]
   };
