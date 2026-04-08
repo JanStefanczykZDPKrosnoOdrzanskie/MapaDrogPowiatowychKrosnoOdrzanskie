@@ -297,7 +297,7 @@ body.legend-collapsed #mapAttribution{
     </div>
     <div class="legend-section collapsed">
       <h3>
-        <input type="checkbox" class="section-toggle" data-group="pr">
+        <input type="checkbox" class="section-toggle">
         Pomiar Ruchu
       </h3>
       <div class="legend-items">
@@ -421,10 +421,6 @@ body.legend-collapsed #mapAttribution{
 <script>
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
-let PR_DATA = {}; // mapa: PR -> dane z CSV
-let PR_GEO_FEATURES = []; // geometria PR
-let PR_SELECTED_TYPES = new Set(); // zaznaczone checkboxy
-let PR_VISIBLE = false; // czy sekcja PR aktywna
 /* ===============================
 MAP INSTANCE
 =============================== */
@@ -461,15 +457,17 @@ const map = new maplibregl.Map({
 GEOJSON SOURCE LOADER
 =============================== */
 async function ZDP_LOAD_GEO_SOURCES(map){
-  const [roads_main, roads_dp] = await Promise.all([
+  const [roads_main, roads_dp, pr_data] = await Promise.all([
     fetch("DK_i_DW.geojson").then(r=>r.json()),
-    fetch("DP.geojson").then(r=>r.json())
+    fetch("DP.geojson").then(r=>r.json()),
+    fetch("PR.geojson").then(r=>r.json())
   ]);
   const merged_roads = {
     type:"FeatureCollection",
     features:[
       ...(roads_main?.features || []),
       ...(roads_dp?.features || [])
+      ...(pr_data?.features || [])
     ]
   };
   ZDP_ALL_FEATURES = merged_roads.features;
@@ -510,45 +508,6 @@ async function ZDP_LOAD_GEO_SOURCES(map){
   }
 }
 /* ===============================
-  PR
-=============================== */
-async function LOAD_PR_DATA(){
-  const [geo, csvText] = await Promise.all([
-    fetch("PR.geojson").then(r=>r.json()),
-    fetch("PR.csv").then(r=>r.text())
-  ]);
-  PR_GEO_FEATURES = geo.features || [];
-  /* ===============================
-     PARSOWANIE CSV
-  =============================== */
-  const lines = csvText.split("\n").map(l => l.trim()).filter(l => l);
-  const headers = lines[0].split(",");
-  for(let i=1;i<lines.length;i++){
-    const row = lines[i].split(",");
-    const obj = {};
-    headers.forEach((h, idx)=>{
-      obj[h] = row[idx];
-    });
-    const key = obj.PR;
-    if(!key) continue;
-    PR_DATA[key] = obj;
-  }
-  /* ===============================
-     PRZYPISANIE DO GEOJSON
-  =============================== */
-  PR_GEO_FEATURES.forEach(f=>{
-    const key = f.properties?.PR;
-    if(!key) return;
-    if(PR_DATA[key]){
-      f.properties = {
-        ...f.properties,
-        ...PR_DATA[key]
-      };
-    }
-  });
-  console.log("PR loaded:", PR_DATA);
-}
-/* ===============================
 ROAD LAYERS
 =============================== */
 function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, visible=true){
@@ -568,6 +527,8 @@ function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, 
   });
 }
 function ZDP_RENDER_ROAD_STYLES(map){
+  ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["has","PR"],"#FF00FF",4,true);
+  
   ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","Adm"],1],"#FF0000",4);
   ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","Adm"],2],"#08FF00",4);
   
@@ -793,26 +754,6 @@ function ZDP_LEGEND_INIT(){
       UPDATE_BASEMAP_ATTRIBUTION();
     });
   });
-  /* ===============================
-     PR CHECKBOXES
-  =============================== */
-  document.querySelectorAll('input[data-pr-type]').forEach(chk=>{
-    chk.addEventListener('change', e=>{
-      const type = e.target.dataset.prType;
-      if(e.target.checked){
-        PR_SELECTED_TYPES.add(type);
-      } else {
-        PR_SELECTED_TYPES.delete(type);
-      }
-      console.log("Selected PR types:", [...PR_SELECTED_TYPES]);
-    });
-  });
-  /* główny checkbox sekcji PR */
-  document.querySelector('input.section-toggle[data-group="pr"]')
-  ?.addEventListener('change', e=>{
-    PR_VISIBLE = e.target.checked;
-    console.log("PR visible:", PR_VISIBLE);
-  });
 }
 function UPDATE_LABEL_FILTER(){
   if(!map.getLayer("road_id_labels")) return;
@@ -851,7 +792,6 @@ PIPELINE LOAD
 map.on('load',async()=>{
   await ZDP_LOAD_GEO_SOURCES(map);
   ZDP_RENDER_ROAD_STYLES(map);
-  await LOAD_PR_DATA();
   ZDP_RENDER_ADMIN_STYLES(map);
   ADD_EW_LABELS(map);
   UPDATE_EW_LABELS_VISIBILITY();
