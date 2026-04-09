@@ -305,31 +305,31 @@ body.legend-collapsed #mapAttribution{
       <div class="legend-items">
         <label>
           <input type="checkbox" data-pr-type="MOTO" checked>
-          MOTO
+          Motocykle
         </label>
         <label>
           <input type="checkbox" data-pr-type="SOMB" checked>
-          SOMB
+          Sam. os. i Mikrobusy
         </label>
         <label>
           <input type="checkbox" data-pr-type="LSMC" checked>
-           LSMC
+           Lekkie Sam. Ciężarowe
         </label>
         <label>
           <input type="checkbox" data-pr-type="SCBP" checked>
-          SCBP
+          Sam. Ciężarowe bez przycz.
         </label>
         <label>
           <input type="checkbox" data-pr-type="SCZP" checked>
-          SCZP
+          Sam. Ciężarowe z przycz.
         </label>
         <label>
           <input type="checkbox" data-pr-type="ATBS" checked>
-          ATBS
+          Autobusy
         </label>
         <label>
           <input type="checkbox" data-pr-type="CGNR" checked>
-          CGNR
+          Ciągniki rolne
         </label>
       </div>
     </div>
@@ -543,6 +543,7 @@ function ADD_PR_LABELS() {
       "text-field": ["coalesce", ["get", "pr_sum"], ""],
       "text-size": 14,
       "text-anchor": "center",
+      "visibility": "none"
     },
     paint: {
       "text-color": "#000000",
@@ -598,7 +599,7 @@ function ZDP_RENDER_ROAD_STYLES(map){
       ["has", "pr_sum"],
       ["+", 2, ["*", ["get", "pr_sum"], 0.01]],
       2
-  ], true);
+  ], false);
   
   ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","Adm"],1],"#FF0000",4);
   ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","Adm"],2],"#08FF00",4);
