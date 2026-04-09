@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1 
+        Legenda 2 
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -596,10 +596,11 @@ function UPDATE_PR_LABELS() {
   source.setData(data);
   // ===== UPDATE BUFFER SOURCE =====
   if(map.getSource("pr_buffer_source")){
-  map.getSource("pr_buffer_source").setData({
-    type: "FeatureCollection",
-    features: bufferedFeatures
-  });
+    map.getSource("pr_buffer_source").setData({
+      type: "FeatureCollection",
+      features: bufferedFeatures
+    });
+  }
 }
 /* ===============================
 ROAD LAYERS
