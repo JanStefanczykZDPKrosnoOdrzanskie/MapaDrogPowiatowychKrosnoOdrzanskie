@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -537,7 +537,7 @@ function ADD_PR_LABELS() {
     id: "pr_labels",
     type: "symbol",
     source: "zdp_roads",
-    filter: ["all", ["has", "PR"], ["==", ["get", "pr_valid"], true]],
+    filter: ["has", "PR"],
     layout: {
       "symbol-placement": "line",
       "text-field": ["coalesce", ["get", "pr_sum"], ""],
@@ -563,20 +563,32 @@ function UPDATE_PR_LABELS() {
     const pr = f.properties?.PR;
     if (!pr) return;
     const row = PR_CSV_DATA[pr];
-    if (!row) {
-      f.properties.pr_valid = false;
-      return;
-    }
+    if (!row) return;
     let sum = 0;
-    if(PR_SELECTED_TYPES.MOTO) sum += (row.MOTO || 0);
-    if(PR_SELECTED_TYPES.SOMB) sum += (row.SOMB || 0);
-    if(PR_SELECTED_TYPES.LSMC) sum += (row.LSMC || 0);
-    if(PR_SELECTED_TYPES.SCBP) sum += (row.SCBP || 0);
-    if(PR_SELECTED_TYPES.SCZP) sum += (row.SCZP || 0);
-    if(PR_SELECTED_TYPES.ATBS) sum += (row.ATBS || 0);
-    if(PR_SELECTED_TYPES.CGNR) sum += (row.CGNR || 0);
+    // =====================
+    // CHECK NULL VALUES
+    // =====================
+    if (
+      (PR_SELECTED_TYPES.MOTO && row.MOTO == null) ||
+      (PR_SELECTED_TYPES.SOMB && row.SOMB == null) ||
+      (PR_SELECTED_TYPES.LSMC && row.LSMC == null) ||
+      (PR_SELECTED_TYPES.SCBP && row.SCBP == null) ||
+      (PR_SELECTED_TYPES.SCZP && row.SCZP == null) ||
+      (PR_SELECTED_TYPES.ATBS && row.ATBS == null) ||
+      (PR_SELECTED_TYPES.CGNR && row.CGNR == null)
+    ){return;}
+    // =====================
+    // SUMA (tylko jeśli pełne dane)
+    // =====================
+    let sum = 0;
+    if(PR_SELECTED_TYPES.MOTO) sum += row.MOTO;
+    if(PR_SELECTED_TYPES.SOMB) sum += row.SOMB;
+    if(PR_SELECTED_TYPES.LSMC) sum += row.LSMC;
+    if(PR_SELECTED_TYPES.SCBP) sum += row.SCBP;
+    if(PR_SELECTED_TYPES.SCZP) sum += row.SCZP;
+    if(PR_SELECTED_TYPES.ATBS) sum += row.ATBS;
+    if(PR_SELECTED_TYPES.CGNR) sum += row.CGNR;
     f.properties.pr_sum = sum;
-    f.properties.pr_valid = true;
     if (sum < min) min = sum;
     if (sum > max) max = sum;
   });
@@ -624,7 +636,7 @@ function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, 
   });
 }
 function ZDP_RENDER_ROAD_STYLES(map){
-  ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["all", ["has","PR"], ["==", ["get", "pr_valid"], true]],
+  ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["has","PR"],
     ["coalesce", ["get","pr_color"], "#888888"],
     ["case", ["has", "pr_sum"], ["+", 2, ["*", ["get", "pr_sum"], 0.01]],2],false);
   
