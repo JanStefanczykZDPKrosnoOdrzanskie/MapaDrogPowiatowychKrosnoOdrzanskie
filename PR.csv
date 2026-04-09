@@ -1,10 +1,10 @@
 ﻿PR,ID,OPIS,MOTO,SOMB,LSMC,SCBP,SCZP,ATBS,CGNR
-1,1157F,od m. Bytnica do m. Węgrzynice,1000,500,20,20,20,20,
-2,1158F,od m. Bytnica do m. Grabin,20,20,20,20,20,1000,
-3,1165F,od skrzyż. z dr. woj. nr 276 do m. Grabin,80,80,80,80,80,80,
+1,1157F,od m. Bytnica do m. Węgrzynice,1000,500,20,20,20,20,20
+2,1158F,od m. Bytnica do m. Grabin,20,20,20,20,20,1000,20
+3,1165F,od skrzyż. z dr. woj. nr 276 do m. Grabin,80,80,80,80,80,80,50
 4,1157F,od m. Bytnica do m. Krosno Odrzańskie,33,1065,229,40,75,4,12
-5,1158F,od m. Budachów do m. Bytnica,150,150,150,150,150,150,
-6,1166F,od m. Budachów do m. Toporów,300,300,50,300,300,50,
+5,1158F,od m. Budachów do m. Bytnica,150,150,150,150,150,150,5
+6,1166F,od m. Budachów do m. Toporów,300,300,50,300,300,50,0
 7,1160F,od m. Budachów do skrzyż. z dr. pow. nr 1132F,,,,,,,
 8,1160F,od skrzyż. z dr. pow. nr 1132F do dr. kraj. nr 29,,,,,,,
 9,1132F,od m. Czetowice do skrzyż. z dr. pow. nr 1160F,,,,,,,
