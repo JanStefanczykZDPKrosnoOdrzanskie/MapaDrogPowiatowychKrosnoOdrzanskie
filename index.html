@@ -624,7 +624,7 @@ function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, 
   });
 }
 function ZDP_RENDER_ROAD_STYLES(map){
-  ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["all", ["has","PR"], {"==", ["get", "pr_valid"], true],
+  ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["all", ["has","PR"], ["==", ["get", "pr_valid"], true]],
     ["coalesce", ["get","pr_color"], "#888888"],
     ["case", ["has", "pr_sum"], ["+", 2, ["*", ["get", "pr_sum"], 0.01]],2],false);
   
