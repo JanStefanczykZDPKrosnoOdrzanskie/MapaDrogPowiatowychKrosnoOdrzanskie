@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 4
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -848,9 +848,9 @@ PIPELINE LOAD
 =============================== */
 map.on('load',async()=>{
   await ZDP_LOAD_GEO_SOURCES(map);
+  ZDP_RENDER_ROAD_STYLES(map);
   ADD_PR_LABELS();
   UPDATE_PR_LABELS();
-  ZDP_RENDER_ROAD_STYLES(map);
   ZDP_RENDER_ADMIN_STYLES(map);
   ADD_EW_LABELS(map);
   UPDATE_EW_LABELS_VISIBILITY();
