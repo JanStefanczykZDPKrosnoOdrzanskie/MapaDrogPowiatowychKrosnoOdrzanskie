@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -304,31 +304,31 @@ body.legend-collapsed #mapAttribution{
       </h3>
       <div class="legend-items">
         <label>
-          <input type="checkbox" data-pr-type="MOTO">
+          <input type="checkbox" data-pr-type="MOTO" checked>
           MOTO
         </label>
         <label>
-          <input type="checkbox" data-pr-type="SOMB">
+          <input type="checkbox" data-pr-type="SOMB" checked>
           SOMB
         </label>
         <label>
-          <input type="checkbox" data-pr-type="LSMC">
+          <input type="checkbox" data-pr-type="LSMC" checked>
            LSMC
         </label>
         <label>
-          <input type="checkbox" data-pr-type="SCBP">
+          <input type="checkbox" data-pr-type="SCBP" checked>
           SCBP
         </label>
         <label>
-          <input type="checkbox" data-pr-type="SCZP">
+          <input type="checkbox" data-pr-type="SCZP" checked>
           SCZP
         </label>
         <label>
-          <input type="checkbox" data-pr-type="ATBS">
+          <input type="checkbox" data-pr-type="ATBS" checked>
           ATBS
         </label>
         <label>
-          <input type="checkbox" data-pr-type="CGNR">
+          <input type="checkbox" data-pr-type="CGNR" checked>
           CGNR
         </label>
       </div>
@@ -424,6 +424,15 @@ body.legend-collapsed #mapAttribution{
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
 let PR_CSV_DATA = {};
+let PR_SELECTED_TYPES = {
+  MOTO: true,
+  SOMB: true,
+  LSMC: true,
+  SCBP: true,
+  SCZP: true,
+  ATBS: true,
+  CGNR: true
+};
 /* ===============================
 MAP INSTANCE
 =============================== */
@@ -552,14 +561,14 @@ function UPDATE_PR_LABELS() {
     if (!pr) return;
     const row = PR_CSV_DATA[pr];
     if (!row) return;
-    const sum =
-      (row.MOTO || 0) +
-      (row.SOMB || 0) +
-      (row.LSMC || 0) +
-      (row.SCBP || 0) +
-      (row.SCZP || 0) +
-      (row.ATBS || 0) +
-      (row.CGNR || 0);
+    let sum = 0;
+    if(PR_SELECTED_TYPES.MOTO) sum += (row.MOTO || 0);
+    if(PR_SELECTED_TYPES.SOMB) sum += (row.SOMB || 0);
+    if(PR_SELECTED_TYPES.LSMC) sum += (row.LSMC || 0);
+    if(PR_SELECTED_TYPES.SCBP) sum += (row.SCBP || 0);
+    if(PR_SELECTED_TYPES.SCZP) sum += (row.SCZP || 0);
+    if(PR_SELECTED_TYPES.ATBS) sum += (row.ATBS || 0);
+    if(PR_SELECTED_TYPES.CGNR) sum += (row.CGNR || 0);
     f.properties.pr_sum = sum;
   });
   source.setData(data);
@@ -796,6 +805,13 @@ LEGEND CONTROL
 function ZDP_LEGEND_INIT(){
   document.querySelectorAll('#legend input').forEach(chk=>{
     chk.addEventListener('change',e=>{
+      // ===== PR KALKULACJA LABELA =====
+      if(e.target.dataset.prType){
+        const type = e.target.dataset.prType;
+        PR_SELECTED_TYPES[type] = e.target.checked;
+        UPDATE_PR_LABELS();
+        return;
+      }
       // ===== PR TOGGLE =====
       if(e.target.dataset.prSection === "true"){
         const visible = e.target.checked;
