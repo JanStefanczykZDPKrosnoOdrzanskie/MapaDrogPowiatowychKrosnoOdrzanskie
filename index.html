@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1 
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -556,6 +556,7 @@ function UPDATE_PR_LABELS() {
   const source = map.getSource("zdp_roads");
   if (!source) return;
   const data = source._data;
+  const bufferedFeatures = [];
   data.features.forEach(f => {
     const pr = f.properties?.PR;
     if (!pr) return;
@@ -570,8 +571,35 @@ function UPDATE_PR_LABELS() {
     if(PR_SELECTED_TYPES.ATBS) sum += (row.ATBS || 0);
     if(PR_SELECTED_TYPES.CGNR) sum += (row.CGNR || 0);
     f.properties.pr_sum = sum;
+    // ===== PIXEL → METRY (przybliżenie) =====
+    // 1 px ≈ 0.5–2 m zależnie od zoomu → uproszczenie
+    const zoom = map.getZoom();
+    const metersPerPixel = 156543.03392 * Math.cos(map.getCenter().lat * Math.PI / 180) / Math.pow(2, zoom);
+    // współczynnik skalowania (DO USTAWIENIA)
+    const SCALE = 0.05;
+    const bufferMeters = sum * metersPerPixel * SCALE;
+    // buffer tylko jeśli suma > 0
+    if (bufferMeters > 0) {
+      try {
+        const buffered = turf.buffer(f, bufferMeters, { units: "meters" });
+        if (buffered) {
+          buffered.properties = {
+            pr: pr
+          };
+          bufferedFeatures.push(buffered);
+        }
+      } catch(e) {
+        // fallback: brak bufferu
+      }
+    }
   });
   source.setData(data);
+  // ===== UPDATE BUFFER SOURCE =====
+  if(map.getSource("pr_buffer_source")){
+  map.getSource("pr_buffer_source").setData({
+    type: "FeatureCollection",
+    features: bufferedFeatures
+  });
 }
 /* ===============================
 ROAD LAYERS
@@ -605,6 +633,18 @@ function ZDP_RENDER_ROAD_STYLES(map){
   
   ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","Adm"],3],"#A500AD",3);
   ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","Adm"],4],"#808080",3, false);
+  // ===== PR BUFFER (POLYGON) =====
+  if(map.getLayer("layer_pr_buffer")) return;
+  map.addLayer({
+    id: "layer_pr_buffer",
+    type: "fill",
+    source: "pr_buffer_source",
+    filter: ["has", "PR"],
+    paint: {
+      "fill-color": "#FF00FF",
+      "fill-opacity": 0.5
+    }
+  });
 }
 /* ===============================
 ADMINISTRATIVE LAYERS RENDER
@@ -883,6 +923,13 @@ PIPELINE LOAD
 =============================== */
 map.on('load',async()=>{
   await ZDP_LOAD_GEO_SOURCES(map);
+  map.addSource("pr_buffer_source", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: []
+    }
+  });
   ZDP_RENDER_ROAD_STYLES(map);
   ADD_PR_LABELS();
   UPDATE_PR_LABELS();
