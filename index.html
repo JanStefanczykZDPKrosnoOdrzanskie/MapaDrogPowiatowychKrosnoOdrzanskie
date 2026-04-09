@@ -13,6 +13,8 @@
 <link href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  
 <style>
 :root{
 --legend-width:275px;
@@ -265,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -421,6 +423,7 @@ body.legend-collapsed #mapAttribution{
 <script>
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
+let PR_CSV_DATA = {};
 /* ===============================
 MAP INSTANCE
 =============================== */
@@ -457,6 +460,18 @@ const map = new maplibregl.Map({
 GEOJSON SOURCE LOADER
 =============================== */
 async function ZDP_LOAD_GEO_SOURCES(map){
+  const pr_csv = await fetch("PR.csv").then(r => r.text());
+  const parsed = Papa.parse(pr_csv, {
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true
+  });
+  PR_CSV_DATA = {};
+  parsed.data.forEach(row => {
+    const key = row.PR;
+    if (!key) return;
+    PR_CSV_DATA[key] = row;
+  });
   const [roads_main, roads_dp, pr_data] = await Promise.all([
     fetch("DK_i_DW.geojson").then(r=>r.json()),
     fetch("DP.geojson").then(r=>r.json()),
@@ -506,6 +521,47 @@ async function ZDP_LOAD_GEO_SOURCES(map){
   catch(e){
     console.error("Admin boundaries load error:",e);
   }
+}
+function ADD_PR_LABELS() {
+    if (map.getLayer("pr_labels")) return;
+    map.addLayer({
+        id: "pr_labels",
+        type: "symbol",
+        source: "zdp_roads",
+        filter: ["has", "PR"],
+        layout: {
+            "symbol-placement": "line",
+            "text-field": ["coalesce", ["get", "pr_sum"], ""],
+            "text-size": 12,
+            "text-anchor": "center",
+        },
+        paint: {
+            "text-color": "#000000",
+            "text-halo-color": "#FFFFFF",
+            "text-halo-width": 2
+        }
+    });
+}
+function UPDATE_PR_LABELS() {
+  const source = map.getSource("zdp_roads");
+  if (!source) return;
+  const data = source._data;
+  data.features.forEach(f => {
+    const pr = f.properties?.PR;
+    if (!pr) return;
+    const row = PR_CSV_DATA[pr];
+    if (!row) return;
+    const sum =
+      (row.MOTO || 0) +
+      (row.SOMB || 0) +
+      (row.LSMC || 0) +
+      (row.SCBP || 0) +
+      (row.SCZP || 0) +
+      (row.ATBS || 0) +
+      (row.CGNR || 0);
+    f.properties.pr_sum = sum;
+  });
+  source.setData(data);
 }
 /* ===============================
 ROAD LAYERS
@@ -790,6 +846,8 @@ function UPDATE_EW_LABELS_VISIBILITY(){
 PIPELINE LOAD
 =============================== */
 map.on('load',async()=>{
+  ADD_PR_LABELS();
+  UPDATE_PR_LABELS();
   await ZDP_LOAD_GEO_SOURCES(map);
   ZDP_RENDER_ROAD_STYLES(map);
   ZDP_RENDER_ADMIN_STYLES(map);
