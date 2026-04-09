@@ -523,24 +523,25 @@ async function ZDP_LOAD_GEO_SOURCES(map){
   }
 }
 function ADD_PR_LABELS() {
-    if (map.getLayer("pr_labels")) return;
-    map.addLayer({
-        id: "pr_labels",
-        type: "symbol",
-        source: "zdp_roads",
-        filter: ["has", "PR"],
-        layout: {
-            "symbol-placement": "line",
-            "text-field": ["coalesce", ["get", "pr_sum"], ""],
-            "text-size": 12,
-            "text-anchor": "center",
-        },
-        paint: {
-            "text-color": "#000000",
-            "text-halo-color": "#FFFFFF",
-            "text-halo-width": 2
-        }
-    });
+  if (map.getLayer("pr_labels")) return;
+  map.addLayer({
+    id: "pr_labels",
+    type: "symbol",
+    source: "zdp_roads",
+    filter: ["has", "PR"],
+    layout: {
+      "symbol-placement": "line",
+      "text-field": ["coalesce", ["get", "pr_sum"], ""],
+      "text-size": 14,
+      "text-anchor": "center",
+    },
+    paint: {
+      "text-color": "#000000",
+      "text-halo-color": "#FFFFFF",
+      "text-halo-width": 2
+    }
+  });
+  map.moveLayer("pr_labels");
 }
 function UPDATE_PR_LABELS() {
   const source = map.getSource("zdp_roads");
