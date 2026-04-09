@@ -580,7 +580,6 @@ function UPDATE_PR_LABELS() {
     // SUMA (tylko jeśli pełne dane)
     // =====================
     let sum = 0;
-    const getVal = (val) => (val == null ? 0 : val); // null = 0
     sum += getVal(row.MOTO) * (PR_SELECTED_TYPES.MOTO ? 1 : 0);
     sum += getVal(row.SOMB) * (PR_SELECTED_TYPES.SOMB ? 1 : 0);
     sum += getVal(row.LSMC) * (PR_SELECTED_TYPES.LSMC ? 1 : 0);
