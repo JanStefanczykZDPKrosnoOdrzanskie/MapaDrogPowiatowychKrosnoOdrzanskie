@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -537,7 +537,7 @@ function ADD_PR_LABELS() {
     id: "pr_labels",
     type: "symbol",
     source: "zdp_roads",
-    filter: ["has", "PR"],
+    filter: ["all", ["has", "PR"], ["==", ["get", "pr_valid"], true]],
     layout: {
       "symbol-placement": "line",
       "text-field": ["coalesce", ["get", "pr_sum"], ""],
@@ -563,7 +563,10 @@ function UPDATE_PR_LABELS() {
     const pr = f.properties?.PR;
     if (!pr) return;
     const row = PR_CSV_DATA[pr];
-    if (!row) return;
+    if (!row) {
+      f.properties.pr_valid = false;
+      return;
+    }
     let sum = 0;
     if(PR_SELECTED_TYPES.MOTO) sum += (row.MOTO || 0);
     if(PR_SELECTED_TYPES.SOMB) sum += (row.SOMB || 0);
@@ -573,6 +576,7 @@ function UPDATE_PR_LABELS() {
     if(PR_SELECTED_TYPES.ATBS) sum += (row.ATBS || 0);
     if(PR_SELECTED_TYPES.CGNR) sum += (row.CGNR || 0);
     f.properties.pr_sum = sum;
+    f.properties.pr_valid = true;
     if (sum < min) min = sum;
     if (sum > max) max = sum;
   });
@@ -620,7 +624,7 @@ function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, 
   });
 }
 function ZDP_RENDER_ROAD_STYLES(map){
-  ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["has","PR"],
+  ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["all", ["has","PR"], {"==", ["get", "pr_valid"], true],
     ["coalesce", ["get","pr_color"], "#888888"],
     ["case", ["has", "pr_sum"], ["+", 2, ["*", ["get", "pr_sum"], 0.01]],2],false);
   
