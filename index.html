@@ -299,7 +299,7 @@ body.legend-collapsed #mapAttribution{
     </div>
     <div class="legend-section collapsed">
       <h3>
-        <input type="checkbox" class="section-toggle">
+        <input type="checkbox" class="section-toggle" data-pr-section="true">
         Pomiar Ruchu
       </h3>
       <div class="legend-items">
@@ -796,6 +796,25 @@ LEGEND CONTROL
 function ZDP_LEGEND_INIT(){
   document.querySelectorAll('#legend input').forEach(chk=>{
     chk.addEventListener('change',e=>{
+      // ===== PR TOGGLE =====
+      if(e.target.dataset.prSection === "true"){
+        const visible = e.target.checked;
+        if(map.getLayer("layer_pr")){
+          map.setLayoutProperty(
+            "layer_pr",
+            "visibility",
+            visible ? "visible" : "none"
+          );
+        }
+        if(map.getLayer("pr_labels")){
+          map.setLayoutProperty(
+            "pr_labels",
+            "visibility",
+            visible ? "visible" : "none"
+          );
+        }
+        return;
+      }
       if(!e.target.dataset.layers) return;
       const layers = e.target.dataset.layers.split(',');
       layers.forEach(layerId=>{
