@@ -554,6 +554,8 @@ function ADD_PR_LABELS() {
   map.moveLayer("pr_labels");
 }
 function UPDATE_PR_LABELS() {
+  let min = Infinity;
+  let max = -Infinity;
   const source = map.getSource("zdp_roads");
   if (!source) return;
   const data = source._data;
@@ -571,6 +573,30 @@ function UPDATE_PR_LABELS() {
     if(PR_SELECTED_TYPES.ATBS) sum += (row.ATBS || 0);
     if(PR_SELECTED_TYPES.CGNR) sum += (row.CGNR || 0);
     f.properties.pr_sum = sum;
+    if (sum < min) min = sum;
+    if (sum > max) max = sum;
+  });
+  data.features.forEach(f => {
+    const val = f.properties?.pr_sum;
+    if (val === undefined) return;
+    let t = 0;
+    if (max !== min) {
+      t = (val - min) / (max - min);
+    }
+    let r, g;
+    if (t <= 0.5) {
+      // zielony -> żółty (środek 255/255/40)
+      const tt = t * 2;
+      r = Math.round(255 * tt);
+      g = 255;
+    } else {
+      // żółty -> czerwony
+      const tt = (t - 0.5) * 2;
+      r = 255;
+      g = Math.round(255 * (1 - tt));
+    }
+    const b = 40;
+    f.properties.pr_color = `rgb(${r},${g},${b})`;
   });
   source.setData(data);
 }
@@ -594,12 +620,9 @@ function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, 
   });
 }
 function ZDP_RENDER_ROAD_STYLES(map){
-  ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["has","PR"],"#FF00FF",[
-    "case",
-      ["has", "pr_sum"],
-      ["+", 2, ["*", ["get", "pr_sum"], 0.01]],
-      2
-  ], false);
+  ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["has","PR"],
+    ["coalesce", ["get","pr_color"], "#888888"],
+    ["case", ["has", "pr_sum"], ["+", 2, ["*", ["get", "pr_sum"], 0.01]],2],false);
   
   ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","Adm"],1],"#FF0000",4);
   ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","Adm"],2],"#08FF00",4);
