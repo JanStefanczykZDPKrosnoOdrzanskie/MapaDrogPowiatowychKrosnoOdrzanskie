@@ -607,7 +607,7 @@ function UPDATE_PR_LABELS() {
   data.features.forEach(f => {
     const val = f.properties?.pr_sum;
     if (val === undefined) {
-      f.properties.pr_color = "rgb(0,255,0)";
+      f.properties.pr_color = undefined;
       return;
     }
     let t = 0;
