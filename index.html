@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -597,6 +597,7 @@ function UPDATE_PR_LABELS() {
       !PR_SELECTED_TYPES.CGNR;
     if (allOff) {
       f.properties.pr_sum = undefined;
+      f.properties.pr_color = undefined;
       return;
     }
     f.properties.pr_sum = sum;
@@ -605,7 +606,10 @@ function UPDATE_PR_LABELS() {
   });
   data.features.forEach(f => {
     const val = f.properties?.pr_sum;
-    if (val === undefined) return;
+    if (val === undefined) {
+      f.properties.pr_color = "rgb(0,255,0)";
+      return;
+    }
     let t = 0;
     if (max !== min) {
       t = (val - min) / (max - min);
