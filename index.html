@@ -580,13 +580,13 @@ function UPDATE_PR_LABELS() {
     // SUMA (tylko jeśli pełne dane)
     // =====================
     let sum = 0;
-    sum += getVal(row.MOTO) * (PR_SELECTED_TYPES.MOTO ? 1 : 0);
-    sum += getVal(row.SOMB) * (PR_SELECTED_TYPES.SOMB ? 1 : 0);
-    sum += getVal(row.LSMC) * (PR_SELECTED_TYPES.LSMC ? 1 : 0);
-    sum += getVal(row.SCBP) * (PR_SELECTED_TYPES.SCBP ? 1 : 0);
-    sum += getVal(row.SCZP) * (PR_SELECTED_TYPES.SCZP ? 1 : 0);
-    sum += getVal(row.ATBS) * (PR_SELECTED_TYPES.ATBS ? 1 : 0);
-    sum += getVal(row.CGNR) * (PR_SELECTED_TYPES.CGNR ? 1 : 0);
+    if (PR_SELECTED_TYPES.MOTO) sum += row.MOTO;
+    if (PR_SELECTED_TYPES.SOMB) sum += row.SOMB;
+    if (PR_SELECTED_TYPES.LSMC) sum += row.LSMC;
+    if (PR_SELECTED_TYPES.SCBP) sum += row.SCBP;
+    if (PR_SELECTED_TYPES.SCZP) sum += row.SCZP;
+    if (PR_SELECTED_TYPES.ATBS) sum += row.ATBS;
+    if (PR_SELECTED_TYPES.CGNR) sum += row.CGNR;
     f.properties.pr_sum = sum;
     if (sum < min) min = sum;
     if (sum > max) max = sum;
