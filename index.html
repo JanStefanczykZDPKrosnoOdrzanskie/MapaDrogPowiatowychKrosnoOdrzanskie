@@ -587,6 +587,18 @@ function UPDATE_PR_LABELS() {
     if (PR_SELECTED_TYPES.SCZP) sum += row.SCZP;
     if (PR_SELECTED_TYPES.ATBS) sum += row.ATBS;
     if (PR_SELECTED_TYPES.CGNR) sum += row.CGNR;
+    const allOff =
+      !PR_SELECTED_TYPES.MOTO &&
+      !PR_SELECTED_TYPES.SOMB &&
+      !PR_SELECTED_TYPES.LSMC &&
+      !PR_SELECTED_TYPES.SCBP &&
+      !PR_SELECTED_TYPES.SCZP &&
+      !PR_SELECTED_TYPES.ATBS &&
+      !PR_SELECTED_TYPES.CGNR;
+    if (allOff) {
+      f.properties.pr_sum = undefined;
+      return;
+    }
     f.properties.pr_sum = sum;
     if (sum < min) min = sum;
     if (sum > max) max = sum;
