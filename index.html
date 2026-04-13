@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -490,11 +490,11 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     DK, DW, DP, DG, DWew,
     pr_data
   ] = await Promise.all([
-    fetch("GEOJSON/ADM i NR/DK.geojson").then(r=>r.json()),
-    fetch("GEOJSON/ADM i NR/DW.geojson").then(r=>r.json()),
-    fetch("GEOJSON/ADM i NR/DP.geojson").then(r=>r.json()),
-    fetch("GEOJSON/ADM i NR/DG.geojson").then(r=>r.json()),
-    fetch("GEOJSON/ADM i NR/DWew.geojson").then(r=>r.json()),
+    fetch("GEOJSON/ADM_i_NR/DK.geojson").then(r=>r.json()),
+    fetch("GEOJSON/ADM_i_NR/DW.geojson").then(r=>r.json()),
+    fetch("GEOJSON/ADM_i_NR/DP.geojson").then(r=>r.json()),
+    fetch("GEOJSON/ADM_i_NR/DG.geojson").then(r=>r.json()),
+    fetch("GEOJSON/ADM_i_NR/DWew.geojson").then(r=>r.json()),
     fetch("PR.geojson").then(r=>r.json())
   ]);
   const merged_roads = {
