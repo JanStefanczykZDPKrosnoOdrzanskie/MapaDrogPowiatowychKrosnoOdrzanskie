@@ -924,13 +924,13 @@ function ZDP_LEGEND_INIT(){
 }
 function UPDATE_LABEL_FILTER(){
   if(!map.getLayer("road_id_labels")) return;
-  const visibleadm = [];
+  const visibleAdm = [];
   if(map.getLayoutProperty("layer_adm_1","visibility") !== "none") visibleAdm.push("K");
   if(map.getLayoutProperty("layer_adm_2","visibility") !== "none") visibleAdm.push("W");
   if(map.getLayoutProperty("layer_adm_3","visibility") !== "none") visibleAdm.push("P");
   if(map.getLayoutProperty("layer_adm_4","visibility") !== "none") visibleAdm.push("G");
   if(map.getLayoutProperty("layer_adm_5","visibility") !== "none") visibleAdm.push("L");
-  if(visibleadm.length === 0){
+  if(visibleAdm.length === 0){
     map.setFilter(
       "road_id_labels",
       ["==",["get","adm"],-999]
@@ -938,7 +938,7 @@ function UPDATE_LABEL_FILTER(){
   } else {
     map.setFilter(
       "road_id_labels",
-      ["match",["get","adm"],visibleadm,true,false]
+      ["match",["get","adm"],visibleAdm,true,false]
     );
   }
 }
@@ -1169,7 +1169,7 @@ MODIFY HIGHLIGHT FUNCTION
 =============================== */
 function HIGHLIGHT_FEATURES_BY_ID(id){
   const features = ZDP_ALL_FEATURES.filter(
-    f => f.properties?.nr && f.properties.ID.toString().toUpperCase().startsWith(
+    f => f.properties?.nr && f.properties.nr.toString().toUpperCase().startsWith(
       id.toString().toUpperCase()
     )
   );
