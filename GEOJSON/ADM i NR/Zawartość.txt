@@ -1,0 +1,8 @@
+Folder zawiera pliki geojson opisujące podział administracyjny dróg, numery dróg oraz kilometrarz dróg powiatowych.
+
+Wartości Adm:
+K - Droga Krajowa
+W - Droga Wojewódzka
+P - Droga Powiatowa
+G - Droga Gminna
+W - Droga Wewnętrzna
