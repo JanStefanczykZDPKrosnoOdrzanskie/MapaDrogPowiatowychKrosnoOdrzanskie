@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 2
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -669,17 +669,17 @@ function ZDP_RENDER_ROAD_STYLES(map){
     ["coalesce", ["get","pr_color"], "#888888"],
     ["case", ["has", "pr_sum"], ["+", 2, ["*", ["get", "pr_sum"], 0.01]],2],false);
   
-  ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","adm"],K],"#FF0000",4);
-  ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","adm"],W],"#08FF00",4);
+  ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","adm"],"K"],"#FF0000",4);
+  ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","adm"],"W"],"#08FF00",4);
   
   ADD_FILTER_LAYER(map,"layer_zud_2","zdp_roads",["==",["get","ZUD"],2],"#FFEE00",6, false);
   ADD_FILTER_LAYER(map,"layer_zud_3","zdp_roads",["==",["get","ZUD"],3],"#00FFFF",6, false);
   ADD_FILTER_LAYER(map,"layer_zud_4","zdp_roads",["==",["get","ZUD"],4],"#FA9EFF",6, false);
   ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1",6, false);
   
-  ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","adm"],P],"#A500AD",3);
-  ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","adm"],G],"#808080",3, false);
-  ADD_FILTER_LAYER(map,"layer_adm_5","zdp_roads",["==",["get","adm"],L],"#808080",1, false);
+  ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","adm"],'P"],"#A500AD",3);
+  ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","adm"],'G"],"#808080",3, false);
+  ADD_FILTER_LAYER(map,"layer_adm_5","zdp_roads",["==",["get","adm"],"L'],"#808080",1, false);
 }
 /* ===============================
 admINISTRATIVE LAYERS RENDER
@@ -716,19 +716,19 @@ function ADD_LABEL_LAYER(map){
     /* ===== Kolor tekstu zależny od adm ===== */
     "text-color":[
     "case",
-      ["==", ["get","adm"], K], "#FFFFFF",
-      ["==", ["get","adm"], W], "#000000",
-      ["==", ["get","adm"], P], "#FFFFFF",
-      ["==", ["get","adm"], G], "#FFFFFF",
+      ["==", ["get","adm"], "K"], "#FFFFFF",
+      ["==", ["get","adm"], "W"], "#000000",
+      ["==", ["get","adm"], "P"], "#FFFFFF",
+      ["==", ["get","adm"], "G"], "#FFFFFF",
       "#000000"
     ],
     /* ===== Halo / ramka ===== */
     "text-halo-color":[
       "case",
-      ["==", ["get","adm"], K], "#FF0000",
-      ["==", ["get","adm"], W], "#FFEE00",
-      ["==", ["get","adm"], P], "#A500AD",
-      ["==", ["get","adm"], G], "#808080",
+      ["==", ["get","adm"], "K"], "#FF0000",
+      ["==", ["get","adm"], "W"], "#FFEE00",
+      ["==", ["get","adm"], "P"], "#A500AD",
+      ["==", ["get","adm"], "G"], "#808080",
       "#FFFFFF"
     ],
       "text-halo-width":3,
