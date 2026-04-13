@@ -506,7 +506,8 @@ async function ZDP_LOAD_GEO_SOURCES(map){
       ...(DG?.features || []),
       ...(DWew?.features || []),
     ...(pr_data?.features || [])
-]
+    ]
+  };
   ZDP_ALL_FEATURES = merged_roads.features;
   if(map.getSource("zdp_roads")){
     map.removeSource("zdp_roads");
