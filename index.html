@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -294,6 +294,11 @@ body.legend-collapsed #mapAttribution{
           <input type="checkbox" data-layers="layer_adm_4" data-group="adm">
           <span class="legend-line" style="background:#808080"></span>
           Droga Gminna
+        </label>
+          <label>
+          <input type="checkbox" data-layers="layer_adm_5" data-group="adm">
+          <span class="legend-line" style="background:#808080"></span>
+          Droga Wewnętrzna
         </label>
       </div>
     </div>
@@ -364,7 +369,7 @@ body.legend-collapsed #mapAttribution{
     <div class="legend-section collapsed">
       <h3>
         <input type="checkbox" class="section-toggle" data-group="grn">
-        Granice Administracyjne
+        Granice administracyjne
       </h3>
       <div class="legend-items">
         <label>
@@ -481,19 +486,27 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     if (!key) return;
     PR_CSV_DATA[key] = row;
   });
-  const [roads_main, roads_dp, pr_data] = await Promise.all([
-    fetch("DK_i_DW.geojson").then(r=>r.json()),
-    fetch("DP.geojson").then(r=>r.json()),
+  const [
+    DK, DW, DP, DG, DWew,
+    pr_data
+  ] = await Promise.all([
+    fetch("GEOJSON/adm/DK.geojson").then(r=>r.json()),
+    fetch("GEOJSON/adm/DW.geojson").then(r=>r.json()),
+    fetch("GEOJSON/adm/DP.geojson").then(r=>r.json()),
+    fetch("GEOJSON/adm/DG.geojson").then(r=>r.json()),
+    fetch("GEOJSON/adm/DWew.geojson").then(r=>r.json()),
     fetch("PR.geojson").then(r=>r.json())
   ]);
   const merged_roads = {
     type:"FeatureCollection",
     features:[
-      ...(roads_main?.features || []),
-      ...(roads_dp?.features || []),
-      ...(pr_data?.features || [])
-    ]
-  };
+      ...(DK?.features || []),
+      ...(DW?.features || []),
+      ...(DP?.features || []),
+      ...(DG?.features || []),
+      ...(DWew?.features || []),
+    ...(pr_data?.features || [])
+]
   ZDP_ALL_FEATURES = merged_roads.features;
   if(map.getSource("zdp_roads")){
     map.removeSource("zdp_roads");
@@ -503,7 +516,7 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     data:merged_roads
   });
   /* ===============================
-  ADMINISTRATIVE BOUNDARIES LOAD
+  admINISTRATIVE BOUNDARIES LOAD
   =============================== */
   try{
     const admin_files = await Promise.all([
@@ -528,7 +541,7 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     });
   }
   catch(e){
-    console.error("Admin boundaries load error:",e);
+    console.error("admin boundaries load error:",e);
   }
 }
 function ADD_PR_LABELS() {
@@ -655,21 +668,22 @@ function ZDP_RENDER_ROAD_STYLES(map){
     ["coalesce", ["get","pr_color"], "#888888"],
     ["case", ["has", "pr_sum"], ["+", 2, ["*", ["get", "pr_sum"], 0.01]],2],false);
   
-  ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","Adm"],1],"#FF0000",4);
-  ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","Adm"],2],"#08FF00",4);
+  ADD_FILTER_LAYER(map,"layer_adm_1","zdp_roads",["==",["get","adm"],K],"#FF0000",4);
+  ADD_FILTER_LAYER(map,"layer_adm_2","zdp_roads",["==",["get","adm"],W],"#08FF00",4);
   
   ADD_FILTER_LAYER(map,"layer_zud_2","zdp_roads",["==",["get","ZUD"],2],"#FFEE00",6, false);
   ADD_FILTER_LAYER(map,"layer_zud_3","zdp_roads",["==",["get","ZUD"],3],"#00FFFF",6, false);
   ADD_FILTER_LAYER(map,"layer_zud_4","zdp_roads",["==",["get","ZUD"],4],"#FA9EFF",6, false);
   ADD_FILTER_LAYER(map,"layer_zud_6","zdp_roads",["==",["get","ZUD"],6],"#A1A1A1",6, false);
   
-  ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","Adm"],3],"#A500AD",3);
-  ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","Adm"],4],"#808080",3, false);
+  ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","adm"],P],"#A500AD",3);
+  ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","adm"],G],"#808080",3, false);
+  ADD_FILTER_LAYER(map,"layer_adm_5","zdp_roads",["==",["get","adm"],L],"#808080",1, false);
 }
 /* ===============================
-ADMINISTRATIVE LAYERS RENDER
+admINISTRATIVE LAYERS RENDER
 =============================== */
-function ZDP_RENDER_ADMIN_STYLES(map){
+function ZDP_RENDER_admIN_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_ew_2","admin_boundaries",["==",["get","EW"],2],"#66B2FF",2, false);
   ADD_FILTER_LAYER(map,"layer_ew_1","admin_boundaries",["==",["get","EW"],1],"#0066CC",2, false);
   
@@ -686,10 +700,10 @@ function ADD_LABEL_LAYER(map){
     id:"road_id_labels",
     type:"symbol",
     source:"zdp_roads",
-    filter:["match",["get","Adm"],[1,2,3],true,false],
+    filter:["match",["get","adm"],[1,2,3],true,false],
     layout:{
       "symbol-placement":"line",
-      "text-field":["get","ID"],
+      "text-field":["get","nr"],
       "text-font":["Open Sans Semibold"],
       "text-size":12,
       "text-anchor":"center",
@@ -698,22 +712,22 @@ function ADD_LABEL_LAYER(map){
       "text-max-angle":30
     },
   paint:{
-    /* ===== Kolor tekstu zależny od Adm ===== */
+    /* ===== Kolor tekstu zależny od adm ===== */
     "text-color":[
     "case",
-      ["==", ["get","Adm"], 1], "#FFFFFF",
-      ["==", ["get","Adm"], 2], "#000000",
-      ["==", ["get","Adm"], 3], "#FFFFFF",
-      ["==", ["get","Adm"], 4], "#FFFFFF",
+      ["==", ["get","adm"], K], "#FFFFFF",
+      ["==", ["get","adm"], W], "#000000",
+      ["==", ["get","adm"], P], "#FFFFFF",
+      ["==", ["get","adm"], G], "#FFFFFF",
       "#000000"
     ],
     /* ===== Halo / ramka ===== */
     "text-halo-color":[
       "case",
-      ["==", ["get","Adm"], 1], "#FF0000",
-      ["==", ["get","Adm"], 2], "#FFEE00",
-      ["==", ["get","Adm"], 3], "#A500AD",
-      ["==", ["get","Adm"], 4], "#808080",
+      ["==", ["get","adm"], K], "#FF0000",
+      ["==", ["get","adm"], W], "#FFEE00",
+      ["==", ["get","adm"], P], "#A500AD",
+      ["==", ["get","adm"], G], "#808080",
       "#FFFFFF"
     ],
       "text-halo-width":3,
@@ -909,20 +923,21 @@ function ZDP_LEGEND_INIT(){
 }
 function UPDATE_LABEL_FILTER(){
   if(!map.getLayer("road_id_labels")) return;
-  const visibleAdm = [];
-  if(map.getLayoutProperty("layer_adm_1","visibility") !== "none") visibleAdm.push(1);
-  if(map.getLayoutProperty("layer_adm_2","visibility") !== "none") visibleAdm.push(2);
-  if(map.getLayoutProperty("layer_adm_3","visibility") !== "none") visibleAdm.push(3);
-  if(map.getLayoutProperty("layer_adm_4","visibility") !== "none") visibleAdm.push(4);
-  if(visibleAdm.length === 0){
+  const visibleadm = [];
+  if(map.getLayoutProperty("layer_adm_1","visibility") !== "none") visibleAdm.push("K");
+  if(map.getLayoutProperty("layer_adm_2","visibility") !== "none") visibleAdm.push("W");
+  if(map.getLayoutProperty("layer_adm_3","visibility") !== "none") visibleAdm.push("P");
+  if(map.getLayoutProperty("layer_adm_4","visibility") !== "none") visibleAdm.push("G");
+  if(map.getLayoutProperty("layer_adm_5","visibility") !== "none") visibleAdm.push("L");
+  if(visibleadm.length === 0){
     map.setFilter(
       "road_id_labels",
-      ["==",["get","Adm"],-999]
+      ["==",["get","adm"],-999]
     );
   } else {
     map.setFilter(
       "road_id_labels",
-      ["match",["get","Adm"],visibleAdm,true,false]
+      ["match",["get","adm"],visibleadm,true,false]
     );
   }
 }
@@ -946,7 +961,7 @@ map.on('load',async()=>{
   ZDP_RENDER_ROAD_STYLES(map);
   ADD_PR_LABELS();
   UPDATE_PR_LABELS();
-  ZDP_RENDER_ADMIN_STYLES(map);
+  ZDP_RENDER_admIN_STYLES(map);
   ADD_EW_LABELS(map);
   UPDATE_EW_LABELS_VISIBILITY();
   map.on("move", UPDATE_EW_LABELS_DEBOUNCED);
@@ -1059,12 +1074,12 @@ function INIT_SEARCH(){
     .toUpperCase();
     const query = normalize(value);
     const features = ZDP_ALL_FEATURES.filter(f => {
-      const roadId = f.properties?.ID;
+      const roadId = f.properties?.nr;
       if(!roadId) return false;
       return normalize(roadId).startsWith(query);
     });
     if(!features.length){
-      alert("Nie znaleziono drogi o ID: " + value);
+      alert("Nie znaleziono drogi o nr: " + value);
       return;
     }
     /* Podświetl wszystkie segmenty o tym samym ID */
@@ -1153,7 +1168,7 @@ MODIFY HIGHLIGHT FUNCTION
 =============================== */
 function HIGHLIGHT_FEATURES_BY_ID(id){
   const features = ZDP_ALL_FEATURES.filter(
-    f => f.properties?.ID && f.properties.ID.toString().toUpperCase().startsWith(
+    f => f.properties?.nr && f.properties.ID.toString().toUpperCase().startsWith(
       id.toString().toUpperCase()
     )
   );
