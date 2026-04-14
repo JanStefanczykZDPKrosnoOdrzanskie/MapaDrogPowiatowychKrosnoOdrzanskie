@@ -967,21 +967,23 @@ function GENERATE_KM_POINTS(){
   if(!data) return;
   const features = [];
   data.features.forEach(f => {
-    // tylko drogi powiatowe
     if(f.properties?.adm !== "P") return;
     const km_s = Number(f.properties.km_s) || 0;
     const km_e = Number(f.properties.km_e) || 0;
     const line = f;
-    const lengthKm = turf.length(line); // długość geometryczna
+    const lengthKm = turf.length(line);
     if(lengthKm === 0) return;
-    const step = 1; // 1 km
-    for(let d = 0; d <= lengthKm; d += step){
+    // rzeczywisty start i koniec w km
+    const startKm = km_s / 1000;
+    const endKm = km_e / 1000;
+    // tylko pełne kilometry
+    const firstFull = Math.ceil(startKm);
+    const lastFull = Math.floor(endKm);
+    for(let kmInt = firstFull; kmInt <= lastFull; kmInt++){
+      const d = kmInt; // km wzdłuż geometrii (bo turf.length = km)
       const pt = turf.along(line, d);
-      const t = d / lengthKm;
-      const km = km_s + (km_e - km_s) * t;
       const kmFormatted =
-        Math.floor(km/1000) + "+" +
-        Math.round(km%1000).toString().padStart(3,"0");
+        kmInt + "+000";
       features.push({
         type:"Feature",
         geometry: pt.geometry,
