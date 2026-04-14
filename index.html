@@ -1493,17 +1493,6 @@ map.on("click", (e) => {
   if (!closestFeature || !closestPoint) return;
   const km_s = closestFeature.properties?.km_s;
   const km_e = closestFeature.properties?.km_e;
-  // ===============================
-  // MARKER KLIKNIĘTEGO KM
-  // ===============================
-  if (KM_CLICK_MARKER) {
-    KM_CLICK_MARKER.remove();
-  }
-  KM_CLICK_MARKER = new maplibregl.Marker({
-    color: "#ff0000"
-  })
-  .setLngLat(closestPoint.geometry.coordinates)
-  .addTo(map);
   if (km_s == null || km_e == null) return;
   const lineLength = turf.length(closestFeature.geometry, { units: "kilometers" });
   // dystans od początku geometrii do kliknięcia (w km)
