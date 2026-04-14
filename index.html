@@ -980,56 +980,54 @@ map.on('load',async()=>{
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
 });
-map.on('click', (e) => {
+/* ===============================
+POMIAR KILOMETRARZA DROGI
+=============================== */
+map.on("click", function(e){
 
   const features = map.queryRenderedFeatures(e.point, {
-    layers: ["layer_adm_3"] // tylko drogi powiatowe
+    layers: ["layer_adm_3"]
   });
 
-  if (!features.length) return;
+  if(!features.length) return;
 
   const f = features[0];
   const props = f.properties;
 
-  // zabezpieczenie
-  if (props.adm !== "P") return;
+  if(props.adm !== "P") return;
 
-  const km_s = Number(props.km_s);
-  const km_e = Number(props.km_e);
+  const km_s = Number(props.km_s) || 0;
+  const km_e = Number(props.km_e) || 0;
 
-  if (isNaN(km_s) || isNaN(km_e)) return;
-
-  // punkt kliknięcia
+  const line = f;
   const clickPoint = turf.point([e.lngLat.lng, e.lngLat.lat]);
 
-  // linia drogi
-  const line = f.geometry;
+  // 🔥 NAJWAŻNIEJSZA ZMIANA
+  const snapped = turf.nearestPointOnLine(line, clickPoint);
 
-  // znajdź najbliższy punkt na linii + odległość wzdłuż
-  const snapped = turf.nearestPointOnLine(line, clickPoint, {units: 'meters'});
+  // odcinek od początku linii do punktu kliknięcia
+  const sliced = turf.lineSlice(
+    turf.point(line.geometry.coordinates[0]),
+    snapped,
+    line
+  );
 
-  const distOnLine = snapped.properties.location; // metry od początku geometrii
-  const totalLength = turf.length(line, {units: 'meters'});
+  const partLength = turf.length(sliced); // km
+  const totalLength = turf.length(line);  // km
 
-  if (totalLength === 0) return;
+  let t = 0;
+  if(totalLength > 0){
+    t = partLength / totalLength;
+  }
 
-  // udział (0-1)
-  const t = distOnLine / totalLength;
-
-  // 🔥 INTERPOLACJA KM
   const km = km_s + (km_e - km_s) * t;
 
-  // format km -> np 3+125
-  const km_int = Math.floor(km / 1000);
-  const m = Math.round(km % 1000);
-  const kmFormatted = `${km_int}+${m.toString().padStart(3, '0')}`;
+  const kmFormatted =
+    Math.floor(km/1000) + "+" + Math.round(km%1000).toString().padStart(3,"0");
 
   new maplibregl.Popup()
     .setLngLat(e.lngLat)
-    .setHTML(`
-      <b>Droga ${props.nr}</b><br>
-      km: ${kmFormatted}
-    `)
+    .setHTML(`<b>Droga:</b> ${props.nr}<br><b>Kilometr:</b> ${kmFormatted}`)
     .addTo(map);
 
 });
