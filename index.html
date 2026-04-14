@@ -963,39 +963,37 @@ POMIAR KILOMETRARZA DROGI
 function GENERATE_KM_POINTS(){
   const source = map.getSource("zdp_roads");
   if(!source) return;
+
   const data = source._data;
   if(!data) return;
+
   const features = [];
+
   data.features.forEach(f => {
     if(f.properties?.adm !== "P") return;
     const km_s = Number(f.properties.km_s) || 0;
     const km_e = Number(f.properties.km_e) || 0;
     const line = f;
-    const lengthKm = turf.length(line);
+    const lengthKm = turf.length(line, { units: "kilometers" });
     if(lengthKm === 0) return;
-    // rzeczywisty start i koniec w km
     const startKm = km_s / 1000;
     const endKm = km_e / 1000;
-    // tylko pełne kilometry
     const firstFull = Math.ceil(startKm);
     const lastFull = Math.floor(endKm);
     for(let kmInt = firstFull; kmInt <= lastFull; kmInt++){
-      const d = kmInt; // km wzdłuż geometrii (bo turf.length = km)
-      const pt = turf.along(line, d);
-      const kmFormatted =
-        kmInt + "+000";
+      const pt = turf.along(line, kmInt, { units: "kilometers" });
       features.push({
         type:"Feature",
         geometry: pt.geometry,
         properties:{
-          label: kmFormatted
+          label: kmInt + "+000"
         }
       });
     }
   });
   return {
     type:"FeatureCollection",
-    features:features
+    features
   };
 }
 /* ===============================
