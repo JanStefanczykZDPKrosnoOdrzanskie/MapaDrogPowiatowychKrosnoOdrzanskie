@@ -958,6 +958,45 @@ function UPDATE_EW_LABELS_VISIBILITY(){
   );
 }
 /* ===============================
+POMIAR KILOMETRARZA DROGI
+=============================== */
+function GENERATE_KM_POINTS(){
+  const source = map.getSource("zdp_roads");
+  if(!source) return;
+  const data = source._data;
+  if(!data) return;
+  const features = [];
+  data.features.forEach(f => {
+    // tylko drogi powiatowe
+    if(f.properties?.adm !== "P") return;
+    const km_s = Number(f.properties.km_s) || 0;
+    const km_e = Number(f.properties.km_e) || 0;
+    const line = f;
+    const lengthKm = turf.length(line); // długość geometryczna
+    if(lengthKm === 0) return;
+    const step = 1; // 1 km
+    for(let d = 0; d <= lengthKm; d += step){
+      const pt = turf.along(line, d);
+      const t = d / lengthKm;
+      const km = km_s + (km_e - km_s) * t;
+      const kmFormatted =
+        Math.floor(km/1000) + "+" +
+        Math.round(km%1000).toString().padStart(3,"0");
+      features.push({
+        type:"Feature",
+        geometry: pt.geometry,
+        properties:{
+          label: kmFormatted
+        }
+      });
+    }
+  });
+  return {
+    type:"FeatureCollection",
+    features:features
+  };
+}
+/* ===============================
 PIPELINE LOAD
 =============================== */
 map.on('load',async()=>{
@@ -980,86 +1019,27 @@ map.on('load',async()=>{
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
   const kmData = GENERATE_KM_POINTS();
-
-map.addSource("km_points", {
-  type: "geojson",
-  data: kmData
-});
-
-map.addLayer({
-  id: "km_labels",
-  type: "symbol",
-  source: "km_points",
-  layout: {
-    "text-field": ["get", "label"],
-    "text-size": 12,
-    "text-anchor": "center",
-    "text-allow-overlap": false
-  },
-  paint: {
-    "text-color": "#000000",
-    "text-halo-color": "#FFFFFF",
-    "text-halo-width": 2
-  }
-});
-});
-/* ===============================
-POMIAR KILOMETRARZA DROGI
-=============================== */
-function GENERATE_KM_POINTS(){
-
-  const source = map.getSource("zdp_roads");
-  if(!source) return;
-
-  const data = source._data;
-  if(!data) return;
-
-  const features = [];
-
-  data.features.forEach(f => {
-
-    // tylko drogi powiatowe
-    if(f.properties?.adm !== "P") return;
-
-    const km_s = Number(f.properties.km_s) || 0;
-    const km_e = Number(f.properties.km_e) || 0;
-
-    const line = f;
-
-    const lengthKm = turf.length(line); // długość geometryczna
-
-    if(lengthKm === 0) return;
-
-    const step = 1; // 1 km
-
-    for(let d = 0; d <= lengthKm; d += step){
-
-      const pt = turf.along(line, d);
-
-      const t = d / lengthKm;
-
-      const km = km_s + (km_e - km_s) * t;
-
-      const kmFormatted =
-        Math.floor(km/1000) + "+" +
-        Math.round(km%1000).toString().padStart(3,"0");
-
-      features.push({
-        type:"Feature",
-        geometry: pt.geometry,
-        properties:{
-          label: kmFormatted
-        }
-      });
-    }
-
+  map.addSource("km_points", {
+    type: "geojson",
+    data: kmData
   });
-
-  return {
-    type:"FeatureCollection",
-    features:features
-  };
-}
+  map.addLayer({
+    id: "km_labels",
+    type: "symbol",
+    source: "km_points",
+    layout: {
+      "text-field": ["get", "label"],
+      "text-size": 12,
+      "text-anchor": "center",
+      "text-allow-overlap": false
+    },
+    paint: {
+      "text-color": "#000000",
+      "text-halo-color": "#FFFFFF",
+      "text-halo-width": 2
+    }
+  });
+});
 /* ===============================
 BASE MAP DROPDOWN CONTROL
 =============================== */
