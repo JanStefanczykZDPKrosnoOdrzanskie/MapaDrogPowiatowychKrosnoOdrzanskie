@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -961,24 +961,20 @@ function UPDATE_EW_LABELS_VISIBILITY(){
 POMIAR KILOMETRARZA DROGI
 =============================== */
 function GENERATE_KM_POINTS(){
-  const data = map.getSource("zdp_roads")._data;
-  if(!data) return;
-  const featres = [];
+  const data = map.getSource("zdp_roads")?._data;
+  if(!data) return { type:"FeatureCollection", features:[] };
+  const features = [];
   data.features.forEach(f => {
     if(f.properties?.adm !== "P") return;
     const km_s = Number(f.properties.km_s);
     const km_e = Number(f.properties.km_e);
-    if(km_s == null || km_e == null) return;
-    const step = km_s <= km_e ? 1 : -1;
-    const start = km_s;
-    const end = km_e;
-    for(let km = start; step > 0 ? km <= end : km >= end; km += step){
-      const t = Math.abs(km - km_s) / Math.abs(km_e - km_s || 1);
-      const pt = turf.along(
-        f,
-        t * turf.length(f, {units:"kilometers"}),
-        {units:"kilometers"}
-      );
+    if(Number.isNaN(km_s) || Number.isNaN(km_e)) return;
+    if(km_s === km_e) return;
+    const step = km_s < km_e ? 1 : -1;
+    for(let km = km_s; step > 0 ? km <= km_e : km >= km_e; km += step){
+      const total = turf.length(f, {units:"kilometers"});
+      const t = Math.abs(km - km_s) / Math.abs(km_e - km_s);
+      const pt = turf.along(f, t * total, {units:"kilometers"});
       features.push({
         type:"Feature",
         geometry: pt.geometry,
@@ -1024,6 +1020,8 @@ map.on('load',async()=>{
     id: "km_labels",
     type: "symbol",
     source: "km_points",
+    "text-allow-overlap": true,
+    "text-ignore-placement": true,
     layout: {
       "text-field": ["get", "label"],
       "text-size": 12,
