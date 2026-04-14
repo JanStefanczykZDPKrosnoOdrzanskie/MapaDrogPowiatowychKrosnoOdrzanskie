@@ -429,6 +429,8 @@ body.legend-collapsed #mapAttribution{
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
 let PR_CSV_DATA = {};
+let CURRENT_KM_MARKER = null;
+let CURRENT_KM_POPUP = null;
 let PR_SELECTED_TYPES = {
   MOTO: true,
   SOMB: true,
@@ -1473,7 +1475,6 @@ map.on("click", (e) => {
   let closestFeature = null;
   let closestPoint = null;
   let minDist = Infinity;
-  // tylko DROGI POWIATOWE
   ZDP_ALL_FEATURES.forEach(f => {
     if (f.properties?.adm !== "P") return;
     if (!f.geometry) return;
@@ -1494,8 +1495,28 @@ map.on("click", (e) => {
   const km_s = closestFeature.properties?.km_s;
   const km_e = closestFeature.properties?.km_e;
   if (km_s == null || km_e == null) return;
-  const lineLength = turf.length(closestFeature.geometry, { units: "kilometers" });
-  // dystans od początku geometrii do kliknięcia (w km)
+  // =========================
+  // USUŃ POPRZEDNI MARKER + POPUP
+  // =========================
+  if (CURRENT_KM_MARKER) {
+    CURRENT_KM_MARKER.remove();
+    CURRENT_KM_MARKER = null;
+  }
+  if (CURRENT_KM_POPUP) {
+    CURRENT_KM_POPUP.remove();
+    CURRENT_KM_POPUP = null;
+  }
+  // =========================
+  // MARKER NA DRODZE (SNAP)
+  // =========================
+  CURRENT_KM_MARKER = new maplibregl.Marker({
+    color: "#ff0000"
+  })
+    .setLngLat(closestPoint.geometry.coordinates)
+    .addTo(map);
+  // =========================
+  // OBLICZENIE KM
+  // =========================
   const distFromStart = turf.length(
     turf.lineSlice(
       turf.point(closestFeature.geometry.coordinates[0]),
@@ -1504,13 +1525,18 @@ map.on("click", (e) => {
     ),
     { units: "kilometers" }
   );
-  // kierunek kilometrarza
   const direction = km_e >= km_s ? 1 : -1;
   const kmValue = km_s + (distFromStart * 1000 * direction);
   const kmInt = Math.floor(kmValue / 1000);
   const m = Math.round(kmValue % 1000);
-  new maplibregl.Popup()
-    .setLngLat(e.lngLat)
+  // =========================
+  // POPUP (ODDZIELNY OD MARKERA)
+  // =========================
+  CURRENT_KM_POPUP = new maplibregl.Popup({
+    closeButton: true,
+    closeOnClick: false
+  })
+    .setLngLat(e.lngLat)   // <- popup NIE na markerze
     .setHTML(`
       <b>Kilometr:</b><br>
       ${kmInt}+${String(m).padStart(3, "0")}
