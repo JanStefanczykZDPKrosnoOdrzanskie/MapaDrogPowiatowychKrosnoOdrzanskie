@@ -1269,7 +1269,6 @@ PULSE HIGHLIGHT ANIMATION
 let pulseAnimationFrame = null;
 let pulseRadius = 0;
 let pulseGrowing = true;
-let clickedKmMarker = null;
 function START_PULSE_ANIMATION(){
   STOP_PULSE_ANIMATION();
   pulseRadius = 4;
@@ -1492,18 +1491,19 @@ map.on("click", (e) => {
     } catch (e) {}
   });
   if (!closestFeature || !closestPoint) return;
-  // usuń poprzedni marker
-  if (clickedKmMarker) {
-    clickedKmMarker.remove();
-  }
-  // dodaj nowy marker klikniętego kilometra
-  clickedKmMarker = new maplibregl.Marker({
-    color: "#00008B"
-  })
-  .setLngLat(e.lngLat)
-  .addTo(map);
   const km_s = closestFeature.properties?.km_s;
   const km_e = closestFeature.properties?.km_e;
+  // ===============================
+  // MARKER KLIKNIĘTEGO KM
+  // ===============================
+  if (KM_CLICK_MARKER) {
+    KM_CLICK_MARKER.remove();
+  }
+  KM_CLICK_MARKER = new maplibregl.Marker({
+    color: "#ff0000"
+  })
+  .setLngLat(closestPoint.geometry.coordinates)
+  .addTo(map);
   if (km_s == null || km_e == null) return;
   const lineLength = turf.length(closestFeature.geometry, { units: "kilometers" });
   // dystans od początku geometrii do kliknięcia (w km)
