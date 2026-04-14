@@ -1464,6 +1464,57 @@ map.on('zoom', () => {
   zoomValue.innerText = "Zoom: " + z.toFixed(1);
   isSyncingZoom = false;
 });
+/* ===============================
+CLICK → KILOMETR W PUNKCIE
+=============================== */
+map.on("click", (e) => {
+  const clickPoint = turf.point([e.lngLat.lng, e.lngLat.lat]);
+  let closestFeature = null;
+  let closestPoint = null;
+  let minDist = Infinity;
+  // tylko DROGI POWIATOWE
+  ZDP_ALL_FEATURES.forEach(f => {
+    if (f.properties?.adm !== "P") return;
+    if (!f.geometry) return;
+    try {
+      const snapped = turf.nearestPointOnLine(f.geometry, clickPoint, {
+        units: "kilometers"
+      });
+      const dist = snapped.properties.dist;
+      if (dist < minDist) {
+        minDist = dist;
+        closestFeature = f;
+        closestPoint = snapped;
+      }
+    } catch (e) {}
+  });
+  if (!closestFeature || !closestPoint) return;
+  const km_s = closestFeature.properties?.km_s;
+  const km_e = closestFeature.properties?.km_e;
+  if (km_s == null || km_e == null) return;
+  const lineLength = turf.length(closestFeature.geometry, { units: "kilometers" });
+  // dystans od początku geometrii do kliknięcia (w km)
+  const distFromStart = turf.length(
+    turf.lineSlice(
+      turf.point(closestFeature.geometry.coordinates[0]),
+      closestPoint,
+      closestFeature.geometry
+    ),
+    { units: "kilometers" }
+  );
+  // kierunek kilometrarza
+  const direction = km_e >= km_s ? 1 : -1;
+  const kmValue = km_s + (distFromStart * 1000 * direction);
+  const kmInt = Math.floor(kmValue / 1000);
+  const m = Math.round(kmValue % 1000);
+  new maplibregl.Popup()
+    .setLngLat(e.lngLat)
+    .setHTML(`
+      <b>Kilometr:</b><br>
+      ${kmInt}+${String(m).padStart(3, "0")}
+    `)
+    .addTo(map);
+});
 </script>
 </body>
 </html>
