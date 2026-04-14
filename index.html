@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -963,25 +963,26 @@ POMIAR KILOMETRARZA DROGI
 function GENERATE_KM_POINTS(){
   const source = map.getSource("zdp_roads");
   if(!source) return;
-
   const data = source._data;
   if(!data) return;
-
   const features = [];
-
   data.features.forEach(f => {
     if(f.properties?.adm !== "P") return;
     const km_s = Number(f.properties.km_s) || 0;
     const km_e = Number(f.properties.km_e) || 0;
+    const dbLengthKm = Number(f.properties.db_length_km);
+    if(!dbLengthKm || dbLengthKm <= 0) return;
     const line = f;
-    const lengthKm = turf.length(line, { units: "kilometers" });
-    if(lengthKm === 0) return;
     const startKm = km_s / 1000;
     const endKm = km_e / 1000;
     const firstFull = Math.ceil(startKm);
     const lastFull = Math.floor(endKm);
     for(let kmInt = firstFull; kmInt <= lastFull; kmInt++){
-      const pt = turf.along(line, kmInt, { units: "kilometers" });
+      // procent z BAZY (nie z geometrii)
+      const t = kmInt / dbLengthKm;
+      const pt = turf.along(line, t * turf.length(line, {units:"kilometers"}), {
+        units: "kilometers"
+      });
       features.push({
         type:"Feature",
         geometry: pt.geometry,
@@ -991,6 +992,7 @@ function GENERATE_KM_POINTS(){
       });
     }
   });
+
   return {
     type:"FeatureCollection",
     features
