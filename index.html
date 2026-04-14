@@ -267,7 +267,7 @@ body.legend-collapsed #mapAttribution{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -739,6 +739,73 @@ function ADD_LABEL_LAYER(map){
     }
   });
 }
+function ADD_KM_LABELS(){
+  if(map.getSource("km_labels_source")) return;
+  const features = [];
+  ZDP_ALL_FEATURES.forEach(f => {
+    if(f.properties?.adm !== "P") return;
+    const coords = f.geometry?.coordinates;
+    if(!coords || coords.length < 2) return;
+    const km_s = f.properties?.km_s;
+    const km_e = f.properties?.km_e;
+    // START
+    if(km_s !== undefined){
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: coords[0]
+        },
+        properties: {
+          km: km_s,
+          type: "start"
+        }
+      });
+    }
+    // END
+    if(km_e !== undefined){
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: coords[coords.length - 1]
+        },
+        properties: {
+          km: km_e,
+          type: "end"
+        }
+      });
+    }
+  });
+  map.addSource("km_labels_source", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features
+    }
+  });
+  map.addLayer({
+    id: "km_labels",
+    type: "symbol",
+    source: "km_labels_source",
+    layout: {
+      "text-field": [
+        "concat",
+        ["to-string", ["get", "km"]],
+        " m"
+      ],
+      "text-size": 12,
+      "text-anchor": "top",
+      "text-offset": [0, 0.6],
+      "visibility": "visible"
+    },
+    paint: {
+      "text-color": "#A500AD",
+      "text-halo-color": "#FFFFFF",
+      "text-halo-width": 2
+    }
+  });
+}
 function ADD_EW_LABELS(map){
   if(map.getLayer("ew_labels")) return;
   map.addSource("ew_labels_source", {
@@ -971,6 +1038,7 @@ map.on('load',async()=>{
   map.on("move", UPDATE_EW_LABELS_DEBOUNCED);
   map.on("zoom", UPDATE_EW_LABELS_DEBOUNCED);
   ADD_LABEL_LAYER(map);
+  ADD_KM_LABELS();
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
   INIT_SEARCH();
