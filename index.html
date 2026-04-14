@@ -979,58 +979,87 @@ map.on('load',async()=>{
   "Aktualizacja: " + new Date().toLocaleString("pl-PL");
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
+  const kmData = GENERATE_KM_POINTS();
+
+map.addSource("km_points", {
+  type: "geojson",
+  data: kmData
+});
+
+map.addLayer({
+  id: "km_labels",
+  type: "symbol",
+  source: "km_points",
+  layout: {
+    "text-field": ["get", "label"],
+    "text-size": 12,
+    "text-anchor": "center",
+    "text-allow-overlap": false
+  },
+  paint: {
+    "text-color": "#000000",
+    "text-halo-color": "#FFFFFF",
+    "text-halo-width": 2
+  }
+});
 });
 /* ===============================
 POMIAR KILOMETRARZA DROGI
 =============================== */
-map.on("click", function(e){
+function GENERATE_KM_POINTS(){
 
-  const features = map.queryRenderedFeatures(e.point, {
-    layers: ["layer_adm_3"]
+  const source = map.getSource("zdp_roads");
+  if(!source) return;
+
+  const data = source._data;
+  if(!data) return;
+
+  const features = [];
+
+  data.features.forEach(f => {
+
+    // tylko drogi powiatowe
+    if(f.properties?.adm !== "P") return;
+
+    const km_s = Number(f.properties.km_s) || 0;
+    const km_e = Number(f.properties.km_e) || 0;
+
+    const line = f;
+
+    const lengthKm = turf.length(line); // długość geometryczna
+
+    if(lengthKm === 0) return;
+
+    const step = 1; // 1 km
+
+    for(let d = 0; d <= lengthKm; d += step){
+
+      const pt = turf.along(line, d);
+
+      const t = d / lengthKm;
+
+      const km = km_s + (km_e - km_s) * t;
+
+      const kmFormatted =
+        Math.floor(km/1000) + "+" +
+        Math.round(km%1000).toString().padStart(3,"0");
+
+      features.push({
+        type:"Feature",
+        geometry: pt.geometry,
+        properties:{
+          label: kmFormatted
+        }
+      });
+    }
+
   });
 
-  if(!features.length) return;
-
-  const f = features[0];
-  const props = f.properties;
-
-  if(props.adm !== "P") return;
-
-  const km_s = Number(props.km_s) || 0;
-  const km_e = Number(props.km_e) || 0;
-
-  const line = f;
-  const clickPoint = turf.point([e.lngLat.lng, e.lngLat.lat]);
-
-  // 🔥 NAJWAŻNIEJSZA ZMIANA
-  const snapped = turf.nearestPointOnLine(line, clickPoint);
-
-  // odcinek od początku linii do punktu kliknięcia
-  const sliced = turf.lineSlice(
-    turf.point(line.geometry.coordinates[0]),
-    snapped,
-    line
-  );
-
-  const partLength = turf.length(sliced); // km
-  const totalLength = turf.length(line);  // km
-
-  let t = 0;
-  if(totalLength > 0){
-    t = partLength / totalLength;
-  }
-
-  const km = km_s + (km_e - km_s) * t;
-
-  const kmFormatted =
-    Math.floor(km/1000) + "+" + Math.round(km%1000).toString().padStart(3,"0");
-
-  new maplibregl.Popup()
-    .setLngLat(e.lngLat)
-    .setHTML(`<b>Droga:</b> ${props.nr}<br><b>Kilometr:</b> ${kmFormatted}`)
-    .addTo(map);
-
-});
+  return {
+    type:"FeatureCollection",
+    features:features
+  };
+}
 /* ===============================
 BASE MAP DROPDOWN CONTROL
 =============================== */
