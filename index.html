@@ -813,6 +813,66 @@ function ADD_KM_LABELS(){
     }
   });
 }
+function GENERATE_INTERMEDIATE_KM_LABELS(){
+  const features = [];
+  ZDP_ALL_FEATURES.forEach(f => {
+    if(f.properties?.adm !== "P") return;
+    const line = f.geometry;
+    if(!line || line.type !== "LineString") return;
+    const km_s = f.properties?.km_s;
+    const km_e = f.properties?.km_e;
+    if(km_s == null || km_e == null) return;
+    const direction = km_e >= km_s ? 1 : -1;
+    const length = turf.length(line, {units: "kilometers"});
+    const startKm = Math.floor(Math.min(km_s, km_e) / 1000) * 1000;
+    const endKm   = Math.floor(Math.max(km_s, km_e) / 1000) * 1000;
+    for(let km = startKm; km <= endKm; km += 1000){
+      const targetOffsetKm = Math.abs(km - km_s) / 1000;
+      const t = targetOffsetKm / length;
+      if(t < 0 || t > 1) continue;
+      const pt = turf.along(line, t * length, {units:"kilometers"});
+      const label = `${Math.floor(km/1000)}+000`;
+      features.push({
+        type:"Feature",
+        geometry: pt.geometry,
+        properties:{
+          km: km,
+          label: label
+        }
+      });
+    }
+  });
+  if(map.getSource("km_intermediate_source")){
+    map.getSource("km_intermediate_source").setData({
+      type:"FeatureCollection",
+      features
+    });
+    return;
+  }
+  map.addSource("km_intermediate_source",{
+    type:"geojson",
+    data:{
+      type:"FeatureCollection",
+      features
+    }
+  });
+  map.addLayer({
+    id:"km_intermediate_labels",
+    type:"symbol",
+    source:"km_intermediate_source",
+    layout:{
+      "text-field": ["get","label"],
+      "text-size": 11,
+      "text-anchor":"top",
+      "text-offset":[0,0.5]
+    },
+    paint:{
+      "text-color":"#111",
+      "text-halo-color":"#fff",
+      "text-halo-width":2
+    }
+  });
+}
 function ADD_EW_LABELS(map){
   if(map.getLayer("ew_labels")) return;
   map.addSource("ew_labels_source", {
@@ -1046,6 +1106,7 @@ map.on('load',async()=>{
   map.on("zoom", UPDATE_EW_LABELS_DEBOUNCED);
   ADD_LABEL_LAYER(map);
   ADD_KM_LABELS();
+  GENERATE_INTERMEDIATE_KM_LABELS();
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
   INIT_SEARCH();
