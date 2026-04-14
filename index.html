@@ -961,38 +961,33 @@ function UPDATE_EW_LABELS_VISIBILITY(){
 POMIAR KILOMETRARZA DROGI
 =============================== */
 function GENERATE_KM_POINTS(){
-  const source = map.getSource("zdp_roads");
-  if(!source) return;
-  const data = source._data;
+  const data = map.getSource("zdp_roads")._data;
   if(!data) return;
-  const features = [];
+  const featres = [];
   data.features.forEach(f => {
     if(f.properties?.adm !== "P") return;
-    const km_s = Number(f.properties.km_s) || 0;
-    const km_e = Number(f.properties.km_e) || 0;
-    const dbLengthKm = Number(f.properties.db_length_km);
-    if(!dbLengthKm || dbLengthKm <= 0) return;
-    const line = f;
-    const startKm = km_s / 1000;
-    const endKm = km_e / 1000;
-    const firstFull = Math.ceil(startKm);
-    const lastFull = Math.floor(endKm);
-    for(let kmInt = firstFull; kmInt <= lastFull; kmInt++){
-      // procent z BAZY (nie z geometrii)
-      const t = kmInt / dbLengthKm;
-      const pt = turf.along(line, t * turf.length(line, {units:"kilometers"}), {
-        units: "kilometers"
-      });
+    const km_s = Number(f.properties.km_s);
+    const km_e = Number(f.properties.km_e);
+    if(km_s == null || km_e == null) return;
+    const step = km_s <= km_e ? 1 : -1;
+    const start = km_s;
+    const end = km_e;
+    for(let km = start; step > 0 ? km <= end : km >= end; km += step){
+      const t = Math.abs(km - km_s) / Math.abs(km_e - km_s || 1);
+      const pt = turf.along(
+        f,
+        t * turf.length(f, {units:"kilometers"}),
+        {units:"kilometers"}
+      );
       features.push({
         type:"Feature",
         geometry: pt.geometry,
         properties:{
-          label: kmInt + "+000"
+          label: km + "+000"
         }
       });
     }
   });
-
   return {
     type:"FeatureCollection",
     features
