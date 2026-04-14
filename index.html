@@ -791,9 +791,16 @@ function ADD_KM_LABELS(){
     layout: {
       "text-field": [
         "concat",
-        ["to-string", ["get", "km"]],
-        " m"
-      ],
+        ["to-string", ["floor", ["/", ["get", "km"], 1000]]],
+        "+",
+        ["case",
+          ["<", ["to-number", ["%", ["get", "km"], 1000]], 10],
+          ["concat", "00", ["to-string", ["to-number", ["%", ["get", "km"], 1000]]]],
+          ["<", ["to-number", ["%", ["get", "km"], 1000]], 100],
+          ["concat", "0", ["to-string", ["to-number", ["%", ["get", "km"], 1000]]]],
+          ["to-string", ["to-number", ["%", ["get", "km"], 1000]]]
+        ]
+      ]
       "text-size": 12,
       "text-anchor": "top",
       "text-offset": [0, 0.6],
