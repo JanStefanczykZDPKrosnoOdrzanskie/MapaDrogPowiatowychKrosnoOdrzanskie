@@ -958,38 +958,6 @@ function UPDATE_EW_LABELS_VISIBILITY(){
   );
 }
 /* ===============================
-POMIAR KILOMETRARZA DROGI
-=============================== */
-function GENERATE_KM_POINTS(){
-  const data = map.getSource("zdp_roads")?._data;
-  if(!data) return { type:"FeatureCollection", features:[] };
-  const features = [];
-  data.features.forEach(f => {
-    if(f.properties?.adm !== "P") return;
-    const km_s = Number(f.properties.km_s);
-    const km_e = Number(f.properties.km_e);
-    if(Number.isNaN(km_s) || Number.isNaN(km_e)) return;
-    if(km_s === km_e) return;
-    const step = km_s < km_e ? 1 : -1;
-    for(let km = km_s; step > 0 ? km <= km_e : km >= km_e; km += step){
-      const total = turf.length(f, {units:"kilometers"});
-      const t = Math.abs(km - km_s) / Math.abs(km_e - km_s);
-      const pt = turf.along(f, t * total, {units:"kilometers"});
-      features.push({
-        type:"Feature",
-        geometry: pt.geometry,
-        properties:{
-          label: km + "+000"
-        }
-      });
-    }
-  });
-  return {
-    type:"FeatureCollection",
-    features
-  };
-}
-/* ===============================
 PIPELINE LOAD
 =============================== */
 map.on('load',async()=>{
@@ -1011,29 +979,6 @@ map.on('load',async()=>{
   "Aktualizacja: " + new Date().toLocaleString("pl-PL");
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
-  const kmData = GENERATE_KM_POINTS();
-  map.addSource("km_points", {
-    type: "geojson",
-    data: kmData
-  });
-  map.addLayer({
-    id: "km_labels",
-    type: "symbol",
-    source: "km_points",
-    "text-allow-overlap": true,
-    "text-ignore-placement": true,
-    layout: {
-      "text-field": ["get", "label"],
-      "text-size": 12,
-      "text-anchor": "center",
-      "text-allow-overlap": false
-    },
-    paint: {
-      "text-color": "#000000",
-      "text-halo-color": "#FFFFFF",
-      "text-halo-width": 2
-    }
-  });
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
