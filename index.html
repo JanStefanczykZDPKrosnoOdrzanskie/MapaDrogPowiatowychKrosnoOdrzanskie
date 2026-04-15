@@ -1141,6 +1141,8 @@ map.on('load',async()=>{
   "Aktualizacja: " + new Date().toLocaleString("pl-PL");
   /* kontrybucja */
   UPDATE_BASEMAP_ATTRIBUTION();
+  map.on("zoom", UPDATE_KM_LABEL_VISIBILITY);
+  UPDATE_KM_LABEL_VISIBILITY();
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
@@ -1591,6 +1593,41 @@ function INIT_KM_TOGGLE(){
     updateUI();
   });
   updateUI(); // start OFF
+}
+function UPDATE_KM_LABEL_VISIBILITY(){
+  const z = map.getZoom();
+  let step = null;
+  if (z < 10) step = 10000;
+  else if (z < 11) step = 5000;
+  else if (z < 12) step = 2000;
+  else if (z < 13) step = 1000;
+  else if (z < 14) step = 500;
+  else if (z < 15) step = 200;
+  else step = 100;
+  // filtr dla etykiet pośrednich
+  if(map.getLayer("km_intermediate_labels")){
+    map.setFilter("km_intermediate_labels", [
+      "==",
+      ["%", ["get","km"], step],
+      0
+    ]);
+  }
+  // skalowanie wielkości tekstu
+  if(map.getLayer("km_intermediate_labels")){
+    map.setLayoutProperty(
+      "km_intermediate_labels",
+      "text-size",
+      z >= 15 ? 12 : 10
+    );
+  }
+  // schowanie kilometrarzu początku/końca
+  if(map.getLayer("km_labels")){
+    map.setLayoutProperty(
+      "km_labels",
+      "visibility",
+      z >= 12 ? "visible" : "none"
+    );
+  }
 }
 </script>
 </body>
