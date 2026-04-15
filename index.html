@@ -257,6 +257,27 @@ body.legend-collapsed #mapAttribution{
   border-radius:4px;
   box-shadow:0 1px 3px rgba(0,0,0,0.3);
 }
+#kmToggle{
+  position:absolute;
+  top:60px;
+  right:calc(var(--legend-width) + 10px);
+  z-index:60;
+  width:100px;
+  height:42px;
+  background:white;
+  border-radius:6px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:13px;
+  font-family:Arial,sans-serif;
+  user-select:none;
+}
+body.legend-collapsed #kmToggle{
+  right:10px;
+}
 </style>
 </head>
 
@@ -420,6 +441,7 @@ body.legend-collapsed #mapAttribution{
 </div>
 <div id="mapAttribution"></div>
 <div id="searchButton">🔍</div>
+<div id="kmToggle">KM: OFF</div>
 <div id="searchPanel">
   <input type="text" id="searchInput" placeholder="Wpisz ID drogi...">
   <button id="searchSubmit">Szukaj</button>
@@ -431,6 +453,7 @@ let CURRENT_BASEMAP = "OSM Standard";
 let PR_CSV_DATA = {};
 let CURRENT_KM_MARKER = null;
 let CURRENT_KM_POPUP = null;
+let KM_MEASURE_ENABLED = false;
 let PR_SELECTED_TYPES = {
   MOTO: true,
   SOMB: true,
@@ -1112,6 +1135,7 @@ map.on('load',async()=>{
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
   INIT_SEARCH();
+  INIT_KM_TOGGLE();
   /* timestamp */
   document.getElementById("updateOverlay").innerText =
   "Aktualizacja: " + new Date().toLocaleString("pl-PL");
@@ -1470,7 +1494,8 @@ map.on('zoom', () => {
 CLICK → KILOMETR W PUNKCIE
 =============================== */
 map.on("click", (e) => {
-  const MAX_CLICK_DISTANCE_KM = 0.1;
+  if(!KM_MEASURE_ENABLED) return;
+  const MAX_CLICK_DISTANCE_KM = 0.25;
   const clickPoint = turf.point([e.lngLat.lng, e.lngLat.lat]);
   let closestFeature = null;
   let closestPoint = null;
@@ -1543,6 +1568,30 @@ map.on("click", (e) => {
     `)
     .addTo(map);
 });
+function INIT_KM_TOGGLE(){
+  const btn = document.getElementById("kmToggle");
+  function updateUI(){
+    btn.innerText = KM_MEASURE_ENABLED ? "KM: ON" : "KM: OFF";
+    btn.style.background = KM_MEASURE_ENABLED ? "#2c3e50" : "white";
+    btn.style.color = KM_MEASURE_ENABLED ? "white" : "black";
+  }
+  btn.addEventListener("click", () => {
+    KM_MEASURE_ENABLED = !KM_MEASURE_ENABLED;
+    if(!KM_MEASURE_ENABLED){
+      // czyszczenie po wyłączeniu
+      if(CURRENT_KM_MARKER){
+        CURRENT_KM_MARKER.remove();
+        CURRENT_KM_MARKER = null;
+      }
+      if(CURRENT_KM_POPUP){
+        CURRENT_KM_POPUP.remove();
+        CURRENT_KM_POPUP = null;
+      }
+    }
+    updateUI();
+  });
+  updateUI(); // start OFF
+}
 </script>
 </body>
 </html>
