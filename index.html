@@ -288,7 +288,7 @@ body.legend-collapsed #kmToggle{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -428,6 +428,10 @@ body.legend-collapsed #kmToggle{
         </label>
       </div>
     </div>
+    <label>
+  <input type="checkbox" id="kmIntermediateToggle">
+    Kilometraż pośredni
+  </label>
   </div>
   <div id="legendLogo">
     <img src="Logo ZDP.png" alt="ZDP Logo">
@@ -454,6 +458,7 @@ let PR_CSV_DATA = {};
 let CURRENT_KM_MARKER = null;
 let CURRENT_KM_POPUP = null;
 let KM_MEASURE_ENABLED = false;
+let KM_INTERMEDIATE_LOADED = false
 let PR_SELECTED_TYPES = {
   MOTO: true,
   SOMB: true,
@@ -1133,7 +1138,6 @@ map.on('load',async()=>{
   map.on("zoom", UPDATE_EW_LABELS_DEBOUNCED);
   ADD_LABEL_LAYER(map);
   ADD_KM_LABELS();
-  GENERATE_INTERMEDIATE_KM_LABELS();
   ZDP_LEGEND_INIT();
   CREATE_BASEMAP_BUTTONS(map);
   INIT_SEARCH();
@@ -1145,6 +1149,15 @@ map.on('load',async()=>{
   UPDATE_BASEMAP_ATTRIBUTION();
   map.on("zoom", UPDATE_KM_LABEL_VISIBILITY);
   UPDATE_KM_LABEL_VISIBILITY();
+  document.getElementById("kmIntermediateToggle").addEventListener("change", (e) => {
+    if (e.target.checked) {
+      LOAD_INTERMEDIATE_KM_LABELS();
+    } else {
+      if (map.getLayer("km_intermediate_labels")) {
+        map.setLayoutProperty("km_intermediate_labels", "visibility", "none");
+      }
+    }
+  });
 });
 /* ===============================
 BASE MAP DROPDOWN CONTROL
@@ -1630,6 +1643,11 @@ function UPDATE_KM_LABEL_VISIBILITY(){
       z >= 12 ? "visible" : "none"
     );
   }
+}
+function LOAD_INTERMEDIATE_KM_LABELS(){
+  if (KM_INTERMEDIATE_LOADED) return;
+  KM_INTERMEDIATE_LOADED = true;
+  GENERATE_INTERMEDIATE_KM_LABELS();
 }
 </script>
 </body>
