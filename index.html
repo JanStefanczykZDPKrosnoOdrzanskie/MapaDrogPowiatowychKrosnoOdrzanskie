@@ -849,9 +849,9 @@ function GENERATE_INTERMEDIATE_KM_LABELS(){
     if(km_s == null || km_e == null) return;
     const direction = km_e >= km_s ? 1 : -1;
     const length = turf.length(line, {units: "kilometers"});
-    const startKm = Math.ceil(Math.min(km_s, km_e) / 1000) * 1000;
-    const endKm   = Math.floor(Math.max(km_s, km_e) / 1000) * 1000;
-    for(let km = startKm; km <= endKm; km += 1000){
+    const startKm = Math.ceil(Math.min(km_s, km_e) / 100) * 100;
+    const endKm   = Math.floor(Math.max(km_s, km_e) / 100) * 100;
+    for(let km = startKm; km <= endKm; km += 100){
       const targetOffsetKm = Math.abs(km - km_s) / 1000;
       const t = targetOffsetKm / length;
       if(t < 0 || t > 1) continue;
