@@ -545,12 +545,12 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     data:merged_roads
   });
   /* ===============================
-  admINISTRATIVE BOUNDARIES LOAD
+  ADMINISTRATIVE BOUNDARIES LOAD
   =============================== */
   try{
     const admin_files = await Promise.all([
       fetch("GEOJSON/GRN/GRN_Powiat.geojson").then(r=>r.json()),
-      fetch("GEOJSON/GRN/RN_Gminy.geojson").then(r=>r.json()),
+      fetch("GEOJSON/GRN/GRN_Gminy.geojson").then(r=>r.json()),
       fetch("GEOJSON/GRN/GRN_Miasta.geojson").then(r=>r.json()),
       fetch("GEOJSON/EW/EW_Jednostki.geojson").then(r=>r.json()),
       fetch("GEOJSON/EW/EW_Obręby.geojson").then(r=>r.json())
@@ -856,7 +856,9 @@ function GENERATE_INTERMEDIATE_KM_LABELS(){
       const t = targetOffsetKm / length;
       if(t < 0 || t > 1) continue;
       const pt = turf.along(line, t * length, {units:"kilometers"});
-      const label = `${Math.floor(km/1000)}+000`;
+      const kmPart = Math.floor(km / 1000);
+      const mPart = km % 1000;
+      const label = `${kmPart}+${String(mPart).padStart(3, "0")}`;
       features.push({
         type:"Feature",
         geometry: pt.geometry,
