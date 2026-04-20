@@ -325,6 +325,77 @@ body.legend-collapsed #kmToggle{
     </div>
     <div class="legend-section collapsed">
       <h3>
+        <input type="checkbox" class="section-toggle" data-group="naw">
+        Nawierzchnia
+      </h3>
+      <div class="legend-items">
+        <label>
+          <input type="checkbox" data-layers="layer_dp_asf" data-group="naw">
+          <span class="legend-line" style="background:#000000"></span>
+          Masa bitumiczna
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_gru" data-group="naw">
+          <span class="legend-line" style="background:#A0522D"></span>
+          Grunt Naturalny
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_kam" data-group="naw">
+          <span class="legend-line" style="background:#666666"></span>
+          Kostka kamienna
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_bru" data-group="naw">
+          <span class="legend-line" style="background:#8B4513"></span>
+          Bruk
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_tlu" data-group="naw">
+          <span class="legend-line" style="background:#C2B280"></span>
+          Tłuczeń
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_zwr" data-group="naw">
+          <span class="legend-line" style="background:#FFD700"></span>
+          Żwir
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_prf" data-group="naw">
+          <span class="legend-line" style="background:#00FFFF"></span>
+          Kostka prefabrykowana
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="kl">
+        Klasa dróg
+      </h3>
+      <div class="legend-items">
+        <label>
+          <input type="checkbox" data-layers="layer_kl_g" data-group="kl">
+          <span class="legend-line" style="background:#000000"></span>
+          G - Główna
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_kl_z" data-group="kl">
+          <span class="legend-line" style="background:#333333"></span>
+          Z - zbiorcza
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_kl_l" data-group="kl">
+          <span class="legend-line" style="background:#666666"></span>
+          L - lokalna
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_kl_d" data-group="kl">
+          <span class="legend-line" style="background:#999999"></span>
+          D - dojazdowa
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
         <input type="checkbox" class="section-toggle" data-pr-section="true">
         Pomiar Ruchu
       </h3>
@@ -519,16 +590,21 @@ async function ZDP_LOAD_GEO_SOURCES(map){
   const [
     DK, DW, DP, DG, DWew,
     pr_data,
-    zud_data
+    zud_data,
+    DP_NAW,
+    DP_KL
   ] = await Promise.all([
     fetch("GEOJSON/ADM_i_NR/DK.geojson").then(r=>r.json()),
     fetch("GEOJSON/ADM_i_NR/DW.geojson").then(r=>r.json()),
     fetch("GEOJSON/ADM_i_NR/DP.geojson").then(r=>r.json()),
     fetch("GEOJSON/ADM_i_NR/DG.geojson").then(r=>r.json()),
     fetch("GEOJSON/ADM_i_NR/DWew.geojson").then(r=>r.json()),
+    fetch("GEOJSON/DP_NAW.geojson").then(r=>r.json()),
     fetch("PR.geojson").then(r=>r.json()),
-    fetch("GEOJSON/ZUD/ZUD_2025.geojson").then(r=>r.json())
-  ]);
+    fetch("GEOJSON/ZUD/ZUD_2025.geojson").then(r=>r.json()),
+    fetch("GEOJSON/DP_NAW.geojson").then(r=>r.json()),
+    fetch("GEOJSON/DP_KL.geojson").then(r=>r.json())
+    ]);
   const merged_roads = {
     type:"FeatureCollection",
     features:[
@@ -538,7 +614,9 @@ async function ZDP_LOAD_GEO_SOURCES(map){
       ...(DG?.features || []),
       ...(DWew?.features || []),
       ...(pr_data?.features || []),
-      ...(zud_data?.features || [])
+      ...(zud_data?.features || []),
+      ...(DP_NAW?.features || []),
+      ...(DP_KL?.features || [])
     ]
   };
   ZDP_ALL_FEATURES = merged_roads.features;
@@ -713,11 +791,23 @@ function ZDP_RENDER_ROAD_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_adm_3","zdp_roads",["==",["get","adm"],"P"],"#A500AD",3);
   ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","adm"],"G"],"#808080",3, false);
   ADD_FILTER_LAYER(map,"layer_adm_5","zdp_roads",["==",["get","adm"],"L"],"#808080",1, false);
-}
+
+  ADD_FILTER_LAYER(map,"layer_dp_asf","zdp_roads",["==",["get","NAW"],"ASF"],"#000000", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_gru","zdp_roads",["==",["get","NAW"],"GRU"],"#A0522D", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_kam","zdp_roads",["==",["get","NAW"],"KAM"],"#666666", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_bru","zdp_roads",["==",["get","NAW"],"BRU"],"#8B4513", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_tlu","zdp_roads",["==",["get","NAW"],"TLU"],"#C2B280", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_zwr","zdp_roads",["==",["get","NAW"],"ZWR"],"#FFD700", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_prf","zdp_roads",["==",["get","NAW"],"PRF"],"#00FFFF", 5, false);
+ 
+  ADD_FILTER_LAYER(map,"layer_kl_g","zdp_roads",["==",["get","KL"],"G"],"#000000", 6, false);
+  ADD_FILTER_LAYER(map,"layer_kl_z","zdp_roads",["==",["get","KL"],"Z"],"#333333", 5, false);
+  ADD_FILTER_LAYER(map,"layer_kl_l","zdp_roads",["==",["get","KL"],"L"],"#666666", 4, false);
+  ADD_FILTER_LAYER(map,"layer_kl_d","zdp_roads",["==",["get","KL"],"D"],"#999999", 3, false);
 /* ===============================
-admINISTRATIVE LAYERS RENDER
+ADMINISTRATIVE LAYERS RENDER
 =============================== */
-function ZDP_RENDER_admIN_STYLES(map){
+function ZDP_RENDER_ADMIN_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_ew_2","admin_boundaries",["==",["get","EW"],2],"#66B2FF",2, false);
   ADD_FILTER_LAYER(map,"layer_ew_1","admin_boundaries",["==",["get","EW"],1],"#0066CC",2, false);
   
