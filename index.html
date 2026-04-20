@@ -374,23 +374,18 @@ body.legend-collapsed #kmToggle{
       <div class="legend-items">
         <label>
           <input type="checkbox" data-layers="layer_kl_g" data-group="kl">
-          <span class="legend-line" style="background:#000000"></span>
+          <span class="legend-line" style="background:#520000"></span>
           G - Główna
         </label>
         <label>
           <input type="checkbox" data-layers="layer_kl_z" data-group="kl">
-          <span class="legend-line" style="background:#333333"></span>
+          <span class="legend-line" style="background:#4c5200"></span>
           Z - zbiorcza
         </label>
         <label>
           <input type="checkbox" data-layers="layer_kl_l" data-group="kl">
-          <span class="legend-line" style="background:#666666"></span>
+          <span class="legend-line" style="background:#005218"></span>
           L - lokalna
-        </label>
-        <label>
-          <input type="checkbox" data-layers="layer_kl_d" data-group="kl">
-          <span class="legend-line" style="background:#999999"></span>
-          D - dojazdowa
         </label>
       </div>
     </div>
@@ -799,10 +794,9 @@ function ZDP_RENDER_ROAD_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_dp_zwr","zdp_roads",["==",["get","naw"],"ZWR"],"#FFD700", 5, false);
   ADD_FILTER_LAYER(map,"layer_dp_prf","zdp_roads",["==",["get","naw"],"PRF"],"#00FFFF", 5, false);
  
-  ADD_FILTER_LAYER(map,"layer_kl_g","zdp_roads",["==",["get","kl"],"G"],"#000000", 6, false);
-  ADD_FILTER_LAYER(map,"layer_kl_z","zdp_roads",["==",["get","kl"],"Z"],"#333333", 5, false);
-  ADD_FILTER_LAYER(map,"layer_kl_l","zdp_roads",["==",["get","kl"],"L"],"#666666", 4, false);
-  ADD_FILTER_LAYER(map,"layer_kl_d","zdp_roads",["==",["get","kl"],"D"],"#999999", 3, false);
+  ADD_FILTER_LAYER(map,"layer_kl_g","zdp_roads",["==",["get","kl"],"G"],"#520000", 7, false);
+  ADD_FILTER_LAYER(map,"layer_kl_z","zdp_roads",["==",["get","kl"],"Z"],"#4c5200", 5, false);
+  ADD_FILTER_LAYER(map,"layer_kl_l","zdp_roads",["==",["get","kl"],"L"],"#005218", 4, false);
 }
 /* ===============================
 ADMINISTRATIVE LAYERS RENDER
