@@ -599,7 +599,6 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     fetch("GEOJSON/ADM_i_NR/DP.geojson").then(r=>r.json()),
     fetch("GEOJSON/ADM_i_NR/DG.geojson").then(r=>r.json()),
     fetch("GEOJSON/ADM_i_NR/DWew.geojson").then(r=>r.json()),
-    fetch("GEOJSON/DP_NAW.geojson").then(r=>r.json()),
     fetch("PR.geojson").then(r=>r.json()),
     fetch("GEOJSON/ZUD/ZUD_2025.geojson").then(r=>r.json()),
     fetch("GEOJSON/DP_NAW.geojson").then(r=>r.json()),
@@ -792,18 +791,18 @@ function ZDP_RENDER_ROAD_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_adm_4","zdp_roads",["==",["get","adm"],"G"],"#808080",3, false);
   ADD_FILTER_LAYER(map,"layer_adm_5","zdp_roads",["==",["get","adm"],"L"],"#808080",1, false);
 
-  ADD_FILTER_LAYER(map,"layer_dp_asf","zdp_roads",["==",["get","NAW"],"ASF"],"#000000", 5, false);
-  ADD_FILTER_LAYER(map,"layer_dp_gru","zdp_roads",["==",["get","NAW"],"GRU"],"#A0522D", 5, false);
-  ADD_FILTER_LAYER(map,"layer_dp_kam","zdp_roads",["==",["get","NAW"],"KAM"],"#666666", 5, false);
-  ADD_FILTER_LAYER(map,"layer_dp_bru","zdp_roads",["==",["get","NAW"],"BRU"],"#8B4513", 5, false);
-  ADD_FILTER_LAYER(map,"layer_dp_tlu","zdp_roads",["==",["get","NAW"],"TLU"],"#C2B280", 5, false);
-  ADD_FILTER_LAYER(map,"layer_dp_zwr","zdp_roads",["==",["get","NAW"],"ZWR"],"#FFD700", 5, false);
-  ADD_FILTER_LAYER(map,"layer_dp_prf","zdp_roads",["==",["get","NAW"],"PRF"],"#00FFFF", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_asf","zdp_roads",["==",["get","naw"],"ASF"],"#000000", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_gru","zdp_roads",["==",["get","naw"],"GRU"],"#A0522D", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_kam","zdp_roads",["==",["get","naw"],"KAM"],"#666666", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_bru","zdp_roads",["==",["get","naw"],"BRU"],"#8B4513", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_tlu","zdp_roads",["==",["get","naw"],"TLU"],"#C2B280", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_zwr","zdp_roads",["==",["get","naw"],"ZWR"],"#FFD700", 5, false);
+  ADD_FILTER_LAYER(map,"layer_dp_prf","zdp_roads",["==",["get","naw"],"PRF"],"#00FFFF", 5, false);
  
-  ADD_FILTER_LAYER(map,"layer_kl_g","zdp_roads",["==",["get","KL"],"G"],"#000000", 6, false);
-  ADD_FILTER_LAYER(map,"layer_kl_z","zdp_roads",["==",["get","KL"],"Z"],"#333333", 5, false);
-  ADD_FILTER_LAYER(map,"layer_kl_l","zdp_roads",["==",["get","KL"],"L"],"#666666", 4, false);
-  ADD_FILTER_LAYER(map,"layer_kl_d","zdp_roads",["==",["get","KL"],"D"],"#999999", 3, false);
+  ADD_FILTER_LAYER(map,"layer_kl_g","zdp_roads",["==",["get","kl"],"G"],"#000000", 6, false);
+  ADD_FILTER_LAYER(map,"layer_kl_z","zdp_roads",["==",["get","kl"],"Z"],"#333333", 5, false);
+  ADD_FILTER_LAYER(map,"layer_kl_l","zdp_roads",["==",["get","kl"],"L"],"#666666", 4, false);
+  ADD_FILTER_LAYER(map,"layer_kl_d","zdp_roads",["==",["get","kl"],"D"],"#999999", 3, false);
 }
 /* ===============================
 ADMINISTRATIVE LAYERS RENDER
