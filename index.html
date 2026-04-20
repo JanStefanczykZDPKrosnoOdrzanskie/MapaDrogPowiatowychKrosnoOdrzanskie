@@ -288,7 +288,7 @@ body.legend-collapsed #kmToggle{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -1151,7 +1151,14 @@ map.on('load',async()=>{
   UPDATE_KM_LABEL_VISIBILITY();
   document.getElementById("kmIntermediateToggle").addEventListener("change", (e) => {
     if (e.target.checked) {
-      LOAD_INTERMEDIATE_KM_LABELS();
+      // jeśli nie było jeszcze danych → załaduj
+      if (!KM_INTERMEDIATE_LOADED) {
+        LOAD_INTERMEDIATE_KM_LABELS();
+      }
+      // ZAWSZE pokaż warstwę
+      if (map.getLayer("km_intermediate_labels")) {
+        map.setLayoutProperty("km_intermediate_labels", "visibility", "visible");
+      }
     } else {
       if (map.getLayer("km_intermediate_labels")) {
         map.setLayoutProperty("km_intermediate_labels", "visibility", "none");
@@ -1614,10 +1621,10 @@ function UPDATE_KM_LABEL_VISIBILITY(){
   let step = null;
   if (z < 10) step = 10000;
   else if (z < 11) step = 5000;
-  else if (z < 12) step = 2000;
-  else if (z < 13) step = 1000;
-  else if (z < 14) step = 500;
-  else if (z < 15) step = 200;
+  else if (z < 13) step = 2000;
+  else if (z < 15) step = 1000;
+  else if (z < 16) step = 500;
+  else if (z < 17) step = 200;
   else step = 100;
   // filtr dla etykiet pośrednich
   if(map.getLayer("km_intermediate_labels")){
