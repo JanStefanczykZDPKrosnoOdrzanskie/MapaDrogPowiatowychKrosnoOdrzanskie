@@ -1234,22 +1234,18 @@ map.on('load',async()=>{
   map.on("zoom", UPDATE_KM_LABEL_VISIBILITY);
   UPDATE_KM_LABEL_VISIBILITY();
   document.getElementById("kmIntermediateToggle").addEventListener("change", (e) => {
-    if (e.target.checked) {
-      // jeśli nie było jeszcze danych → załaduj
-      if (!KM_INTERMEDIATE_LOADED) {
-        LOAD_INTERMEDIATE_KM_LABELS();
-      }
-      // ZAWSZE pokaż warstwę
-      if (map.getLayer("km_intermediate_labels")) {
-        map.setLayoutProperty("km_intermediate_labels", "visibility", "visible");
-      }
-    } else {
-      if (map.getLayer("km_intermediate_labels")) {
-        map.setLayoutProperty("km_intermediate_labels", "visibility", "none");
-      }
+    const visible = e.target.checked ? "visible" : "none";
+    if (e.target.checked && !KM_INTERMEDIATE_LOADED) {
+      LOAD_INTERMEDIATE_KM_LABELS();
+    }
+    if (map.getLayer("km_intermediate_labels")) {
+      map.setLayoutProperty("km_intermediate_labels", "visibility", visible);
+    }
+    if (map.getLayer("km_labels")) {
+      map.setLayoutProperty("km_labels", "visibility", visible);
     }
   });
-});
+}
 /* ===============================
 BASE MAP DROPDOWN CONTROL
 =============================== */
@@ -1727,11 +1723,13 @@ function UPDATE_KM_LABEL_VISIBILITY(){
     );
   }
   // schowanie kilometrarzu początku/końca
+  const kmToggle = document.getElementById("kmIntermediateToggle");
+  // schowanie kilometrarzu początku/końca (zależne też od checkboxa)
   if(map.getLayer("km_labels")){
     map.setLayoutProperty(
       "km_labels",
       "visibility",
-      z >= 12 ? "visible" : "none"
+      (z >= 12 && kmToggle.checked) ? "visible" : "none"
     );
   }
 }
