@@ -278,30 +278,6 @@ body.legend-collapsed #mapAttribution{
 body.legend-collapsed #kmToggle{
   right:10px;
 }
-/* Panel */
-#kmPanel{
-  position:absolute;
-  bottom:0;
-  left:0;
-  width:100%;
-  background:white;
-  box-shadow:0 -2px 8px rgba(0,0,0,0.3);
-  z-index:200;
-  font-family:Arial,sans-serif;
-  animation:kmSlideUp 0.25s ease;
-}
-.km-panel-content{
-  padding:15px;
-  font-size:16px;
-}
-@keyframes kmSlideUp{
-  from{
-    transform:translateY(100%);
-  }
-  to{
-    transform:translateY(0);
-  }
-}
 </style>
 </head>
 
@@ -312,7 +288,7 @@ body.legend-collapsed #kmToggle{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -546,9 +522,9 @@ let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
 let PR_CSV_DATA = {};
 let CURRENT_KM_MARKER = null;
-let KM_PANEL = null;
+let CURRENT_KM_POPUP = null;
 let KM_MEASURE_ENABLED = false;
-let KM_INTERMEDIATE_LOADED = false;
+let KM_INTERMEDIATE_LOADED = false
 let PR_SELECTED_TYPES = {
   MOTO: true,
   SOMB: true,
@@ -1623,7 +1599,7 @@ CLICK → KILOMETR W PUNKCIE
 =============================== */
 map.on("click", (e) => {
   if(!KM_MEASURE_ENABLED) return;
-  const MAX_CLICK_DISTANCE_PX = 10;
+  const MAX_CLICK_DISTANCE_KM = 0.25;
   const clickPoint = turf.point([e.lngLat.lng, e.lngLat.lat]);
   let closestFeature = null;
   let closestPoint = null;
@@ -1635,14 +1611,9 @@ map.on("click", (e) => {
       const snapped = turf.nearestPointOnLine(f.geometry, clickPoint, {
         units: "kilometers"
       });
-      const snappedLngLat = snapped.geometry.coordinates;
-      const p1 = map.project([e.lngLat.lng, e.lngLat.lat]);
-      const p2 = map.project(snappedLngLat);
-      const dx = p1.x - p2.x;
-      const dy = p1.y - p2.y;
-      const distPx = Math.sqrt(dx * dx + dy * dy);
-      if (distPx > MAX_CLICK_DISTANCE_PX) return;
-      if (distPx < minDist) {
+      const dist = snapped.properties.dist;
+      if (dist > MAX_CLICK_DISTANCE_KM) return;
+      if (dist < minDist) {
         minDist = dist;
         closestFeature = f;
         closestPoint = snapped;
@@ -1660,9 +1631,9 @@ map.on("click", (e) => {
     CURRENT_KM_MARKER.remove();
     CURRENT_KM_MARKER = null;
   }
-  if (KM_PANEL) {
-    KM_PANEL.remove();
-    KM_PANEL = null;
+  if (CURRENT_KM_POPUP) {
+    CURRENT_KM_POPUP.remove();
+    CURRENT_KM_POPUP = null;
   }
   // =========================
   // MARKER NA DRODZE (SNAP)
@@ -1690,14 +1661,16 @@ map.on("click", (e) => {
   // =========================
   // POPUP (ODDZIELNY OD MARKERA)
   // =========================
-  KM_PANEL = document.createElement("div");
-    KM_PANEL.id = "kmPanel";
-    KM_PANEL.innerHTML = `
-      <div class="km-panel-content">
-        <b>Kilometr:</b> ${kmInt}+${String(m).padStart(3, "0")}
-      </div>
-    `;
-  document.body.appendChild(KM_PANEL);
+  CURRENT_KM_POPUP = new maplibregl.Popup({
+    closeButton: true,
+    closeOnClick: false
+  })
+    .setLngLat(e.lngLat)   // <- popup NIE na markerze
+    .setHTML(`
+      <b>Kilometr:</b><br>
+      ${kmInt}+${String(m).padStart(3, "0")}
+    `)
+    .addTo(map);
 });
 function INIT_KM_TOGGLE(){
   const btn = document.getElementById("kmToggle");
@@ -1714,9 +1687,9 @@ function INIT_KM_TOGGLE(){
         CURRENT_KM_MARKER.remove();
         CURRENT_KM_MARKER = null;
       }
-      if(KM_PANEL){
-        KM_PANEL.remove();
-        KM_PANEL = null;
+      if(CURRENT_KM_POPUP){
+        CURRENT_KM_POPUP.remove();
+        CURRENT_KM_POPUP = null;
       }
     }
     updateUI();
