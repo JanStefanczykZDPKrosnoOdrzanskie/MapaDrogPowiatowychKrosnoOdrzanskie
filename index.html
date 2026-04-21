@@ -1710,8 +1710,6 @@ map.on("click", (e) => {
   ========================= */
   const bottomPanelContent = document.getElementById("bottomPanelContent");
   const nr = closestFeature.properties?.nr;
-  const km_s = closestFeature.properties?.km_s;
-  const km_e = closestFeature.properties?.km_e;
   const startKm = Math.min(km_s, km_e);
   const endKm = Math.max(km_s, km_e);
   const formatKm = (v) => {
