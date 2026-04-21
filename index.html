@@ -1706,12 +1706,27 @@ map.on("click", (e) => {
   const kmInt = Math.floor(kmValue / 1000);
   const m = Math.round(kmValue % 1000);
   /* =========================
-   DOLNY PANEL – KILOMETRAŻ
+   DOLNY PANEL
   ========================= */
   const bottomPanelContent = document.getElementById("bottomPanelContent");
+  const nr = closestFeature.properties?.nr;
+  const km_s = closestFeature.properties?.km_s;
+  const km_e = closestFeature.properties?.km_e;
+  const startKm = Math.min(km_s, km_e);
+  const endKm = Math.max(km_s, km_e);
+  const formatKm = (v) => {
+    const kmPart = Math.floor(v / 1000);
+    const mPart = v % 1000;
+    return `${kmPart}+${String(mPart).padStart(3, "0")}`;
+  };
+  const lengthKm = Math.abs(km_e - km_s) / 1000;
   bottomPanelContent.innerHTML = `
-    <b>Kilometraż (klik):</b><br>
-    ${kmInt}+${String(m).padStart(3, "0")}
+    <b>Numer drogi:</b> ${nr ?? "-"}<br><br>
+    <b>Kilometraż początkowy:</b> ${formatKm(startKm)}<br>
+    <b>Kilometraż końcowy:</b> ${formatKm(endKm)}<br><br>
+    <b>Kilometraż lokalny:</b><br>
+    ${kmInt}+${String(m).padStart(3, "0")}<br><br>
+    <b>Długość drogi:</b> ${lengthKm.toFixed(3)} km
   `;
 });
 function INIT_KM_TOGGLE(){
