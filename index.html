@@ -312,7 +312,7 @@ body.legend-collapsed #kmToggle{
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -1642,7 +1642,7 @@ map.on("click", (e) => {
       const dy = p1.y - p2.y;
       const distPx = Math.sqrt(dx * dx + dy * dy);
       if (distPx > MAX_CLICK_DISTANCE_PX) return;
-      if (dist < minDist) {
+      if (distPx < minDist) {
         minDist = dist;
         closestFeature = f;
         closestPoint = snapped;
