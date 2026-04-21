@@ -616,11 +616,7 @@ BOTTOM PANEL
     </div>
     <div class="bp-column">
       <h4>Parametry</h4>
-      document.getElementById("bpParams").innerHTML = `
-        <b>Klasa drogi:</b> ${closestFeature.properties?.kl ?? "-"}<br>
-        <b>ZUD:</b> ${closestFeature.properties?.ZUD ?? "-"}<br>
-        <b>Nawierzchnia:</b> ${closestFeature.properties?.naw ?? "-"}<br>
-      `;
+      <div id="bpParams"></div>
     </div>
     <div class="bp-column">
       <h4>Inne</h4>
