@@ -629,6 +629,9 @@ BOTTOM PANEL
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
 let PR_CSV_DATA = {};
+const NAW_MAP = new Map();
+const KL_MAP  = new Map();
+const ZUD_MAP = new Map();
 let CURRENT_KM_MARKER = null;
 let KM_MEASURE_ENABLED = false;
 let KM_INTERMEDIATE_LOADED = false
@@ -641,6 +644,9 @@ let PR_SELECTED_TYPES = {
   ATBS: true,
   CGNR: true
 };
+function GEO_HASH(coords){
+  return JSON.stringify(coords);
+}
 /* ===============================
 MAP INSTANCE
 =============================== */
@@ -706,6 +712,18 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     fetch("GEOJSON/DP_NAW.geojson").then(r=>r.json()),
     fetch("GEOJSON/DP_KL.geojson").then(r=>r.json())
     ]);
+  DP_NAW.features.forEach(f=>{
+    const key = GEO_HASH(f.geometry.coordinates);
+    NAW_MAP.set(key, f.properties?.naw ?? null);
+  });
+  DP_KL.features.forEach(f=>{
+    const key = GEO_HASH(f.geometry.coordinates);
+    KL_MAP.set(key, f.properties?.kl ?? null);
+  });
+  zud_data.features.forEach(f=>{
+    const key = GEO_HASH(f.geometry.coordinates);
+    ZUD_MAP.set(key, f.properties?.ZUD ?? null);
+  });
   const merged_roads = {
     type:"FeatureCollection",
     features:[
@@ -1787,11 +1805,15 @@ map.on("click", (e) => {
     <b>Koniec:</b> ${formatKm(endKm)}<br>
     <b>Długość:</b> ${lengthKm.toFixed(3)} km
   `;
+  const geomKey = GEO_HASH(closestFeature.geometry.coordinates);
+  const kl  = KL_MAP.get(geomKey);
+  const naw = NAW_MAP.get(geomKey);
+  const zud = ZUD_MAP.get(geomKey);
   document.getElementById("bpParams").innerHTML = `
-    <b>Klasa drogi:</b> ${closestFeature.properties?.kl ?? "-"}<br>
-    <b>Nawierzchnia:</b> ${closestFeature.properties?.naw ?? "-"}<br>
-    <b>ZUD:</b> ${closestFeature.properties?.ZUD ?? "-"}<br>
-    `;
+    <b>Klasa drogi:</b> ${kl ?? "-"}<br>
+    <b>Nawierzchnia:</b> ${naw ?? "-"}<br>
+    <b>ZUD:</b> ${zud ?? "-"}<br>
+  `;
   document.getElementById("bpOther").innerHTML = `
     (PLACEHOLDER)
   `;
