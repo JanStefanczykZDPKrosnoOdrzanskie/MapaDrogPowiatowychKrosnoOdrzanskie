@@ -611,12 +611,16 @@ BOTTOM PANEL
   <!-- CONTENT PODZIELONY NA KOLUMNY -->
   <div id="bottomPanelContent">
     <div class="bp-column">
-      <h4>Odległości</h4>
-      <div id="bpDistances">Brak danych</div>
+      <h4>Geometria</h4>
+      <div id="bpGeometry">Brak danych</div>
     </div>
     <div class="bp-column">
       <h4>Parametry</h4>
-      <div id="bpParams">-</div>
+      document.getElementById("bpParams").innerHTML = `
+        <b>Klasa drogi:</b> ${closestFeature.properties?.kl ?? "-"}<br>
+        <b>ZUD:</b> ${closestFeature.properties?.ZUD ?? "-"}<br>
+        <b>Nawierzchnia:</b> ${closestFeature.properties?.naw ?? "-"}<br>
+      `;
     </div>
     <div class="bp-column">
       <h4>Inne</h4>
@@ -1782,14 +1786,16 @@ map.on("click", (e) => {
     return `${kmPart}+${String(mPart).padStart(3, "0")}`;
   };
   const lengthKm = Math.abs(km_e - km_s) / 1000;
-  document.getElementById("bpDistances").innerHTML = `
+  document.getElementById("bpGeometry").innerHTML = `
     <b>Początek:</b> ${formatKm(startKm)}<br>
     <b>Koniec:</b> ${formatKm(endKm)}<br>
-    <b>Lokalny km:</b> ${kmInt}+${String(m).padStart(3, "0")}<br>
-  `;
-  document.getElementById("bpParams").innerHTML = `
     <b>Długość:</b> ${lengthKm.toFixed(3)} km
   `;
+  document.getElementById("bpParams").innerHTML = `
+    <b>Klasa drogi:</b> ${closestFeature.properties?.kl ?? "-"}<br>
+    <b>Nawierzchnia:</b> ${closestFeature.properties?.naw ?? "-"}<br>
+    <b>ZUD:</b> ${closestFeature.properties?.ZUD ?? "-"}<br>
+    `;
   document.getElementById("bpOther").innerHTML = `
     (PLACEHOLDER)
   `;
