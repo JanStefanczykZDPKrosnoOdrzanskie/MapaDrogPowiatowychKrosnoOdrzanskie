@@ -318,6 +318,36 @@ BOTTOM PANEL
   padding:15px;
   overflow:auto;
 }
+#bottomPanelHeader{
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 8px 15px;
+  font-weight: bold;
+  border-bottom: 1px solid #ddd;
+  z-index: 2;
+}
+/* kolumny */
+#bottomPanelContent{
+  display: flex;
+  gap: 15px;
+  flex: 1;
+  overflow: auto;
+  padding: 15px;
+}
+.bp-column{
+  flex: 1;
+  min-width: 200px;
+  background: #f7f7f7;
+  padding: 10px;
+  border-radius: 6px;
+}
+.bp-column h4{
+  margin-top: 0;
+  font-size: 14px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
 </style>
 </head>
 
@@ -558,9 +588,25 @@ BOTTOM PANEL
 </div>
 
 <div id="bottomPanel">
+    <!-- HEADER -->
+  <div id="bottomPanelHeader">
+    <div id="selectedRoad">Wybrana droga: -</div>
+  </div>
   <div id="bottomPanelHandle"></div>
+  <!-- CONTENT PODZIELONY NA KOLUMNY -->
   <div id="bottomPanelContent">
-    Panel danych (test)
+    <div class="bp-column">
+      <h4>Odległości</h4>
+      <div id="bpDistances">Brak danych</div>
+    </div>
+    <div class="bp-column">
+      <h4>Parametry</h4>
+      <div id="bpParams">-</div>
+    </div>
+    <div class="bp-column">
+      <h4>Inne</h4>
+      <div id="bpOther">-</div>
+    </div>
   </div>
 </div>
 
@@ -1708,8 +1754,9 @@ map.on("click", (e) => {
   /* =========================
    DOLNY PANEL
   ========================= */
-  const bottomPanelContent = document.getElementById("bottomPanelContent");
   const nr = closestFeature.properties?.nr;
+  document.getElementById("selectedRoad").innerText =
+    `Wybrana droga: ${nr ?? "-"}`;
   const startKm = Math.min(km_s, km_e);
   const endKm = Math.max(km_s, km_e);
   const formatKm = (v) => {
@@ -1718,13 +1765,16 @@ map.on("click", (e) => {
     return `${kmPart}+${String(mPart).padStart(3, "0")}`;
   };
   const lengthKm = Math.abs(km_e - km_s) / 1000;
-  bottomPanelContent.innerHTML = `
-    <b>Numer drogi:</b> ${nr ?? "-"}<br><br>
-    <b>Kilometraż początkowy:</b> ${formatKm(startKm)}<br>
-    <b>Kilometraż końcowy:</b> ${formatKm(endKm)}<br><br>
-    <b>Kilometraż lokalny:</b><br>
-    ${kmInt}+${String(m).padStart(3, "0")}<br><br>
-    <b>Długość drogi:</b> ${lengthKm.toFixed(3)} km
+  document.getElementById("bpDistances").innerHTML = `
+    <b>Początek:</b> ${formatKm(startKm)}<br>
+    <b>Koniec:</b> ${formatKm(endKm)}<br>
+    <b>Lokalny km:</b> ${kmInt}+${String(m).padStart(3, "0")}<br>
+  `;
+  document.getElementById("bpParams").innerHTML = `
+    <b>Długość:</b> ${lengthKm.toFixed(3)} km
+  `;
+  document.getElementById("bpOther").innerHTML = `
+    (PLACEHOLDER)
   `;
 });
 function INIT_KM_TOGGLE(){
