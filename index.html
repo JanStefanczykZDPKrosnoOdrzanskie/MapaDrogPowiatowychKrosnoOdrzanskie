@@ -278,6 +278,46 @@ body.legend-collapsed #mapAttribution{
 body.legend-collapsed #kmToggle{
   right:10px;
 }
+/* ===============================
+BOTTOM PANEL
+=============================== */
+#bottomPanel{
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:100%;
+  height:300px;
+  background:white;
+  box-shadow:0 -3px 10px rgba(0,0,0,0.3);
+  transform:translateY(260px); /* schowany */
+  transition:transform 0.3s ease;
+  z-index:90;
+  display:flex;
+  flex-direction:column;
+  font-family:Arial,sans-serif;
+}
+#bottomPanel.open{
+  transform:translateY(0);
+}
+#bottomPanelHandle{
+  height:40px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#bottomPanelHandle::before{
+  content:"";
+  width:60px;
+  height:6px;
+  background:#ccc;
+  border-radius:3px;
+}
+#bottomPanelContent{
+  flex:1;
+  padding:15px;
+  overflow:auto;
+}
 </style>
 </head>
 
@@ -516,7 +556,14 @@ body.legend-collapsed #kmToggle{
   <input type="text" id="searchInput" placeholder="Wpisz ID drogi...">
   <button id="searchSubmit">Szukaj</button>
 </div>
-  
+
+<div id="bottomPanel">
+  <div id="bottomPanelHandle"></div>
+  <div id="bottomPanelContent">
+    Panel danych (test)
+  </div>
+</div>
+
 <script>
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
@@ -1743,6 +1790,14 @@ function LOAD_INTERMEDIATE_KM_LABELS(){
   KM_INTERMEDIATE_LOADED = true;
   GENERATE_INTERMEDIATE_KM_LABELS();
 }
+/* ===============================
+BOTTOM PANEL TOGGLE
+=============================== */
+const bottomPanel = document.getElementById("bottomPanel");
+const bottomPanelHandle = document.getElementById("bottomPanelHandle");
+bottomPanelHandle.addEventListener("click", () => {
+  bottomPanel.classList.toggle("open");
+});
 </script>
 </body>
 </html>
