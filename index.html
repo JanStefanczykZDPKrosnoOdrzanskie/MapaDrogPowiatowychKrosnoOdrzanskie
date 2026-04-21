@@ -569,7 +569,6 @@ let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
 let PR_CSV_DATA = {};
 let CURRENT_KM_MARKER = null;
-let CURRENT_KM_POPUP = null;
 let KM_MEASURE_ENABLED = false;
 let KM_INTERMEDIATE_LOADED = false
 let PR_SELECTED_TYPES = {
@@ -1683,10 +1682,6 @@ map.on("click", (e) => {
     CURRENT_KM_MARKER.remove();
     CURRENT_KM_MARKER = null;
   }
-  if (CURRENT_KM_POPUP) {
-    CURRENT_KM_POPUP.remove();
-    CURRENT_KM_POPUP = null;
-  }
   // =========================
   // MARKER NA DRODZE (SNAP)
   // =========================
@@ -1710,19 +1705,6 @@ map.on("click", (e) => {
   const kmValue = km_s + (distFromStart * 1000 * direction);
   const kmInt = Math.floor(kmValue / 1000);
   const m = Math.round(kmValue % 1000);
-  // =========================
-  // POPUP (ODDZIELNY OD MARKERA)
-  // =========================
-  CURRENT_KM_POPUP = new maplibregl.Popup({
-    closeButton: true,
-    closeOnClick: false
-  })
-    .setLngLat(e.lngLat)   // <- popup NIE na markerze
-    .setHTML(`
-      <b>Kilometr:</b><br>
-      ${kmInt}+${String(m).padStart(3, "0")}
-    `)
-    .addTo(map);
   /* =========================
    DOLNY PANEL – KILOMETRAŻ
   ========================= */
@@ -1746,10 +1728,6 @@ function INIT_KM_TOGGLE(){
       if(CURRENT_KM_MARKER){
         CURRENT_KM_MARKER.remove();
         CURRENT_KM_MARKER = null;
-      }
-      if(CURRENT_KM_POPUP){
-        CURRENT_KM_POPUP.remove();
-        CURRENT_KM_POPUP = null;
       }
     }
     updateUI();
