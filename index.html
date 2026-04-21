@@ -328,6 +328,19 @@ BOTTOM PANEL
   font-weight: bold;
   border-bottom: 1px solid #ddd;
   z-index: 2;
+  cursor: pointer;
+  user-select: none;
+}
+#bottomPanelHeader::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:6px;
+  transform:translateX(-50%);
+  width:60px;
+  height:6px;
+  background:#ccc;
+  border-radius:3px;
 }
 /* kolumny */
 #bottomPanelContent{
@@ -591,7 +604,6 @@ BOTTOM PANEL
 
 <div id="bottomPanel">
     <!-- HEADER -->
-  <div id="bottomPanelHandle"></div>
   <div id="bottomPanelHeader">
     <div id="selectedRoad">Wybrana droga: -</div>
     <div id="selectedKm" style="margin-left:10px; font-weight:normal;"></div>
@@ -1848,8 +1860,8 @@ function LOAD_INTERMEDIATE_KM_LABELS(){
 BOTTOM PANEL TOGGLE
 =============================== */
 const bottomPanel = document.getElementById("bottomPanel");
-const bottomPanelHandle = document.getElementById("bottomPanelHandle");
-bottomPanelHandle.addEventListener("click", () => {
+const bottomPanelHeader = document.getElementById("bottomPanelHeader");
+bottomPanelHeader.addEventListener("click", () => {
   bottomPanel.classList.toggle("open");
 });
 </script>
