@@ -1723,6 +1723,14 @@ map.on("click", (e) => {
       ${kmInt}+${String(m).padStart(3, "0")}
     `)
     .addTo(map);
+  /* =========================
+   DOLNY PANEL – KILOMETRAŻ
+  ========================= */
+  const bottomPanelContent = document.getElementById("bottomPanelContent");
+  bottomPanelContent.innerHTML = `
+    <b>Kilometraż (klik):</b><br>
+    ${kmInt}+${String(m).padStart(3, "0")}
+  `;
 });
 function INIT_KM_TOGGLE(){
   const btn = document.getElementById("kmToggle");
