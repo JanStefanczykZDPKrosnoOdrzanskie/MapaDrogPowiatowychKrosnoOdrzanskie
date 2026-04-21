@@ -319,10 +319,12 @@ BOTTOM PANEL
   overflow:auto;
 }
 #bottomPanelHeader{
-  position: sticky;
-  top: 0;
+  position: relative;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
   background: white;
-  padding: 8px 15px;
   font-weight: bold;
   border-bottom: 1px solid #ddd;
   z-index: 2;
@@ -591,6 +593,7 @@ BOTTOM PANEL
     <!-- HEADER -->
   <div id="bottomPanelHeader">
     <div id="selectedRoad">Wybrana droga: -</div>
+    <div id="selectedKm" style="margin-left:10px; font-weight:normal;"></div>
   </div>
   <div id="bottomPanelHandle"></div>
   <!-- CONTENT PODZIELONY NA KOLUMNY -->
@@ -1757,6 +1760,8 @@ map.on("click", (e) => {
   const nr = closestFeature.properties?.nr;
   document.getElementById("selectedRoad").innerText =
     `Wybrana droga: ${nr ?? "-"}`;
+  document.getElementById("selectedKm").innerText =
+    `KM: ${kmInt}+${String(m).padStart(3, "0")}`;
   const startKm = Math.min(km_s, km_e);
   const endKm = Math.max(km_s, km_e);
   const formatKm = (v) => {
