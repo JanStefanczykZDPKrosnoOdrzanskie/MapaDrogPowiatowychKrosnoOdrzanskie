@@ -283,7 +283,8 @@ body.legend-collapsed #kmToggle{
 BOTTOM PANEL
 =============================== */
 #bottomPanel{
-  position:absolute;
+  position: relative;
+  overflow: hidden;
   left:0;
   bottom:0;
   width:100%;
@@ -317,9 +318,9 @@ BOTTOM PANEL
 #bottomPanelLogo{
   position: absolute;
   right: 0;
-  top: 40px; /* bo header ma 40px */
+  top: 40px;
+  bottom: 0;
   width: var(--legend-width);
-  height: calc(100% - 40px);
   border-left: 1px solid #ddd;
   display: flex;
   align-items: center;
@@ -354,8 +355,6 @@ BOTTOM PANEL
   display: grid;
   grid-template-columns: 160px 250px 1fr;
   gap: 15px;
-  /* miejsce pod absolutne logo */
-  margin-right: var(--legend-width);
   /* zabezpieczenie przed wejściem pod logo */
   box-sizing: border-box;
   padding: 15px;
@@ -638,12 +637,12 @@ BOTTOM PANEL
       <h4>Pomiar Ruchu</h4>
       <div id="bpRuch">-</div>
     </div>
-    <div class="bp-column" id="bottomPanelLogo">
-      <img src="Logo ZDP.png" alt="ZDP Logo">
-    </div>
   </div>
 </div>
-
+<div id="bottomPanelLogo">
+  <img src="Logo ZDP.png" alt="ZDP Logo">
+</div>
+  
 <script>
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
