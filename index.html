@@ -1787,11 +1787,27 @@ map.on("click", (e) => {
     <b>Koniec:</b> ${formatKm(endKm)}<br>
     <b>Długość:</b> ${lengthKm.toFixed(3)} km
   `;
+  // =========================
+  // POBRANIE NAJBLIŻSZYCH FEATURE
+  // =========================
+  const klFeature  = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "kl");
+  const nawFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "naw");
+  const zudFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "ZUD");
+  
+  // =========================
+  // WARTOŚCI
+  // =========================
+  const klValue  = klFeature?.properties?.kl ?? "-";
+  const nawValue = nawFeature?.properties?.naw ?? "-";
+  const zudValue = zudFeature?.properties?.ZUD ?? "-";
+  // =========================
+  // PANEL
+  // =========================
   document.getElementById("bpParams").innerHTML = `
-    <b>Klasa drogi:</b> ${closestFeature.properties?.kl ?? "-"}<br>
-    <b>Nawierzchnia:</b> ${closestFeature.properties?.naw ?? "-"}<br>
-    <b>ZUD:</b> ${closestFeature.properties?.ZUD ?? "-"}<br>
-    `;
+    <b>Klasa drogi:</b> ${klValue}<br>
+    <b>Nawierzchnia:</b> ${nawValue}<br>
+    <b>ZUD:</b> ${zudValue}<br>
+  `;
   document.getElementById("bpOther").innerHTML = `
     (PLACEHOLDER)
   `;
@@ -1815,6 +1831,35 @@ function INIT_KM_TOGGLE(){
     updateUI();
   });
   updateUI(); // start OFF
+}
+function GET_NEAREST_FEATURE_BY_PROP(point, propName){
+  const MAX_DISTANCE_PX = 20;
+  let closest = null;
+  let minDist = Infinity;
+  ZDP_ALL_FEATURES.forEach(f => {
+    if(!f.geometry) return;
+    // filtr: tylko feature który ma daną właściwość
+    if(f.properties?.[propName] == null) return;
+    try{
+      const snapped = turf.nearestPointOnLine(
+        f.geometry,
+        point,
+        {units:"kilometers"}
+      );
+      const snappedLngLat = snapped.geometry.coordinates;
+      const clickPixel = map.project(point.geometry.coordinates);
+      const snappedPixel = map.project(snappedLngLat);
+      const dx = clickPixel.x - snappedPixel.x;
+      const dy = clickPixel.y - snappedPixel.y;
+      const distPx = Math.sqrt(dx*dx + dy*dy);
+      if(distPx > MAX_DISTANCE_PX) return;
+      if(distPx < minDist){
+        minDist = distPx;
+        closest = f;
+      }
+    }catch(e){}
+  });
+  return closest;
 }
 function UPDATE_KM_LABEL_VISIBILITY(){
   const z = map.getZoom();
