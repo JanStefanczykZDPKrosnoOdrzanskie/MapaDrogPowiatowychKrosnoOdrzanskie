@@ -364,6 +364,21 @@ BOTTOM PANEL
   border-bottom: 1px solid #ddd;
   padding-bottom: 5px;
 }
+#bottomPanelLogo{
+  padding:15px;
+  text-align:center;
+  border-left:1px solid #ddd;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height: var(--legend-logo-height);
+}
+#bottomPanelLogo img{
+  max-width:180px;
+  height:var(--legend-logo-height);
+  object-fit:contain;
+}
 </style>
 </head>
 
@@ -374,7 +389,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -622,6 +637,9 @@ BOTTOM PANEL
     <div class="bp-column">
       <h4>Pomiar Ruchu</h4>
       <div id="bpRuch">-</div>
+    </div>
+    <div class="bp-column" id="bottomPanelLogo">
+      <img src="Logo ZDP.png" alt="ZDP Logo">
     </div>
   </div>
 </div>
