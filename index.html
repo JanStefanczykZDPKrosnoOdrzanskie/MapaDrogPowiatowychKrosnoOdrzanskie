@@ -315,9 +315,13 @@ BOTTOM PANEL
   border-radius:3px;
 }
 #bottomPanelContent{
-  flex:1;
-  padding:15px;
-  overflow:auto;
+  display: grid;
+  grid-template-columns: 150px 200px 1fr var(--legend-width);
+  gap: 15px;
+  align-items: stretch;
+  flex: unset;
+  overflow: auto;
+  padding: 15px;
 }
 #bottomPanelHeader{
   position: relative;
@@ -344,15 +348,7 @@ BOTTOM PANEL
   border-radius:3px;
 }
 /* kolumny */
-#bottomPanelContent{
-  display: flex;
-  gap: 15px;
-  flex: 1;
-  overflow: auto;
-  padding: 15px;
-}
 .bp-column{
-  flex: 1;
   min-width: 200px;
   background: #f7f7f7;
   padding: 10px;
@@ -368,8 +364,6 @@ BOTTOM PANEL
   padding:0px;
   text-align:center;
   border-left:1px solid #ddd;
-  width: var(--legend-width);
-  flex: 0 0 var(--legend-width);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -391,7 +385,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 111111
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
