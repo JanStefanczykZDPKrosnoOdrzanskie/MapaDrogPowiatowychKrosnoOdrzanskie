@@ -14,6 +14,7 @@
 <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
 <style>
 :root{
@@ -619,8 +620,8 @@ BOTTOM PANEL
       <div id="bpParams"></div>
     </div>
     <div class="bp-column">
-      <h4>Inne</h4>
-      <div id="bpOther">-</div>
+      <h4>Pomiar Ruchu</h4>
+      <div id="bpRuch">-</div>
     </div>
   </div>
 </div>
@@ -1830,9 +1831,72 @@ map.on("click", (e) => {
     <b>Nawierzchnia:</b> ${nawValue}<br>
     <b>ZUD:</b> ${zudValue}<br>
   `;
-  document.getElementById("bpOther").innerHTML = `
-    (PLACEHOLDER)
-  `;
+  // =========================
+  // POMIAR RUCHU (PR)
+  // =========================
+  const prFeature = GET_NEAREST_PR(clickPoint, nr);
+  if(!prFeature){
+    document.getElementById("bpRuch").innerHTML = `
+      Brak danych pomiaru ruchu
+    `;
+  } else {
+    const prId = prFeature.properties.PR;
+    const row = PR_CSV_DATA[prId];
+    if(!row){
+      document.getElementById("bpRuch").innerHTML = `
+        Brak danych pomiaru ruchu
+      `;
+    } else {
+      // ===== SUMA =====
+      let sum = 0;
+      let data = {};
+      Object.keys(PR_SELECTED_TYPES).forEach(type => {
+        if(PR_SELECTED_TYPES[type] && row[type] != null){
+          sum += row[type];
+          data[type] = row[type];
+        }
+      });
+      if(sum === 0){
+        document.getElementById("bpRuch").innerHTML = `
+          Brak danych pomiaru ruchu
+        `;
+        return;
+      }
+      // ===== GENERUJ WYKRES (canvas) =====
+      const canvasId = "prChart";
+      setTimeout(() => {
+        const ctx = document.getElementById(canvasId);
+        if(!ctx) return;
+        const labels = [];
+        const values = [];
+        Object.entries(data).forEach(([k,v])=>{
+          labels.push(k);
+          values.push(v);
+        });
+        new Chart(ctx, {
+          type: "pie",
+          data: {
+            labels: labels,
+            datasets: [{
+              data: values
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins:{
+              legend:{
+                position:"bottom"
+              }
+            }
+          }
+        });
+      }, 0);
+      document.getElementById("bpRuch").innerHTML = `
+        <b>SDR:</b> ${sum}<br><br>
+        <canvas id="${canvasId}" height="120"></canvas>
+      `;
+    }
+  }
 });
 function INIT_KM_TOGGLE(){
   const btn = document.getElementById("kmToggle");
@@ -1881,6 +1945,38 @@ function GET_NEAREST_FEATURE_BY_PROP(point, propName){
       }
     }catch(e){}
   });
+  return closest;
+}
+function GET_NEAREST_PR(point, roadNr){
+  const MAX_DISTANCE_PX = 20;
+  let closest = null;
+  let minDist = Infinity;
+  ZDP_ALL_FEATURES.forEach(f => {
+    if(!f.geometry) return;
+    if(!f.properties?.PR) return; // tylko PR
+    try{
+      const snapped = turf.nearestPointOnLine(
+        f.geometry,
+        point,
+        {units:"kilometers"}
+      );
+      const snappedLngLat = snapped.geometry.coordinates;
+      const clickPixel = map.project(point.geometry.coordinates);
+      const snappedPixel = map.project(snappedLngLat);
+      const dx = clickPixel.x - snappedPixel.x;
+      const dy = clickPixel.y - snappedPixel.y;
+      const distPx = Math.sqrt(dx*dx + dy*dy);
+      if(distPx > MAX_DISTANCE_PX) return;
+      if(distPx < minDist){
+        minDist = distPx;
+        closest = f;
+      }
+    }catch(e){}
+  });
+  if(!closest) return null;
+  if(closest.properties?.nr !== roadNr){
+    return null;
+  }
   return closest;
 }
 function UPDATE_KM_LABEL_VISIBILITY(){
