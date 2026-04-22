@@ -350,6 +350,17 @@ BOTTOM PANEL
   background:#ccc;
   border-radius:3px;
 }
+#bottomPanelContent{
+  display: grid;
+  grid-template-columns: 160px 250px 1fr;
+  gap: 15px;
+  /* miejsce pod absolutne logo */
+  margin-right: var(--legend-width);
+  /* zabezpieczenie przed wejściem pod logo */
+  box-sizing: border-box;
+  padding: 15px;
+  overflow: auto;
+}
 /* kolumny */
 .bp-column{
   min-width: 200px;
@@ -362,16 +373,6 @@ BOTTOM PANEL
   font-size: 14px;
   border-bottom: 1px solid #ddd;
   padding-bottom: 5px;
-}
-#bottomPanelLogo{
-  padding:0px;
-  text-align:center;
-  border-left:1px solid #ddd;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height: var(--legend-logo-height);
-  box-sizing: border-box;
 }
 #bottomPanelLogo img{
   max-width:180px;
