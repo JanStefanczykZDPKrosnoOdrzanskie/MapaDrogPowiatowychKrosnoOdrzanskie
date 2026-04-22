@@ -19,7 +19,10 @@
 <style>
 :root{
 --legend-width:275px;
---legend-logo-height: 200px;
+--legend-logo-img-height: 200px;
+--legend-logo-padding: 15px;
+--legend-logo-border: 1px;
+--legend-footer-height: calc(var(--legend-logo-img-height)+(var(--legend-logo-padding)*2)+var(--legend-logo-border))
 }
 #basemapButtons{
   position:absolute;
@@ -120,15 +123,19 @@ body.legend-collapsed #legend{
   padding:20px;
 }
 #legendLogo{
-  padding:15px;
-  text-align:center;
-  border-top:1px solid #ddd;
+  height: var(--legend-footer-height);
+  padding: var(--legend-logo-padding);
+  border-top: var(--legend-logo-border) solid #ddd;
+  box-sizing: border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   flex-shrink:0;
 }
 #legendLogo img{
-  max-width:180px;
-  height:var(--legend-logo-height);
-  object-fit:contain;
+  height: var(--legend-logo-img-height);
+  max-width: 180px;
+  object-fit: contain;
 }
 /* ===============================
 SEARCH CONTROL
@@ -289,10 +296,10 @@ BOTTOM PANEL
   left:0;
   bottom:0;
   width:100%;
-  height: calc(var(--legend-logo-height) + 40px + 34px); /* + header + padding + border */
+  height: calc(100vh - var(--legend-footer-height));
   background:white;
   box-shadow:0 -3px 10px rgba(0,0,0,0.3);
-  transform: translateY(calc(var(--legend-logo-height)) - 34px);
+  transform: translateY(var(--legend-footer-height));
   transition:transform 0.3s ease;
   z-index:90;
   display:flex;
