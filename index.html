@@ -19,11 +19,7 @@
 <style>
 :root{
 --legend-width:275px;
---legend-logo-img-height: 200px;
---legend-logo-padding: 15px;
---legend-logo-border: 1px;
---legend-footer-height: calc(var(--legend-logo-img-height)+(var(--legend-logo-padding)*2)+var(--legend-logo-border))
---bottom-panel-height: calc(100vh - var(--legend-footer-height));
+--legend-logo-height: 120px;
 }
 #basemapButtons{
   position:absolute;
@@ -124,19 +120,15 @@ body.legend-collapsed #legend{
   padding:20px;
 }
 #legendLogo{
-  height: var(--legend-footer-height);
-  padding: var(--legend-logo-padding);
-  border-top: var(--legend-logo-border) solid #ddd;
-  box-sizing: border-box;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  padding:15px;
+  text-align:center;
+  border-top:1px solid #ddd;
   flex-shrink:0;
 }
 #legendLogo img{
-  height: var(--legend-logo-img-height);
-  max-width: 180px;
-  object-fit: contain;
+  max-width:180px;
+  height:var(--legend-logo-height);
+  object-fit:contain;
 }
 /* ===============================
 SEARCH CONTROL
@@ -297,11 +289,11 @@ BOTTOM PANEL
   left:0;
   bottom:0;
   width:100%;
-  height: var(--bottom-panel-height);
+  height: calc(var(--legend-logo-height) + 40px); /* + header */
   background:white;
   box-shadow:0 -3px 10px rgba(0,0,0,0.3);
-  transform: translateY(100%);
-  transition:height 0.3s ease, transform 0.3s ease;
+  transform: translateY(calc(var(--legend-logo-height) - 40px));
+  transition:transform 0.3s ease;
   z-index:90;
   display:flex;
   flex-direction:column;
@@ -325,8 +317,10 @@ BOTTOM PANEL
   border-radius:3px;
 }
 #bottomPanelContent{
-  flex: 1;
-  overflow: auto;
+  display: flex;
+  gap: 15px;
+  height: var(--legend-logo-height);
+  overflow: hidden;
   padding: 15px;
 }
 #bottomPanelHeader{
@@ -373,7 +367,7 @@ BOTTOM PANEL
   flex: 1;   /* razem 2 części */
 }
 .bp-column:nth-child(3){
-  flex: 5;   /* razem 6 części */
+  flex: 4;   /* razem 4 części */
 }
 .bp-column h4{
   margin-top: 0;
@@ -391,7 +385,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
