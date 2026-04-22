@@ -368,11 +368,13 @@ BOTTOM PANEL
   padding:15px;
   text-align:center;
   border-left:1px solid #ddd;
-  flex-shrink:0;
+  width: var(--legend-width);
+  flex: 0 0 var(--legend-width);
   display:flex;
   align-items:center;
   justify-content:center;
   height: var(--legend-logo-height);
+  box-sizing: border-box;
 }
 #bottomPanelLogo img{
   max-width:180px;
@@ -389,7 +391,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
