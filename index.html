@@ -19,6 +19,7 @@
 <style>
 :root{
 --legend-width:275px;
+--legend-logo-height: 120px;
 }
 #basemapButtons{
   position:absolute;
@@ -126,7 +127,8 @@ body.legend-collapsed #legend{
 }
 #legendLogo img{
   max-width:180px;
-  height:auto;
+  height:var(--legend-logo-height);
+  object-fit:contain;
 }
 /* ===============================
 SEARCH CONTROL
@@ -287,10 +289,10 @@ BOTTOM PANEL
   left:0;
   bottom:0;
   width:100%;
-  height:300px;
+  height: calc(var(--legend-logo-height) + 40px); /* + header */
   background:white;
   box-shadow:0 -3px 10px rgba(0,0,0,0.3);
-  transform:translateY(260px); /* schowany */
+  transform: translateY(calc(var(--legend-logo-height) - 40px));
   transition:transform 0.3s ease;
   z-index:90;
   display:flex;
@@ -315,9 +317,11 @@ BOTTOM PANEL
   border-radius:3px;
 }
 #bottomPanelContent{
-  flex:1;
-  padding:15px;
-  overflow:auto;
+  display: flex;
+  gap: 15px;
+  height: var(--legend-logo-height);
+  overflow: hidden;
+  padding: 15px;
 }
 #bottomPanelHeader{
   position: relative;
@@ -352,11 +356,18 @@ BOTTOM PANEL
   padding: 15px;
 }
 .bp-column{
-  flex: 1;
   min-width: 200px;
   background: #f7f7f7;
   padding: 10px;
   border-radius: 6px;
+}
+/* proporcje kolumn */
+.bp-column:nth-child(1),
+.bp-column:nth-child(2){
+  flex: 1;   /* razem 2 części */
+}
+.bp-column:nth-child(3){
+  flex: 4;   /* razem 4 części */
 }
 .bp-column h4{
   margin-top: 0;
@@ -1893,7 +1904,7 @@ map.on("click", (e) => {
       }, 0);
       document.getElementById("bpRuch").innerHTML = `
         <b>SDR:</b> ${sum}<br><br>
-        <canvas id="${canvasId}" height="120"></canvas>
+        <canvas id="${canvasId}"></canvas>
       `;
     }
   }
