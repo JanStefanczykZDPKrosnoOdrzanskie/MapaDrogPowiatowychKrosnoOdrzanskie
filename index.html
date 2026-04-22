@@ -314,14 +314,17 @@ BOTTOM PANEL
   background:#ccc;
   border-radius:3px;
 }
-#bottomPanelContent{
-  display: grid;
-  grid-template-columns: 150px 200px 1fr var(--legend-width);
-  gap: 15px;
-  align-items: stretch;
-  flex: unset;
-  overflow: auto;
-  padding: 15px;
+#bottomPanelLogo{
+  position: absolute;
+  right: 0;
+  top: 40px; /* bo header ma 40px */
+  width: var(--legend-width);
+  height: calc(100% - 40px);
+  border-left: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
 }
 #bottomPanelHeader{
   position: relative;
@@ -385,7 +388,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
