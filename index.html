@@ -373,7 +373,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -632,6 +632,26 @@ let PR_CSV_DATA = {};
 let CURRENT_KM_MARKER = null;
 let KM_MEASURE_ENABLED = false;
 let KM_INTERMEDIATE_LOADED = false
+const NAW_DICT = {
+  ASF: "Masa bitumiczna",
+  GRU: "Grunt naturalny",
+  KAM: "Kostka kamienna",
+  BRU: "Bruk",
+  TLU: "Tłuczeń",
+  ZWR: "Żwir",
+  PRF: "Kostka prefabrykowana"
+};
+const KL_DICT = {
+  G: "G - Główna",
+  Z: "Z - zbiorcza",
+  L: "L - lokalna"
+};
+const ZUD_DICT = {
+  2: "Standard 2",
+  3: "Standard 3",
+  4: "Standard 4",
+  6: "Standard 6"
+};
 let PR_SELECTED_TYPES = {
   MOTO: true,
   SOMB: true,
@@ -1793,13 +1813,15 @@ map.on("click", (e) => {
   const klFeature  = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "kl");
   const nawFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "naw");
   const zudFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "ZUD");
-  
   // =========================
   // WARTOŚCI
   // =========================
-  const klValue  = klFeature?.properties?.kl ?? "-";
-  const nawValue = nawFeature?.properties?.naw ?? "-";
-  const zudValue = zudFeature?.properties?.ZUD ?? "-";
+  const klRaw  = klFeature?.properties?.kl;
+  const nawRaw = nawFeature?.properties?.naw;
+  const zudRaw = zudFeature?.properties?.ZUD;
+  const klValue  = KL_DICT[klRaw]  ?? klRaw  ?? "-";
+  const nawValue = NAW_DICT[nawRaw] ?? nawRaw ?? "-";
+  const zudValue = ZUD_DICT[zudRaw] ?? zudRaw ?? "-";
   // =========================
   // PANEL
   // =========================
