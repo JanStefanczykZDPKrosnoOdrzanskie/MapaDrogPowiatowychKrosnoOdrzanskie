@@ -350,6 +350,15 @@ BOTTOM PANEL
   background:#ccc;
   border-radius:3px;
 }
+#bottomPanelContent{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 10px;
+  padding-right: calc(var(--legend-width) + 10px);
+  height: calc(100% - 40px);
+  box-sizing: border-box;
+}
 /* kolumny */
 .bp-column{
   min-width: 200px;
@@ -388,7 +397,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -637,9 +646,9 @@ BOTTOM PANEL
       <h4>Pomiar Ruchu</h4>
       <div id="bpRuch">-</div>
     </div>
-    <div class="bp-column" id="bottomPanelLogo">
-      <img src="Logo ZDP.png" alt="ZDP Logo">
-    </div>
+  </div>
+  <div id="bottomPanelLogo">
+    <img src="Logo ZDP.png" alt="ZDP Logo">
   </div>
 </div>
 
