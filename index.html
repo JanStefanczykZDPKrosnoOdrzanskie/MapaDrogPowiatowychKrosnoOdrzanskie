@@ -391,6 +391,9 @@ BOTTOM PANEL
   gap:20px;
   padding:10px;
 }
+.bp-chart-column {
+  margin-left: 40px; /* albo 60px jeśli ma być “daleko” */
+}
 #bpCharts{
   display:flex;
   flex-direction:row;
@@ -402,7 +405,7 @@ BOTTOM PANEL
 }
 #bpCharts canvas{
   margin:auto;
-  display:block;
+  height: 100% !important;
   max-width:90%;
 }
 .bp-column + .bp-chart-column{
@@ -1953,9 +1956,19 @@ map.on("click", (e) => {
           },
           options: {
             responsive: true,
-            plugins:{
-              legend:{
-                position:"left"
+            layout: {
+              padding: {
+                left: 30,   // <-- ODSUWA CAŁĄ LEWĄ STRONĘ (legendę)
+                right: 10
+              }
+            },
+            plugins: {
+              legend: {
+                position: "left",
+                labels: {
+                  padding: 20,   // <-- odstęp między elementami legendy
+                  boxWidth: 12
+                }
               }
             }
           }
