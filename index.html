@@ -18,7 +18,9 @@
   
 <style>
 :root{
---legend-width:275px;
+  --legend-width:275px;
+  --legend-logo-height:150px;
+  --bottom-header-height:40px;
 }
 #basemapButtons{
   position:absolute;
@@ -60,7 +62,7 @@ body{
   z-index:1;
 }
 #legend{
-  position:absolute;
+  position:relative;
   top:0;
   right:0;
   width:var(--legend-width);
@@ -117,12 +119,19 @@ body.legend-collapsed #legend{
   flex:1;
   overflow-y:auto;
   padding:20px;
+  padding-bottom: calc(var(--legend-logo-height) + 20px);
 }
 #legendLogo{
-  padding:15px;
-  text-align:center;
-  border-top:1px solid #ddd;
-  flex-shrink:0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--legend-logo-height);
+  border-top: 1px solid #ddd;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #legendLogo img{
   max-width:180px;
@@ -287,10 +296,10 @@ BOTTOM PANEL
   left:0;
   bottom:0;
   width:100%;
-  height:300px;
+  height: calc(var(--legend-logo-height) + var(--bottom-header-height));
   background:white;
   box-shadow:0 -3px 10px rgba(0,0,0,0.3);
-  transform:translateY(260px); /* schowany */
+  transform:translateY(var(--legend-logo-height));
   transition:transform 0.3s ease;
   z-index:90;
   display:flex;
@@ -317,9 +326,9 @@ BOTTOM PANEL
 #bottomPanelLogo{
   position: absolute;
   right: 0;
-  top: 40px; /* bo header ma 40px */
+  top: var(--bottom-header-height);
   width: var(--legend-width);
-  height: calc(100% - 40px);
+  height: var(--legend-logo-height);
   border-left: 1px solid #ddd;
   display: flex;
   align-items: center;
@@ -328,7 +337,7 @@ BOTTOM PANEL
 }
 #bottomPanelHeader{
   position: relative;
-  height: 40px;
+  height: var(--bottom-header-height);
   display: flex;
   align-items: center;
   padding: 0 15px;
@@ -372,16 +381,6 @@ BOTTOM PANEL
   border-bottom: 1px solid #ddd;
   padding-bottom: 5px;
 }
-#bottomPanelLogo{
-  padding:0px;
-  text-align:center;
-  border-left:1px solid #ddd;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height: var(--legend-logo-height);
-  box-sizing: border-box;
-}
 #bottomPanelLogo img{
   max-width:180px;
   height:var(--legend-logo-height);
@@ -397,7 +396,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
