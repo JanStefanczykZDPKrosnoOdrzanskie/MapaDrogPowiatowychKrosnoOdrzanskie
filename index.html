@@ -681,6 +681,9 @@ BOTTOM PANEL
 </div>
 
 <script>
+/* =========================================================
+                      KONFIGURACJA
+========================================================= */
 let ZDP_ALL_FEATURES = [];
 let CURRENT_BASEMAP = "OSM Standard";
 let PR_CSV_DATA = {};
@@ -716,41 +719,90 @@ let PR_SELECTED_TYPES = {
   ATBS: true,
   CGNR: true
 };
-/* ===============================
-MAP INSTANCE
-=============================== */
-const map = new maplibregl.Map({
-  attributionControl: false,
-  maxBounds:[
-    [14, 51.6],
-    [15.75, 52.35]
-  ],
-  container:'map',
-  style:{
-    version:8,
-    glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-    sources:{
-      osm:{
-        type:"raster",
-        tiles:[
-          "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        ],
-        tileSize:256,
-        attribution:"© OpenStreetMap contributors"
+/* =========================================================
+                      HELPERY
+========================================================= */
+let EW_LABELS_TIMEOUT = null;
+function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, visible=true){
+  if(map.getLayer(layerId)) return;
+  map.addLayer({
+      id:layerId,
+      type:"line",
+      source:source,
+      filter:filterExpression,
+      layout:{
+        visibility: visible ? "visible" : "none"
+      },
+      paint:{
+        "line-color":color,
+        "line-width":width
       }
-    },
-    layers:[{
-      id:"osm",
-      type:"raster",
-      source:"osm"
-    }]
-  },
-  center:[14.8953712,52.01625],
-  zoom:10
-});
-/* ===============================
-GEOJSON SOURCE LOADER
-=============================== */
+  });
+}
+function GET_NEAREST_FEATURE_BY_PROP(point, propName){
+  const MAX_DISTANCE_PX = 20;
+  let closest = null;
+  let minDist = Infinity;
+  ZDP_ALL_FEATURES.forEach(f => {
+    if(!f.geometry) return;
+    // filtr: tylko feature który ma daną właściwość
+    if(f.properties?.[propName] == null) return;
+    try{
+      const snapped = turf.nearestPointOnLine(
+        f.geometry,
+        point,
+        {units:"kilometers"}
+      );
+      const snappedLngLat = snapped.geometry.coordinates;
+      const clickPixel = map.project(point.geometry.coordinates);
+      const snappedPixel = map.project(snappedLngLat);
+      const dx = clickPixel.x - snappedPixel.x;
+      const dy = clickPixel.y - snappedPixel.y;
+      const distPx = Math.sqrt(dx*dx + dy*dy);
+      if(distPx > MAX_DISTANCE_PX) return;
+      if(distPx < minDist){
+        minDist = distPx;
+        closest = f;
+      }
+    }catch(e){}
+  });
+  return closest;
+}
+function GET_NEAREST_PR(point, roadNr){
+  const MAX_DISTANCE_PX = 20;
+  let closest = null;
+  let minDist = Infinity;
+  ZDP_ALL_FEATURES.forEach(f => {
+    if(!f.geometry) return;
+    if(!f.properties?.PR) return; // tylko PR
+    try{
+      const snapped = turf.nearestPointOnLine(
+        f.geometry,
+        point,
+        {units:"kilometers"}
+      );
+      const snappedLngLat = snapped.geometry.coordinates;
+      const clickPixel = map.project(point.geometry.coordinates);
+      const snappedPixel = map.project(snappedLngLat);
+      const dx = clickPixel.x - snappedPixel.x;
+      const dy = clickPixel.y - snappedPixel.y;
+      const distPx = Math.sqrt(dx*dx + dy*dy);
+      if(distPx > MAX_DISTANCE_PX) return;
+      if(distPx < minDist){
+        minDist = distPx;
+        closest = f;
+      }
+    }catch(e){}
+  });
+  if(!closest) return null;
+  if(closest.properties?.nr !== roadNr){
+    return null;
+  }
+  return closest;
+}
+/* =========================================================
+                      DANE
+========================================================= */
 async function ZDP_LOAD_GEO_SOURCES(map){
   const pr_csv = await fetch("PR.csv").then(r => r.text());
   const parsed = Papa.parse(pr_csv, {
@@ -803,9 +855,6 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     type:"geojson",
     data:merged_roads
   });
-  /* ===============================
-  ADMINISTRATIVE BOUNDARIES LOAD
-  =============================== */
   try{
     const admin_files = await Promise.all([
       fetch("GEOJSON/GRN/GRN_Powiat.geojson").then(r=>r.json()),
@@ -832,125 +881,38 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     console.error("admin boundaries load error:",e);
   }
 }
-function ADD_PR_LABELS() {
-  if (map.getLayer("pr_labels")) return;
-  map.addLayer({
-    id: "pr_labels",
-    type: "symbol",
-    source: "zdp_roads",
-    filter: ["has", "PR"],
-    layout: {
-      "symbol-placement": "line",
-      "text-field": ["coalesce", ["get", "pr_sum"], ""],
-      "text-size": 14,
-      "text-anchor": "center",
-      "visibility": "none"
-    },
-    paint: {
-      "text-color": "#000000",
-      "text-halo-color": "#FFFFFF",
-      "text-halo-width": 2
-    }
-  });
-  map.moveLayer("pr_labels");
+function UPDATE_EW_LABELS_VISIBILITY(){
+  if(!map.getLayer("ew_labels")) return;
+  const ewCheckbox = document.querySelector(
+    'input[data-group="ew"][data-layers="layer_ew_2"]'
+  );
+  if(!ewCheckbox) return;
+  map.setLayoutProperty(
+    "ew_labels",
+    "visibility",
+    ewCheckbox.checked ? "visible" : "none"
+  );
 }
-function UPDATE_PR_LABELS() {
-  let min = Infinity;
-  let max = -Infinity;
-  const source = map.getSource("zdp_roads");
-  if (!source) return;
-  const data = source._data;
-  data.features.forEach(f => {
-    const pr = f.properties?.PR;
-    if (!pr) return;
-    const row = PR_CSV_DATA[pr];
-    if (!row) return;
-    // =====================
-    // CHECK NULL VALUES
-    // =====================
-    if (
-      (PR_SELECTED_TYPES.MOTO && row.MOTO == null) ||
-      (PR_SELECTED_TYPES.SOMB && row.SOMB == null) ||
-      (PR_SELECTED_TYPES.LSMC && row.LSMC == null) ||
-      (PR_SELECTED_TYPES.SCBP && row.SCBP == null) ||
-      (PR_SELECTED_TYPES.SCZP && row.SCZP == null) ||
-      (PR_SELECTED_TYPES.ATBS && row.ATBS == null) ||
-      (PR_SELECTED_TYPES.CGNR && row.CGNR == null)
-    ){return;}
-    // =====================
-    // SUMA (tylko jeśli pełne dane)
-    // =====================
-    let sum = 0;
-    if (PR_SELECTED_TYPES.MOTO) sum += row.MOTO;
-    if (PR_SELECTED_TYPES.SOMB) sum += row.SOMB;
-    if (PR_SELECTED_TYPES.LSMC) sum += row.LSMC;
-    if (PR_SELECTED_TYPES.SCBP) sum += row.SCBP;
-    if (PR_SELECTED_TYPES.SCZP) sum += row.SCZP;
-    if (PR_SELECTED_TYPES.ATBS) sum += row.ATBS;
-    if (PR_SELECTED_TYPES.CGNR) sum += row.CGNR;
-    const allOff =
-      !PR_SELECTED_TYPES.MOTO &&
-      !PR_SELECTED_TYPES.SOMB &&
-      !PR_SELECTED_TYPES.LSMC &&
-      !PR_SELECTED_TYPES.SCBP &&
-      !PR_SELECTED_TYPES.SCZP &&
-      !PR_SELECTED_TYPES.ATBS &&
-      !PR_SELECTED_TYPES.CGNR;
-    if (allOff) {
-      f.properties.pr_sum = undefined;
-      f.properties.pr_color = undefined;
-      return;
-    }
-    f.properties.pr_sum = sum;
-    if (sum < min) min = sum;
-    if (sum > max) max = sum;
-  });
-  data.features.forEach(f => {
-    const val = f.properties?.pr_sum;
-    if (val === undefined) {
-      f.properties.pr_color = undefined;
-      return;
-    }
-    let t = 0;
-    if (max !== min) {
-      t = (val - min) / (max - min);
-    }
-    let r, g;
-    if (t <= 0.5) {
-      // zielony -> żółty (środek 255/255/40)
-      const tt = t * 2;
-      r = Math.round(255 * tt);
-      g = 255;
-    } else {
-      // żółty -> czerwony
-      const tt = (t - 0.5) * 2;
-      r = 255;
-      g = Math.round(255 * (1 - tt));
-    }
-    const b = 40;
-    f.properties.pr_color = `rgb(${r},${g},${b})`;
-  });
-  source.setData(data);
-}
-/* ===============================
-ROAD LAYERS
-=============================== */
-function ADD_FILTER_LAYER(map, layerId, source, filterExpression, color, width, visible=true){
-  if(map.getLayer(layerId)) return;
-  map.addLayer({
-      id:layerId,
-      type:"line",
-      source:source,
-      filter:filterExpression,
-      layout:{
-        visibility: visible ? "visible" : "none"
-      },
-      paint:{
-        "line-color":color,
-        "line-width":width
-      }
-  });
-}
+const BASE_MAPS = {
+  "OSM Standard":{
+    tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+    tileSize:256,
+    attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+  },
+  "ESRI Satellite":{
+    tiles:["https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+    tileSize:256,
+    attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'
+  },
+  "Dark Night":{
+    tiles:["https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"],
+    tileSize:256,
+    attribution:'© OpenStreetMap contributors © CARTO'
+  },
+};
+/* =========================================================
+                      RENDER
+========================================================= */
 function ZDP_RENDER_ROAD_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_pr","zdp_roads",["has","PR"],
     ["coalesce", ["get","pr_color"], "#888888"],
@@ -980,9 +942,6 @@ function ZDP_RENDER_ROAD_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_kl_z","zdp_roads",["==",["get","kl"],"Z"],"#4c5200", 5, false);
   ADD_FILTER_LAYER(map,"layer_kl_l","zdp_roads",["==",["get","kl"],"L"],"#005218", 4, false);
 }
-/* ===============================
-ADMINISTRATIVE LAYERS RENDER
-=============================== */
 function ZDP_RENDER_ADMIN_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_ew_2","admin_boundaries",["==",["get","EW"],2],"#66B2FF",2, false);
   ADD_FILTER_LAYER(map,"layer_ew_1","admin_boundaries",["==",["get","EW"],1],"#0066CC",2, false);
@@ -991,9 +950,28 @@ function ZDP_RENDER_ADMIN_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#555555",1,false);
   ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#000000",2, true);
 }
-/* ===============================
-LABELS
-=============================== */
+function ADD_PR_LABELS() {
+  if (map.getLayer("pr_labels")) return;
+  map.addLayer({
+    id: "pr_labels",
+    type: "symbol",
+    source: "zdp_roads",
+    filter: ["has", "PR"],
+    layout: {
+      "symbol-placement": "line",
+      "text-field": ["coalesce", ["get", "pr_sum"], ""],
+      "text-size": 14,
+      "text-anchor": "center",
+      "visibility": "none"
+    },
+    paint: {
+      "text-color": "#000000",
+      "text-halo-color": "#FFFFFF",
+      "text-halo-width": 2
+    }
+  });
+  map.moveLayer("pr_labels");
+}
 function ADD_LABEL_LAYER(map){
   if(map.getLayer("road_id_labels")) return;
   map.addLayer({
@@ -1058,7 +1036,6 @@ function ADD_KM_LABELS(){
         }
       });
     }
-    // END
     if(km_e !== undefined){
       features.push({
         type: "Feature",
@@ -1198,21 +1175,90 @@ function ADD_EW_LABELS(map){
   });
   UPDATE_EW_LABELS();
 }
-function UPDATE_EW_LABELS(){
-const zoom = map.getZoom();
-/* ===============================
-   ZAKRESY LABELI EW
-=============================== */
-const showEW1 = zoom >= 9.5 && zoom < 12;
-const showEW2 = zoom >= 12 && zoom <= 17;
-/* jeśli nic nie powinno być widoczne */
-if (!showEW1 && !showEW2) {
-  map.getSource("ew_labels_source").setData({
-    type: "FeatureCollection",
-    features: []
+/* =========================================================
+                      UPDATE
+========================================================= */
+function UPDATE_PR_LABELS() {
+  let min = Infinity;
+  let max = -Infinity;
+  const source = map.getSource("zdp_roads");
+  if (!source) return;
+  const data = source._data;
+  data.features.forEach(f => {
+    const pr = f.properties?.PR;
+    if (!pr) return;
+    const row = PR_CSV_DATA[pr];
+    if (!row) return;
+    if (
+      (PR_SELECTED_TYPES.MOTO && row.MOTO == null) ||
+      (PR_SELECTED_TYPES.SOMB && row.SOMB == null) ||
+      (PR_SELECTED_TYPES.LSMC && row.LSMC == null) ||
+      (PR_SELECTED_TYPES.SCBP && row.SCBP == null) ||
+      (PR_SELECTED_TYPES.SCZP && row.SCZP == null) ||
+      (PR_SELECTED_TYPES.ATBS && row.ATBS == null) ||
+      (PR_SELECTED_TYPES.CGNR && row.CGNR == null)
+    ){return;}
+    let sum = 0;
+    if (PR_SELECTED_TYPES.MOTO) sum += row.MOTO;
+    if (PR_SELECTED_TYPES.SOMB) sum += row.SOMB;
+    if (PR_SELECTED_TYPES.LSMC) sum += row.LSMC;
+    if (PR_SELECTED_TYPES.SCBP) sum += row.SCBP;
+    if (PR_SELECTED_TYPES.SCZP) sum += row.SCZP;
+    if (PR_SELECTED_TYPES.ATBS) sum += row.ATBS;
+    if (PR_SELECTED_TYPES.CGNR) sum += row.CGNR;
+    const allOff =
+      !PR_SELECTED_TYPES.MOTO &&
+      !PR_SELECTED_TYPES.SOMB &&
+      !PR_SELECTED_TYPES.LSMC &&
+      !PR_SELECTED_TYPES.SCBP &&
+      !PR_SELECTED_TYPES.SCZP &&
+      !PR_SELECTED_TYPES.ATBS &&
+      !PR_SELECTED_TYPES.CGNR;
+    if (allOff) {
+      f.properties.pr_sum = undefined;
+      f.properties.pr_color = undefined;
+      return;
+    }
+    f.properties.pr_sum = sum;
+    if (sum < min) min = sum;
+    if (sum > max) max = sum;
   });
-  return;
+  data.features.forEach(f => {
+    const val = f.properties?.pr_sum;
+    if (val === undefined) {
+      f.properties.pr_color = undefined;
+      return;
+    }
+    let t = 0;
+    if (max !== min) {
+      t = (val - min) / (max - min);
+    }
+    let r, g;
+    if (t <= 0.5) {
+      const tt = t * 2;
+      r = Math.round(255 * tt);
+      g = 255;
+    } else {
+      const tt = (t - 0.5) * 2;
+      r = 255;
+      g = Math.round(255 * (1 - tt));
+    }
+    const b = 40;
+    f.properties.pr_color = `rgb(${r},${g},${b})`;
+  });
+  source.setData(data);
 }
+function UPDATE_EW_LABELS(){
+  const zoom = map.getZoom();
+  const showEW1 = zoom >= 9.5 && zoom < 12;
+  const showEW2 = zoom >= 12 && zoom <= 17;
+  if (!showEW1 && !showEW2) {
+    map.getSource("ew_labels_source").setData({
+      type: "FeatureCollection",
+      features: []
+    });
+    return;
+  }
   const source = map.getSource("admin_boundaries");
   if(!source) return;
   const data = source._data;
@@ -1232,14 +1278,11 @@ if (!showEW1 && !showEW2) {
     if (ew !== 1 && ew !== 2) return;
     try{
       let polygon = f;
-      // 1. Spróbuj przecięcia z viewportem
       let clipped = turf.intersect(polygon, bboxPolygon);
       let point;
       if(clipped){
-        // ✔ label "wciągnięty" do widocznej części
         point = turf.pointOnFeature(clipped);
       }else{
-        // ✔ fallback: najbliższy punkt do viewportu
         const center = turf.center(bboxPolygon);
         point = turf.nearestPointOnLine(
           turf.polygonToLine(polygon),
@@ -1247,18 +1290,12 @@ if (!showEW1 && !showEW2) {
         );
       }
       let [lng, lat] = point.geometry.coordinates;
-        /* ===============================
-        PIXEL OFFSET OD KRAWĘDZI
-        =============================== */
-      const OFFSET_PX = 40; // <- regulacja
+      const OFFSET_PX = 40;
         try{
           const screenPoint = map.project([lng, lat]);
-          // zamień polygon na linię (granice)
           const polygonLine = turf.polygonToLine(polygon);
-          // znajdź najbliższy punkt na granicy
           const nearest = turf.nearestPointOnLine(polygonLine, point);
           const nearestScreen = map.project(nearest.geometry.coordinates);
-          // dystans w pixelach
           const dx = screenPoint.x - nearestScreen.x;
           const dy = screenPoint.y - nearestScreen.y;
           const dist = Math.sqrt(dx*dx + dy*dy);
@@ -1270,8 +1307,6 @@ if (!showEW1 && !showEW2) {
             lng = newLngLat.lng;
             lat = newLngLat.lat;
           }
-        } catch(e) {
-          // fallback – zostaw jak było
         }
       visibleFeatures.push({
         type: "Feature",
@@ -1284,7 +1319,6 @@ if (!showEW1 && !showEW2) {
         }
       });
     }catch(e){
-      // ostateczny fallback
       const point = turf.pointOnFeature(f);
       visibleFeatures.push({
         type:"Feature",
@@ -1300,7 +1334,6 @@ if (!showEW1 && !showEW2) {
     features:visibleFeatures
   });
 }
-let EW_LABELS_TIMEOUT = null;
 function UPDATE_EW_LABELS_DEBOUNCED(){
   if(EW_LABELS_TIMEOUT){
     clearTimeout(EW_LABELS_TIMEOUT);
@@ -1309,20 +1342,261 @@ function UPDATE_EW_LABELS_DEBOUNCED(){
     UPDATE_EW_LABELS();
   }, 250); // 0.25s
 }
-/* ===============================
-LEGEND CONTROL
-=============================== */
+function UPDATE_KM_LABEL_VISIBILITY(){
+  const z = map.getZoom();
+  let step = null;
+  if (z < 10) step = 10000;
+  else if (z < 11) step = 5000;
+  else if (z < 13) step = 2000;
+  else if (z < 15) step = 1000;
+  else if (z < 16) step = 500;
+  else if (z < 17) step = 200;
+  else step = 100;
+  if(map.getLayer("km_intermediate_labels")){
+    map.setFilter("km_intermediate_labels", [
+      "==",
+      ["%", ["get","km"], step],
+      0
+    ]);
+  }
+  if(map.getLayer("km_intermediate_labels")){
+    map.setLayoutProperty(
+      "km_intermediate_labels",
+      "text-size",
+      z >= 15 ? 12 : 10
+    );
+  }
+  const kmToggle = document.getElementById("kmIntermediateToggle");
+  if(map.getLayer("km_labels")){
+    map.setLayoutProperty(
+      "km_labels",
+      "visibility",
+      (z >= 12 && kmToggle.checked) ? "visible" : "none"
+    );
+  }
+}
+/* =========================================================
+                      SEARCH
+========================================================= */
+function INIT_SEARCH(){
+  const btn = document.getElementById("searchButton");
+  const panel = document.getElementById("searchPanel");
+  const input = document.getElementById("searchInput");
+  const submit = document.getElementById("searchSubmit");
+  btn.addEventListener("click",()=>{
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+    input.focus();
+  });
+  submit.addEventListener("click", EXECUTE_SEARCH);
+  input.addEventListener("keypress", e=>{
+    if(e.key === "Enter") EXECUTE_SEARCH();
+  });
+  function EXECUTE_SEARCH(){
+    CLEAR_HIGHLIGHT();
+    const value = input.value.trim();
+    if(!value) return;
+    const normalize = str =>
+     str.toString()
+    .replace(/\s+/g,'')
+    .toUpperCase();
+    const query = normalize(value);
+    const features = ZDP_ALL_FEATURES.filter(f => {
+      const roadId = f.properties?.nr;
+      if(!roadId) return false;
+      return normalize(roadId).startsWith(query);
+    });
+    if(!features.length){
+      alert("Nie znaleziono drogi o nr: " + value);
+      return;
+    }
+    HIGHLIGHT_FEATURES_BY_ID(value);
+    const geojson = {
+      type:"FeatureCollection",
+      features: features
+    };
+    let bounds = new maplibregl.LngLatBounds();
+    geojson.features.forEach(feature=>{
+      const geom = feature.geometry;
+      if(!geom) return;
+      const processCoords = (coords)=>{
+        coords.forEach(c=>{
+          if(Array.isArray(c[0])){
+            processCoords(c);
+            } else {
+                bounds.extend(c);
+            }
+        });
+      };
+    processCoords(geom.coordinates);
+    });
+    map.fitBounds(bounds,{
+      padding:80,
+      duration:800
+    });
+  }
+}
+let pulseAnimationFrame = null;
+let pulseRadius = 0;
+let pulseGrowing = true;
+function HIGHLIGHT_FEATURES_BY_ID(id){
+  const features = ZDP_ALL_FEATURES.filter(
+    f => f.properties?.nr && f.properties.nr.toString().toUpperCase().startsWith(
+      id.toString().toUpperCase()
+    )
+  );
+  if(!features.length) return;
+  if(map.getLayer("search_highlight_layer")){
+    map.removeLayer("search_highlight_layer");
+  }
+  if(map.getLayer("search_pulse_layer")){
+    map.removeLayer("search_pulse_layer");
+  }
+  if(map.getSource("search_highlight_source")){
+    map.removeSource("search_highlight_source");
+  }
+  const geojson = {
+    type:"FeatureCollection",
+    features:features
+  };
+  map.addSource("search_highlight_source",{
+    type:"geojson",
+    data:geojson
+  });
+  const labelLayer = "road_id_labels";
+  map.addLayer(
+    {
+      id:"search_highlight_layer",
+      type:"line",
+      source:"search_highlight_source",
+      paint:{
+          "line-color":"#00008B",
+          "line-width":6,
+          "line-opacity":0.95
+      },
+      layout:{
+        "line-cap":"round",
+        "line-join":"round"
+      }
+    },
+    map.getLayer(labelLayer) ? labelLayer : undefined
+  );
+  map.addLayer({
+    id:"search_pulse_layer",
+    type:"line",
+    source:"search_highlight_source",
+    paint:{
+      "line-color":"#FFFF00",
+      "line-width":2,
+      "line-opacity":0.5
+    }
+  });
+  map.once("idle", () => {
+    START_PULSE_ANIMATION();
+  });
+}
+function CLEAR_HIGHLIGHT(){
+  STOP_PULSE_ANIMATION();
+  if(map.getLayer("search_highlight_layer")){
+    map.removeLayer("search_highlight_layer");
+  }
+  if(map.getLayer("search_pulse_layer")){
+    map.removeLayer("search_pulse_layer");
+  }
+  if(map.getSource("search_highlight_source")){
+    map.removeSource("search_highlight_source");
+  }
+  pulseGrowing = true;
+  pulseRadius = 2;
+}
+function START_PULSE_ANIMATION(){
+  STOP_PULSE_ANIMATION();
+  pulseRadius = 4;
+  pulseGrowing = true;
+  function animate(){
+    if(!map.getLayer("search_pulse_layer")){
+      pulseAnimationFrame = requestAnimationFrame(animate);
+      return;
+    }
+    if(pulseGrowing){
+      pulseRadius += 0.4;
+      if(pulseRadius > 18) pulseGrowing = false;
+    } else {
+      pulseRadius -= 0.4;
+      if(pulseRadius < 4) pulseGrowing = true;
+    }
+    map.setPaintProperty(
+      "search_pulse_layer",
+      "line-width",
+      pulseRadius
+    );
+    pulseAnimationFrame = requestAnimationFrame(animate);
+  }
+  pulseAnimationFrame = requestAnimationFrame(animate);
+}
+function STOP_PULSE_ANIMATION(){
+  if(pulseAnimationFrame){
+    cancelAnimationFrame(pulseAnimationFrame);
+    pulseAnimationFrame = null;
+  }
+  if(map.getLayer("search_pulse_layer")){
+    map.removeLayer("search_pulse_layer");
+  }
+}
+/* =========================================================
+                      UI/LEGEND/BASEMAP
+========================================================= */
+const legend = document.getElementById("legend");
+const btn = document.getElementById("legendToggle");
+btn.addEventListener("click", () => {
+  document.body.classList.toggle("legend-collapsed");
+  if (document.body.classList.contains("legend-collapsed")) {
+    btn.innerHTML = "⮜";
+  } else {
+    btn.innerHTML = "⮞";
+  }
+});
+document.querySelectorAll(".legend-section h3").forEach(header=>{
+  header.addEventListener("click", (e)=>{
+    if(e.target.tagName === "INPUT") return;
+    const section = header.parentElement;
+    section.classList.toggle("collapsed");
+  });
+});
+document.querySelectorAll(".section-toggle").forEach(toggle=>{
+  toggle.addEventListener("click", e=>{
+    // blokada rozwijanie sekcji
+    e.stopPropagation();
+    const group = toggle.dataset.group;
+    const checked = toggle.checked;
+    const inputs = document.querySelectorAll(
+      `.legend-section input[data-group="${group}"]:not(.section-toggle)`
+    );
+    inputs.forEach(input=>{
+      input.checked = checked;
+      const layers = input.dataset.layers.split(',');
+      layers.forEach(layerId=>{
+        if(!map.getLayer(layerId)) return;
+        map.setLayoutProperty(
+          layerId,
+          'visibility',
+          checked ? 'visible' : 'none'
+        );
+      });
+    });
+    UPDATE_EW_LABELS_VISIBILITY();
+    UPDATE_LABEL_FILTER();
+    UPDATE_BASEMAP_ATTRIBUTION();
+  });
+});
 function ZDP_LEGEND_INIT(){
   document.querySelectorAll('#legend input').forEach(chk=>{
     chk.addEventListener('change',e=>{
-      // ===== PR KALKULACJA LABELA =====
       if(e.target.dataset.prType){
         const type = e.target.dataset.prType;
         PR_SELECTED_TYPES[type] = e.target.checked;
         UPDATE_PR_LABELS();
         return;
       }
-      // ===== PR TOGGLE =====
       if(e.target.dataset.prSection === "true"){
         const visible = e.target.checked;
         if(map.getLayer("layer_pr")){
@@ -1377,21 +1651,309 @@ function UPDATE_LABEL_FILTER(){
     );
   }
 }
-function UPDATE_EW_LABELS_VISIBILITY(){
-  if(!map.getLayer("ew_labels")) return;
-  const ewCheckbox = document.querySelector(
-    'input[data-group="ew"][data-layers="layer_ew_2"]'
+function UPDATE_BASEMAP_ATTRIBUTION(){
+  const cfg = BASE_MAPS[CURRENT_BASEMAP];
+  if(!cfg) return;
+  let html = `© <a href="https://maplibre.org/" target="_blank">MapLibre</a> | ${cfg.attribution}`;
+  const geoCheckboxes = document.querySelectorAll(
+    'input[data-group="grn"], input[data-group="ew"]'
   );
-  if(!ewCheckbox) return;
-  map.setLayoutProperty(
-    "ew_labels",
-    "visibility",
-    ewCheckbox.checked ? "visible" : "none"
-  );
+  let geoActive = false;
+  geoCheckboxes.forEach(chk=>{
+    if(chk.checked) geoActive = true;
+  });
+  if(geoActive){
+    html += ' | Dane: <a href="https://www.geoportal.gov.pl" target="_blank">Geoportal</a>';
+  }
+  document.getElementById("mapAttribution").innerHTML = html;
 }
-/* ===============================
-PIPELINE LOAD
-=============================== */
+function CREATE_BASEMAP_BUTTONS(map){
+  const container = document.createElement("div");
+  container.id = "basemapButtons";
+  document.body.appendChild(container);
+  const buttons = [
+    {label:"Mapa", map:"OSM Standard"},
+    {label:"Satelita", map:"ESRI Satellite"},
+    {label:"Nocna", map:"Dark Night"}
+  ];
+  buttons.forEach(cfg=>{
+    const btn = document.createElement("div");
+    btn.className = "basemap-btn";
+    btn.innerText = cfg.label;
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".basemap-btn")
+      .forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      SWITCH_BASEMAP(cfg.map);
+    });
+    container.appendChild(btn);
+  });
+  container.querySelector(".basemap-btn").classList.add("active");
+}
+function SWITCH_BASEMAP(name){
+  CURRENT_BASEMAP = name;
+  UPDATE_BASEMAP_ATTRIBUTION();
+  const cfg = BASE_MAPS[name];
+  if(!cfg) return;
+  if(map.getLayer("osm")){
+    map.removeLayer("osm");
+  }
+  if(map.getSource("osm")){
+    map.removeSource("osm");
+  }
+  map.addSource("osm",{
+    type:"raster",
+    tiles:cfg.tiles,
+    tileSize:cfg.tileSize,
+    attribution:cfg.attribution
+  });
+  map.addLayer({
+    id:"osm",
+    type:"raster",
+    source:"osm"
+  }, map.getStyle().layers[0].id);
+}
+const zoomSlider = document.getElementById('zoomSlider');
+const zoomValue = document.getElementById('zoomValue');
+let isSyncingZoom = false;
+noUiSlider.create(zoomSlider, {
+  start: map.getZoom(),
+  orientation: 'vertical',
+  direction: 'rtl',
+  step: 0.1,
+  range: {
+    min: 9.5,
+    max: 22
+  }
+});
+zoomSlider.noUiSlider.on('slide', function(values){
+  const zoom = parseFloat(values[0]);
+  map.setZoom(zoom);
+  zoomValue.innerText = "Zoom: " + zoom.toFixed(1);
+});
+map.on('zoom', () => {
+  if (isSyncingZoom) return;
+  isSyncingZoom = true;
+  const z = map.getZoom();
+  zoomSlider.noUiSlider.set(z);
+  zoomValue.innerText = "Zoom: " + z.toFixed(1);
+  isSyncingZoom = false;
+});
+function INIT_KM_TOGGLE(){
+  const btn = document.getElementById("kmToggle");
+  function updateUI(){
+    btn.innerText = KM_MEASURE_ENABLED ? "KM: ON" : "KM: OFF";
+    btn.style.background = KM_MEASURE_ENABLED ? "#2c3e50" : "white";
+    btn.style.color = KM_MEASURE_ENABLED ? "white" : "black";
+  }
+  btn.addEventListener("click", () => {
+    KM_MEASURE_ENABLED = !KM_MEASURE_ENABLED;
+    if(!KM_MEASURE_ENABLED){
+      // czyszczenie po wyłączeniu
+      if(CURRENT_KM_MARKER){
+        CURRENT_KM_MARKER.remove();
+        CURRENT_KM_MARKER = null;
+      }
+    }
+    updateUI();
+  });
+  updateUI(); // start OFF
+}
+/* =========================================================
+                      INTERACTION
+========================================================= */
+map.on("click", (e) => {
+  if(!KM_MEASURE_ENABLED) return;
+  const MAX_CLICK_DISTANCE_PX = 20;
+  const clickPoint = turf.point([e.lngLat.lng, e.lngLat.lat]);
+  let closestFeature = null;
+  let closestPoint = null;
+  let minDist = Infinity;
+  ZDP_ALL_FEATURES.forEach(f => {
+    if (f.properties?.adm !== "P") return;
+    if (!f.geometry) return;
+    try {
+      const snapped = turf.nearestPointOnLine(f.geometry, clickPoint, {
+        units: "kilometers"
+      });
+      const snappedLngLat = snapped.geometry.coordinates;
+      const clickPixel = map.project([e.lngLat.lng, e.lngLat.lat]);
+      const snappedPixel = map.project(snappedLngLat);
+      const dx = clickPixel.x - snappedPixel.x;
+      const dy = clickPixel.y - snappedPixel.y;
+      const distPx = Math.sqrt(dx * dx + dy * dy);
+      if (distPx > MAX_CLICK_DISTANCE_PX) return;
+      if (distPx < minDist) {
+        minDist = distPx;
+        closestFeature = f;
+        closestPoint = snapped;
+      }
+    } catch (e) {}
+  });
+  if (!closestFeature || !closestPoint) return;
+  const km_s = closestFeature.properties?.km_s;
+  const km_e = closestFeature.properties?.km_e;
+  if (km_s == null || km_e == null) return;
+  if (CURRENT_KM_MARKER) {
+    CURRENT_KM_MARKER.remove();
+    CURRENT_KM_MARKER = null;
+  }
+  CURRENT_KM_MARKER = new maplibregl.Marker({
+    color: "#ff0000"
+  })
+    .setLngLat(closestPoint.geometry.coordinates)
+    .addTo(map);
+  const distFromStart = turf.length(
+    turf.lineSlice(
+      turf.point(closestFeature.geometry.coordinates[0]),
+      closestPoint,
+      closestFeature.geometry
+    ),
+    { units: "kilometers" }
+  );
+  const direction = km_e >= km_s ? 1 : -1;
+  const kmValue = km_s + (distFromStart * 1000 * direction);
+  const kmInt = Math.floor(kmValue / 1000);
+  const m = Math.round(kmValue % 1000);
+  const nr = closestFeature.properties?.nr;
+  document.getElementById("selectedRoad").innerText =
+    `Wybrana droga: ${nr ?? "-"}`;
+  document.getElementById("selectedKm").innerText =
+    `KM: ${kmInt}+${String(m).padStart(3, "0")}`;
+  const startKm = Math.min(km_s, km_e);
+  const endKm = Math.max(km_s, km_e);
+  const formatKm = (v) => {
+    const kmPart = Math.floor(v / 1000);
+    const mPart = v % 1000;
+    return `${kmPart}+${String(mPart).padStart(3, "0")}`;
+  };
+  const lengthKm = Math.abs(km_e - km_s) / 1000;
+  document.getElementById("bpGeometry").innerHTML = `
+    <b>Początek:</b> ${formatKm(startKm)}<br>
+    <b>Koniec:</b> ${formatKm(endKm)}<br>
+    <b>Długość:</b> ${lengthKm.toFixed(3)} km
+  `;
+  const klFeature  = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "kl");
+  const nawFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "naw");
+  const zudFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "ZUD");
+  const klRaw  = klFeature?.properties?.kl;
+  const nawRaw = nawFeature?.properties?.naw;
+  const zudRaw = zudFeature?.properties?.ZUD;
+  const klValue  = KL_DICT[klRaw]  ?? klRaw  ?? "-";
+  const nawValue = NAW_DICT[nawRaw] ?? nawRaw ?? "-";
+  const zudValue = ZUD_DICT[zudRaw] ?? zudRaw ?? "-";
+  document.getElementById("bpParams").innerHTML = `
+    <b>Klasa drogi:</b> ${klValue}<br>
+    <b>Nawierzchnia:</b> ${nawValue}<br>
+    <b>ZUD:</b> ${zudValue}<br>
+  `;
+  const prFeature = GET_NEAREST_PR(clickPoint, nr);
+  if(!prFeature){
+    document.getElementById("bpRuch").innerHTML = `
+      Brak danych pomiaru ruchu
+    `;
+  } else {
+    const prId = prFeature.properties.PR;
+    const row = PR_CSV_DATA[prId];
+    if(!row){
+      document.getElementById("bpRuch").innerHTML = `
+        Brak danych pomiaru ruchu
+      `;
+    } else {
+      let sum = 0;
+      let data = {};
+      Object.keys(PR_SELECTED_TYPES).forEach(type => {
+        if(PR_SELECTED_TYPES[type] && row[type] != null){
+          sum += row[type];
+          data[type] = row[type];
+        }
+      });
+      if(sum === 0){
+        document.getElementById("bpRuch").innerHTML = `
+          Brak danych pomiaru ruchu
+        `;
+        return;
+      }
+      const canvasId = "prChart";
+      setTimeout(() => {
+        const mainCtx = document.getElementById("prMainChart");
+        const subCtx = document.getElementById("prSubChart");
+        if(!mainCtx || !subCtx) return;
+        const LABEL_MAP = {
+          MOTO: "Motocykle",
+          SOMB: "Sam. os. i Mikrobusy",
+          LSMC: "Lekkie Sam. Ciężarowe",
+          SCBP: "Sam. Ciężarowe bez przycz.",
+          SCZP: "Sam. Ciężarowe z przycz.",
+          ATBS: "Autobusy",
+          CGNR: "Ciągniki rolne"
+        };
+        const threshold = sum * 0.1;
+        const mainLabels = [];
+        const mainValues = [];
+        const subLabels = [];
+        const subValues = [];
+        Object.entries(data).forEach(([k,v])=>{
+          if(v >= threshold){
+            mainLabels.push(LABEL_MAP[k] ?? k);
+            mainValues.push(v);
+          } else {
+            subLabels.push(LABEL_MAP[k] ?? k);
+            subValues.push(v);
+          }
+        });
+        new Chart(mainCtx, {
+          type: "pie",
+          data: {
+            labels: mainLabels,
+            datasets: [{ data: mainValues }]
+          },
+          options: {
+            plugins: {
+              legend: {
+                display: false,
+                position: "right",
+                labels: {
+                  padding: 2,
+                  font: {size: 8}
+                }
+              }
+            }
+          }
+        });
+        new Chart(subCtx, {
+          type: "pie",
+          data: {
+            labels: subLabels,
+            datasets: [{ data: subValues }]
+          },
+          options: {
+            plugins: {
+              legend: { 
+                display:  false,
+                position: "right",
+                labels: {
+                  padding: 2,
+                  font: {size: 8}
+                }
+              }
+            }
+          }
+        });
+      }, 0);
+      document.getElementById("bpRuch").innerHTML = `
+        <b>SDR:</b> ${sum}<br><br>
+      `;
+      document.getElementById("bpCharts").innerHTML = `
+        <canvas id="prMainChart"></canvas>
+        <canvas id="prSubChart"></canvas>
+      `;
+    }
+  }
+});
+/* =========================================================
+                        START APP
+========================================================= */
 map.on('load',async()=>{
   await ZDP_LOAD_GEO_SOURCES(map);
   ZDP_RENDER_ROAD_STYLES(map);
@@ -1428,701 +1990,11 @@ map.on('load',async()=>{
     }
   });
 });
-/* ===============================
-BASE MAP DROPDOWN CONTROL
-=============================== */
-const BASE_MAPS = {
-  "OSM Standard":{
-    tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-    tileSize:256,
-    attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
-  },
-  "ESRI Satellite":{
-    tiles:["https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
-    tileSize:256,
-    attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'
-  },
-  "Dark Night":{
-    tiles:["https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"],
-    tileSize:256,
-    attribution:'© OpenStreetMap contributors © CARTO'
-  },
-};
-/* ---------- CREATE UI ---------- */
-function CREATE_BASEMAP_BUTTONS(map){
-  const container = document.createElement("div");
-  container.id = "basemapButtons";
-  document.body.appendChild(container);
-  const buttons = [
-    {label:"Mapa", map:"OSM Standard"},
-    {label:"Satelita", map:"ESRI Satellite"},
-    {label:"Nocna", map:"Dark Night"}
-  ];
-  buttons.forEach(cfg=>{
-    const btn = document.createElement("div");
-    btn.className = "basemap-btn";
-    btn.innerText = cfg.label;
-    btn.addEventListener("click",()=>{
-      document.querySelectorAll(".basemap-btn")
-      .forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
-      SWITCH_BASEMAP(cfg.map);
-    });
-    container.appendChild(btn);
-  });
-  /* ustaw pierwszy jako aktywny */
-  container.querySelector(".basemap-btn").classList.add("active");
-}
-/* ---------- BASE LAYER SWITCH ---------- */
-function SWITCH_BASEMAP(name){
-  CURRENT_BASEMAP = name;
-  UPDATE_BASEMAP_ATTRIBUTION();
-  const cfg = BASE_MAPS[name];
-  if(!cfg) return;
-  if(map.getLayer("osm")){
-    map.removeLayer("osm");
-  }
-  if(map.getSource("osm")){
-    map.removeSource("osm");
-  }
-  map.addSource("osm",{
-    type:"raster",
-    tiles:cfg.tiles,
-    tileSize:cfg.tileSize,
-    attribution:cfg.attribution
-  });
-  map.addLayer({
-    id:"osm",
-    type:"raster",
-    source:"osm"
-  }, map.getStyle().layers[0].id);
-}
-/* ===============================
-INIT AFTER MAP LOAD
-=============================== */
-/* ===============================
-SEARCH FUNCTIONALITY
-=============================== */
-function INIT_SEARCH(){
-  const btn = document.getElementById("searchButton");
-  const panel = document.getElementById("searchPanel");
-  const input = document.getElementById("searchInput");
-  const submit = document.getElementById("searchSubmit");
-  btn.addEventListener("click",()=>{
-    panel.style.display = panel.style.display === "block" ? "none" : "block";
-    input.focus();
-  });
-  submit.addEventListener("click", EXECUTE_SEARCH);
-  input.addEventListener("keypress", e=>{
-    if(e.key === "Enter") EXECUTE_SEARCH();
-  });
-  function EXECUTE_SEARCH(){
-    CLEAR_HIGHLIGHT();
-    const value = input.value.trim();
-    if(!value) return;
-    const normalize = str =>
-     str.toString()
-    .replace(/\s+/g,'')
-    .toUpperCase();
-    const query = normalize(value);
-    const features = ZDP_ALL_FEATURES.filter(f => {
-      const roadId = f.properties?.nr;
-      if(!roadId) return false;
-      return normalize(roadId).startsWith(query);
-    });
-    if(!features.length){
-      alert("Nie znaleziono drogi o nr: " + value);
-      return;
-    }
-    /* Podświetl wszystkie segmenty o tym samym ID */
-    HIGHLIGHT_FEATURES_BY_ID(value);
-    const geojson = {
-      type:"FeatureCollection",
-      features: features
-    };
-    let bounds = new maplibregl.LngLatBounds();
-    geojson.features.forEach(feature=>{
-      const geom = feature.geometry;
-      if(!geom) return;
-      const processCoords = (coords)=>{
-        coords.forEach(c=>{
-          if(Array.isArray(c[0])){
-            processCoords(c);
-            } else {
-                bounds.extend(c);
-            }
-        });
-      };
-    processCoords(geom.coordinates);
-    });
-    map.fitBounds(bounds,{
-      padding:80,
-      duration:800
-    });
-  }
-}
-function CLEAR_HIGHLIGHT(){
-  STOP_PULSE_ANIMATION();
-  if(map.getLayer("search_highlight_layer")){
-    map.removeLayer("search_highlight_layer");
-  }
-  if(map.getLayer("search_pulse_layer")){
-    map.removeLayer("search_pulse_layer");
-  }
-  if(map.getSource("search_highlight_source")){
-    map.removeSource("search_highlight_source");
-  }
-  pulseGrowing = true;
-  pulseRadius = 2;
-}
-/* ===============================
-PULSE HIGHLIGHT ANIMATION
-=============================== */
-let pulseAnimationFrame = null;
-let pulseRadius = 0;
-let pulseGrowing = true;
-function START_PULSE_ANIMATION(){
-  STOP_PULSE_ANIMATION();
-  pulseRadius = 4;
-  pulseGrowing = true;
-  function animate(){
-    if(!map.getLayer("search_pulse_layer")){
-      pulseAnimationFrame = requestAnimationFrame(animate);
-      return;
-    }
-    if(pulseGrowing){
-      pulseRadius += 0.4;
-      if(pulseRadius > 18) pulseGrowing = false;
-    } else {
-      pulseRadius -= 0.4;
-      if(pulseRadius < 4) pulseGrowing = true;
-    }
-    map.setPaintProperty(
-      "search_pulse_layer",
-      "line-width",
-      pulseRadius
-    );
-    pulseAnimationFrame = requestAnimationFrame(animate);
-  }
-  pulseAnimationFrame = requestAnimationFrame(animate);
-}
-function STOP_PULSE_ANIMATION(){
-  if(pulseAnimationFrame){
-    cancelAnimationFrame(pulseAnimationFrame);
-    pulseAnimationFrame = null;
-  }
-  if(map.getLayer("search_pulse_layer")){
-    map.removeLayer("search_pulse_layer");
-  }
-}
-/* ===============================
-MODIFY HIGHLIGHT FUNCTION
-=============================== */
-function HIGHLIGHT_FEATURES_BY_ID(id){
-  const features = ZDP_ALL_FEATURES.filter(
-    f => f.properties?.nr && f.properties.nr.toString().toUpperCase().startsWith(
-      id.toString().toUpperCase()
-    )
-  );
-  if(!features.length) return;
-  /* cleanup */
-  if(map.getLayer("search_highlight_layer")){
-    map.removeLayer("search_highlight_layer");
-  }
-  if(map.getLayer("search_pulse_layer")){
-    map.removeLayer("search_pulse_layer");
-  }
-  if(map.getSource("search_highlight_source")){
-    map.removeSource("search_highlight_source");
-  }
-  /* geojson wrapper */
-  const geojson = {
-    type:"FeatureCollection",
-    features:features
-  };
-  map.addSource("search_highlight_source",{
-    type:"geojson",
-    data:geojson
-  });
-  /* main highlight line */
-  const labelLayer = "road_id_labels";
-  map.addLayer(
-    {
-      id:"search_highlight_layer",
-      type:"line",
-      source:"search_highlight_source",
-      paint:{
-          "line-color":"#00008B",
-          "line-width":6,
-          "line-opacity":0.95
-      },
-      layout:{
-        "line-cap":"round",
-        "line-join":"round"
-      }
-    },
-    /* Wstaw highlight POD numerami dróg */
-    map.getLayer(labelLayer) ? labelLayer : undefined
-  );
-  /* pulse halo layer */
-  map.addLayer({
-    id:"search_pulse_layer",
-    type:"line",
-    source:"search_highlight_source",
-    paint:{
-      "line-color":"#FFFF00",
-      "line-width":2,
-      "line-opacity":0.5
-    }
-  });
-  /* start animation */
-  map.once("idle", () => {
-    START_PULSE_ANIMATION();
-  });
-}
-/* ===============================
-LEGEND COLAPSE
-=============================== */
-const legend = document.getElementById("legend");
-const btn = document.getElementById("legendToggle");
-btn.addEventListener("click", () => {
-  document.body.classList.toggle("legend-collapsed");
-  if (document.body.classList.contains("legend-collapsed")) {
-    btn.innerHTML = "⮜";
-  } else {
-    btn.innerHTML = "⮞";
-  }
-});
-document.querySelectorAll(".legend-section h3").forEach(header=>{
-  header.addEventListener("click", (e)=>{
-    if(e.target.tagName === "INPUT") return;
-    const section = header.parentElement;
-    section.classList.toggle("collapsed");
-  });
-});
-document.querySelectorAll(".section-toggle").forEach(toggle=>{
-  toggle.addEventListener("click", e=>{
-    // blokada rozwijanie sekcji
-    e.stopPropagation();
-    const group = toggle.dataset.group;
-    const checked = toggle.checked;
-    const inputs = document.querySelectorAll(
-      `.legend-section input[data-group="${group}"]:not(.section-toggle)`
-    );
-    inputs.forEach(input=>{
-      input.checked = checked;
-      const layers = input.dataset.layers.split(',');
-      layers.forEach(layerId=>{
-        if(!map.getLayer(layerId)) return;
-        map.setLayoutProperty(
-          layerId,
-          'visibility',
-          checked ? 'visible' : 'none'
-        );
-      });
-    });
-    UPDATE_EW_LABELS_VISIBILITY();
-    UPDATE_LABEL_FILTER();
-    UPDATE_BASEMAP_ATTRIBUTION();
-  });
-});
-// kontrybucja  
-function UPDATE_BASEMAP_ATTRIBUTION(){
-  const cfg = BASE_MAPS[CURRENT_BASEMAP];
-  if(!cfg) return;
-  let html = `© <a href="https://maplibre.org/" target="_blank">MapLibre</a> | ${cfg.attribution}`;
-  /* sprawdzenie Geoportalu */
-  const geoCheckboxes = document.querySelectorAll(
-    'input[data-group="grn"], input[data-group="ew"]'
-  );
-  let geoActive = false;
-  geoCheckboxes.forEach(chk=>{
-    if(chk.checked) geoActive = true;
-  });
-  /* dodaj Geoportal tylko raz */
-  if(geoActive){
-    html += ' | Dane: <a href="https://www.geoportal.gov.pl" target="_blank">Geoportal</a>';
-  }
-  document.getElementById("mapAttribution").innerHTML = html;
-}
- /* ===============================
-ZOOM SLIDER (noUiSlider)
-=============================== */
-const zoomSlider = document.getElementById('zoomSlider');
-const zoomValue = document.getElementById('zoomValue');
-let isSyncingZoom = false;
-noUiSlider.create(zoomSlider, {
-  start: map.getZoom(),
-  orientation: 'vertical',
-  direction: 'rtl',
-  step: 0.1,
-  range: {
-    min: 9.5,
-    max: 22
-  }
-});
-/* slider -> mapa */
-zoomSlider.noUiSlider.on('slide', function(values){
-  const zoom = parseFloat(values[0]);
-  map.setZoom(zoom);
-  zoomValue.innerText = "Zoom: " + zoom.toFixed(1);
-});
-/* mapa -> slider */
-map.on('zoom', () => {
-  if (isSyncingZoom) return;
-  isSyncingZoom = true;
-  const z = map.getZoom();
-  zoomSlider.noUiSlider.set(z);
-  zoomValue.innerText = "Zoom: " + z.toFixed(1);
-  isSyncingZoom = false;
-});
-/* ===============================
-CLICK → KILOMETR W PUNKCIE
-=============================== */
-map.on("click", (e) => {
-  if(!KM_MEASURE_ENABLED) return;
-  const MAX_CLICK_DISTANCE_PX = 20;
-  const clickPoint = turf.point([e.lngLat.lng, e.lngLat.lat]);
-  let closestFeature = null;
-  let closestPoint = null;
-  let minDist = Infinity;
-  ZDP_ALL_FEATURES.forEach(f => {
-    if (f.properties?.adm !== "P") return;
-    if (!f.geometry) return;
-    try {
-      const snapped = turf.nearestPointOnLine(f.geometry, clickPoint, {
-        units: "kilometers"
-      });
-      const snappedLngLat = snapped.geometry.coordinates;
-      const clickPixel = map.project([e.lngLat.lng, e.lngLat.lat]);
-      const snappedPixel = map.project(snappedLngLat);
-      const dx = clickPixel.x - snappedPixel.x;
-      const dy = clickPixel.y - snappedPixel.y;
-      const distPx = Math.sqrt(dx * dx + dy * dy);
-      if (distPx > MAX_CLICK_DISTANCE_PX) return;
-      if (distPx < minDist) {
-        minDist = distPx;
-        closestFeature = f;
-        closestPoint = snapped;
-      }
-    } catch (e) {}
-  });
-  if (!closestFeature || !closestPoint) return;
-  const km_s = closestFeature.properties?.km_s;
-  const km_e = closestFeature.properties?.km_e;
-  if (km_s == null || km_e == null) return;
-  // =========================
-  // USUŃ POPRZEDNI MARKER + POPUP
-  // =========================
-  if (CURRENT_KM_MARKER) {
-    CURRENT_KM_MARKER.remove();
-    CURRENT_KM_MARKER = null;
-  }
-  // =========================
-  // MARKER NA DRODZE (SNAP)
-  // =========================
-  CURRENT_KM_MARKER = new maplibregl.Marker({
-    color: "#ff0000"
-  })
-    .setLngLat(closestPoint.geometry.coordinates)
-    .addTo(map);
-  // =========================
-  // OBLICZENIE KM
-  // =========================
-  const distFromStart = turf.length(
-    turf.lineSlice(
-      turf.point(closestFeature.geometry.coordinates[0]),
-      closestPoint,
-      closestFeature.geometry
-    ),
-    { units: "kilometers" }
-  );
-  const direction = km_e >= km_s ? 1 : -1;
-  const kmValue = km_s + (distFromStart * 1000 * direction);
-  const kmInt = Math.floor(kmValue / 1000);
-  const m = Math.round(kmValue % 1000);
-  /* =========================
-   DOLNY PANEL
-  ========================= */
-  const nr = closestFeature.properties?.nr;
-  document.getElementById("selectedRoad").innerText =
-    `Wybrana droga: ${nr ?? "-"}`;
-  document.getElementById("selectedKm").innerText =
-    `KM: ${kmInt}+${String(m).padStart(3, "0")}`;
-  const startKm = Math.min(km_s, km_e);
-  const endKm = Math.max(km_s, km_e);
-  const formatKm = (v) => {
-    const kmPart = Math.floor(v / 1000);
-    const mPart = v % 1000;
-    return `${kmPart}+${String(mPart).padStart(3, "0")}`;
-  };
-  const lengthKm = Math.abs(km_e - km_s) / 1000;
-  document.getElementById("bpGeometry").innerHTML = `
-    <b>Początek:</b> ${formatKm(startKm)}<br>
-    <b>Koniec:</b> ${formatKm(endKm)}<br>
-    <b>Długość:</b> ${lengthKm.toFixed(3)} km
-  `;
-  // =========================
-  // POBRANIE NAJBLIŻSZYCH FEATURE
-  // =========================
-  const klFeature  = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "kl");
-  const nawFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "naw");
-  const zudFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "ZUD");
-  // =========================
-  // WARTOŚCI
-  // =========================
-  const klRaw  = klFeature?.properties?.kl;
-  const nawRaw = nawFeature?.properties?.naw;
-  const zudRaw = zudFeature?.properties?.ZUD;
-  const klValue  = KL_DICT[klRaw]  ?? klRaw  ?? "-";
-  const nawValue = NAW_DICT[nawRaw] ?? nawRaw ?? "-";
-  const zudValue = ZUD_DICT[zudRaw] ?? zudRaw ?? "-";
-  // =========================
-  // PANEL
-  // =========================
-  document.getElementById("bpParams").innerHTML = `
-    <b>Klasa drogi:</b> ${klValue}<br>
-    <b>Nawierzchnia:</b> ${nawValue}<br>
-    <b>ZUD:</b> ${zudValue}<br>
-  `;
-  // =========================
-  // POMIAR RUCHU (PR)
-  // =========================
-  const prFeature = GET_NEAREST_PR(clickPoint, nr);
-  if(!prFeature){
-    document.getElementById("bpRuch").innerHTML = `
-      Brak danych pomiaru ruchu
-    `;
-  } else {
-    const prId = prFeature.properties.PR;
-    const row = PR_CSV_DATA[prId];
-    if(!row){
-      document.getElementById("bpRuch").innerHTML = `
-        Brak danych pomiaru ruchu
-      `;
-    } else {
-      // ===== SUMA =====
-      let sum = 0;
-      let data = {};
-      Object.keys(PR_SELECTED_TYPES).forEach(type => {
-        if(PR_SELECTED_TYPES[type] && row[type] != null){
-          sum += row[type];
-          data[type] = row[type];
-        }
-      });
-      if(sum === 0){
-        document.getElementById("bpRuch").innerHTML = `
-          Brak danych pomiaru ruchu
-        `;
-        return;
-      }
-      // ===== GENERUJ WYKRES (canvas) =====
-      const canvasId = "prChart";
-      setTimeout(() => {
-        const mainCtx = document.getElementById("prMainChart");
-        const subCtx = document.getElementById("prSubChart");
-        if(!mainCtx || !subCtx) return;
-        const LABEL_MAP = {
-          MOTO: "Motocykle",
-          SOMB: "Sam. os. i Mikrobusy",
-          LSMC: "Lekkie Sam. Ciężarowe",
-          SCBP: "Sam. Ciężarowe bez przycz.",
-          SCZP: "Sam. Ciężarowe z przycz.",
-          ATBS: "Autobusy",
-          CGNR: "Ciągniki rolne"
-        };
-        // prosta logika: małe wartości do "OTHER"
-        const threshold = sum * 0.1;
-        const mainLabels = [];
-        const mainValues = [];
-        const subLabels = [];
-        const subValues = [];
-        Object.entries(data).forEach(([k,v])=>{
-          if(v >= threshold){
-            mainLabels.push(LABEL_MAP[k] ?? k);
-            mainValues.push(v);
-          } else {
-            subLabels.push(LABEL_MAP[k] ?? k);
-            subValues.push(v);
-          }
-        });
-        // MAIN PIE
-        new Chart(mainCtx, {
-          type: "pie",
-          data: {
-            labels: mainLabels,
-            datasets: [{ data: mainValues }]
-          },
-          options: {
-            plugins: {
-              legend: {
-                display: false,
-                position: "right",
-                labels: {
-                  padding: 2,
-                  font: {size: 8}
-                }
-              }
-            }
-          }
-        });
-        // SUB PIE (wyodrębnione małe wartości)
-        new Chart(subCtx, {
-          type: "pie",
-          data: {
-            labels: subLabels,
-            datasets: [{ data: subValues }]
-          },
-          options: {
-            plugins: {
-              legend: { 
-                display:  false,
-                position: "right",
-                labels: {
-                  padding: 2,
-                  font: {size: 8}
-                }
-              }
-            }
-          }
-        });
-      }, 0);
-      document.getElementById("bpRuch").innerHTML = `
-        <b>SDR:</b> ${sum}<br><br>
-      `;
-      document.getElementById("bpCharts").innerHTML = `
-        <canvas id="prMainChart"></canvas>
-        <canvas id="prSubChart"></canvas>
-      `;
-    }
-  }
-});
-function INIT_KM_TOGGLE(){
-  const btn = document.getElementById("kmToggle");
-  function updateUI(){
-    btn.innerText = KM_MEASURE_ENABLED ? "KM: ON" : "KM: OFF";
-    btn.style.background = KM_MEASURE_ENABLED ? "#2c3e50" : "white";
-    btn.style.color = KM_MEASURE_ENABLED ? "white" : "black";
-  }
-  btn.addEventListener("click", () => {
-    KM_MEASURE_ENABLED = !KM_MEASURE_ENABLED;
-    if(!KM_MEASURE_ENABLED){
-      // czyszczenie po wyłączeniu
-      if(CURRENT_KM_MARKER){
-        CURRENT_KM_MARKER.remove();
-        CURRENT_KM_MARKER = null;
-      }
-    }
-    updateUI();
-  });
-  updateUI(); // start OFF
-}
-function GET_NEAREST_FEATURE_BY_PROP(point, propName){
-  const MAX_DISTANCE_PX = 20;
-  let closest = null;
-  let minDist = Infinity;
-  ZDP_ALL_FEATURES.forEach(f => {
-    if(!f.geometry) return;
-    // filtr: tylko feature który ma daną właściwość
-    if(f.properties?.[propName] == null) return;
-    try{
-      const snapped = turf.nearestPointOnLine(
-        f.geometry,
-        point,
-        {units:"kilometers"}
-      );
-      const snappedLngLat = snapped.geometry.coordinates;
-      const clickPixel = map.project(point.geometry.coordinates);
-      const snappedPixel = map.project(snappedLngLat);
-      const dx = clickPixel.x - snappedPixel.x;
-      const dy = clickPixel.y - snappedPixel.y;
-      const distPx = Math.sqrt(dx*dx + dy*dy);
-      if(distPx > MAX_DISTANCE_PX) return;
-      if(distPx < minDist){
-        minDist = distPx;
-        closest = f;
-      }
-    }catch(e){}
-  });
-  return closest;
-}
-function GET_NEAREST_PR(point, roadNr){
-  const MAX_DISTANCE_PX = 20;
-  let closest = null;
-  let minDist = Infinity;
-  ZDP_ALL_FEATURES.forEach(f => {
-    if(!f.geometry) return;
-    if(!f.properties?.PR) return; // tylko PR
-    try{
-      const snapped = turf.nearestPointOnLine(
-        f.geometry,
-        point,
-        {units:"kilometers"}
-      );
-      const snappedLngLat = snapped.geometry.coordinates;
-      const clickPixel = map.project(point.geometry.coordinates);
-      const snappedPixel = map.project(snappedLngLat);
-      const dx = clickPixel.x - snappedPixel.x;
-      const dy = clickPixel.y - snappedPixel.y;
-      const distPx = Math.sqrt(dx*dx + dy*dy);
-      if(distPx > MAX_DISTANCE_PX) return;
-      if(distPx < minDist){
-        minDist = distPx;
-        closest = f;
-      }
-    }catch(e){}
-  });
-  if(!closest) return null;
-  if(closest.properties?.nr !== roadNr){
-    return null;
-  }
-  return closest;
-}
-function UPDATE_KM_LABEL_VISIBILITY(){
-  const z = map.getZoom();
-  let step = null;
-  if (z < 10) step = 10000;
-  else if (z < 11) step = 5000;
-  else if (z < 13) step = 2000;
-  else if (z < 15) step = 1000;
-  else if (z < 16) step = 500;
-  else if (z < 17) step = 200;
-  else step = 100;
-  // filtr dla etykiet pośrednich
-  if(map.getLayer("km_intermediate_labels")){
-    map.setFilter("km_intermediate_labels", [
-      "==",
-      ["%", ["get","km"], step],
-      0
-    ]);
-  }
-  // skalowanie wielkości tekstu
-  if(map.getLayer("km_intermediate_labels")){
-    map.setLayoutProperty(
-      "km_intermediate_labels",
-      "text-size",
-      z >= 15 ? 12 : 10
-    );
-  }
-  // schowanie kilometrarzu początku/końca
-  const kmToggle = document.getElementById("kmIntermediateToggle");
-  // schowanie kilometrarzu początku/końca (zależne też od checkboxa)
-  if(map.getLayer("km_labels")){
-    map.setLayoutProperty(
-      "km_labels",
-      "visibility",
-      (z >= 12 && kmToggle.checked) ? "visible" : "none"
-    );
-  }
-}
 function LOAD_INTERMEDIATE_KM_LABELS(){
   if (KM_INTERMEDIATE_LOADED) return;
   KM_INTERMEDIATE_LOADED = true;
   GENERATE_INTERMEDIATE_KM_LABELS();
 }
-/* ===============================
-BOTTOM PANEL TOGGLE
-=============================== */
 const bottomPanel = document.getElementById("bottomPanel");
 const bottomPanelHeader = document.getElementById("bottomPanelHeader");
 bottomPanelHeader.addEventListener("click", () => {
