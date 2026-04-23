@@ -384,10 +384,26 @@ BOTTOM PANEL
   flex: 1;
   min-width: 0;
 }
-.bp-chart-column #bpCharts{
-  width: 100%;
-  height: 100%;
-  display: flex;
+.bp-chart-column{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  padding:10px;
+}
+#bpCharts{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  width:100%;
+  height:100%;
+}
+#bpCharts canvas{
+  margin:auto;
+  display:block;
+  max-width:90%;
 }
 .bp-column + .bp-chart-column{
   margin-left: -10px;
@@ -1915,7 +1931,16 @@ map.on("click", (e) => {
         const labels = [];
         const values = [];
         Object.entries(data).forEach(([k,v])=>{
-          labels.push(k);
+          const LABEL_MAP = {
+            MOTO: "Motocykle",
+            SOMB: "Sam. os. i Mikrobusy",
+            LSMC: "Lekkie Sam. Ciężarowe",
+            SCBP: "Sam. Ciężarowe bez przycz.",
+            SCZP: "Sam. Ciężarowe z przycz.",
+            ATBS: "Autobusy",
+            CGNR: "Ciągniki rolne"
+          };
+          labels.push(LABEL_MAP[k] ?? k);
           values.push(v);
         });
         new Chart(ctx, {
