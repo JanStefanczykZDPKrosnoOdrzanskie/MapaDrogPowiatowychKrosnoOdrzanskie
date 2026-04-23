@@ -395,7 +395,7 @@ BOTTOM PANEL
 }
 #bpCharts canvas{
   margin: 0;
-  width: 100% !important;
+  width: auto !important;
   height: 100% !important;
 }
 .bp-column + .bp-chart-column{
@@ -1946,13 +1946,17 @@ map.on("click", (e) => {
           },
           options: {
             responsive: true,
-            maintainAspectRatio: true,
             layout: {
               padding: 0
             },
             plugins:{
               legend:{
-                position:"right"
+                position:"right",
+                labels:{
+                  font:{
+                    size:10
+                  },
+                }
               }
             }
           }
@@ -1962,7 +1966,7 @@ map.on("click", (e) => {
         <b>SDR:</b> ${sum}<br><br>
       `;
       document.getElementById("bpCharts").innerHTML = `
-        <canvas id="${canvasId}" style="width:100%; height:100%;"></canvas>
+        <canvas id="${canvasId}"></canvas>
       `;
     }
   }
