@@ -384,26 +384,19 @@ BOTTOM PANEL
   flex: 1;
   min-width: 0;
 }
-.bp-chart-column{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:20px;
-  padding:10px;
-}
 #bpCharts{
   display:flex;
   flex-direction:row;
   align-items:center;
   justify-content:center;
-  gap:20px;
-  width:100%;
-  height:100%;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 #bpCharts canvas{
-  margin:auto;
-  display:block;
-  max-width:90%;
+  margin: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 .bp-column + .bp-chart-column{
   margin-left: -10px;
@@ -429,7 +422,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -1953,9 +1946,13 @@ map.on("click", (e) => {
           },
           options: {
             responsive: true,
+            maintainAspectRatio: true,
+            layout: {
+              padding: 0
+            }
             plugins:{
               legend:{
-                position:"chartArea"
+                position:"rigth"
               }
             }
           }
