@@ -1919,31 +1919,59 @@ map.on("click", (e) => {
       // ===== GENERUJ WYKRES (canvas) =====
       const canvasId = "prChart";
       setTimeout(() => {
-        const ctx = document.getElementById(canvasId);
-        if(!ctx) return;
-        const labels = [];
-        const values = [];
+        const mainCtx = document.getElementById("prMainChart");
+        const subCtx = document.getElementById("prSubChart");
+        if(!mainCtx || !subCtx) return;
+        const LABEL_MAP = {
+          MOTO: "Motocykle",
+          SOMB: "Sam. os. i Mikrobusy",
+          LSMC: "Lekkie Sam. Ciężarowe",
+          SCBP: "Sam. Ciężarowe bez przycz.",
+          SCZP: "Sam. Ciężarowe z przycz.",
+          ATBS: "Autobusy",
+          CGNR: "Ciągniki rolne"
+        };
+        // prosta logika: małe wartości do "OTHER"
+        const threshold = sum * 0.1;
+        const mainLabels = [];
+        const mainValues = [];
+        const subLabels = [];
+        const subValues = [];
         Object.entries(data).forEach(([k,v])=>{
-          const LABEL_MAP = {
-            MOTO: "Motocykle",
-            SOMB: "Sam. os. i Mikrobusy",
-            LSMC: "Lekkie Sam. Ciężarowe",
-            SCBP: "Sam. Ciężarowe bez przycz.",
-            SCZP: "Sam. Ciężarowe z przycz.",
-            ATBS: "Autobusy",
-            CGNR: "Ciągniki rolne"
-          };
-          labels.push(LABEL_MAP[k] ?? k);
-          values.push(v);
+          if(v >= threshold){
+            mainLabels.push(LABEL_MAP[k] ?? k);
+            mainValues.push(v);
+          } else {
+            subLabels.push(LABEL_MAP[k] ?? k);
+            subValues.push(v);
+          }
         });
-        new Chart(ctx, {
+        // MAIN PIE
+        new Chart(mainCtx, {
           type: "pie",
           data: {
-            labels: labels,
-            datasets: [{
-              data: values
-            }]
+            labels: mainLabels,
+            datasets: [{ data: mainValues }]
           },
+          options: {
+            plugins: {
+              legend: { position: "right" }
+            }
+          }
+        });
+        // SUB PIE (wyodrębnione małe wartości)
+        new Chart(subCtx, {
+          type: "pie",
+          data: {
+            labels: subLabels,
+            datasets: [{ data: subValues }]
+          },
+          options: {
+            plugins: {
+              legend: { position: "right" }
+            }
+          }
+        });
           options: {
             responsive: true,
             layout: {
@@ -1966,7 +1994,8 @@ map.on("click", (e) => {
         <b>SDR:</b> ${sum}<br><br>
       `;
       document.getElementById("bpCharts").innerHTML = `
-        <canvas id="${canvasId}"></canvas>
+        <canvas id="prMainChart"></canvas>
+        <canvas id="prSubChart"></canvas>
       `;
     }
   }
