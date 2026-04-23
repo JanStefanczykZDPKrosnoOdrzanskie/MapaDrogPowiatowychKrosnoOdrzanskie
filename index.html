@@ -309,6 +309,20 @@ BOTTOM PANEL
 #bottomPanel.open{
   transform:translateY(0);
 }
+#bottomPanelHandle{
+  height:40px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#bottomPanelHandle::before{
+  content:"";
+  width:60px;
+  height:6px;
+  background:#ccc;
+  border-radius:3px;
+}
 #bottomPanelLogo{
   position: absolute;
   right: 0;
@@ -814,6 +828,9 @@ async function ZDP_LOAD_GEO_SOURCES(map){
       data:admin_merged
     });
   }
+  catch(e){
+    console.error("admin boundaries load error:",e);
+  }
 }
 function ADD_PR_LABELS() {
   if (map.getLayer("pr_labels")) return;
@@ -1101,6 +1118,7 @@ function GENERATE_INTERMEDIATE_KM_LABELS(){
     const km_s = f.properties?.km_s;
     const km_e = f.properties?.km_e;
     if(km_s == null || km_e == null) return;
+    const direction = km_e >= km_s ? 1 : -1;
     const length = turf.length(line, {units: "kilometers"});
     const startKm = Math.ceil(Math.min(km_s, km_e) / 100) * 100;
     const endKm   = Math.floor(Math.max(km_s, km_e) / 100) * 100;
@@ -1548,6 +1566,9 @@ function CLEAR_HIGHLIGHT(){
   if(map.getLayer("search_highlight_layer")){
     map.removeLayer("search_highlight_layer");
   }
+  if(map.getLayer("search_pulse_layer")){
+    map.removeLayer("search_pulse_layer");
+  }
   if(map.getSource("search_highlight_source")){
     map.removeSource("search_highlight_source");
   }
@@ -1604,7 +1625,16 @@ function HIGHLIGHT_FEATURES_BY_ID(id){
     )
   );
   if(!features.length) return;
-  CLEAR_HIGHLIGHT();
+  /* cleanup */
+  if(map.getLayer("search_highlight_layer")){
+    map.removeLayer("search_highlight_layer");
+  }
+  if(map.getLayer("search_pulse_layer")){
+    map.removeLayer("search_pulse_layer");
+  }
+  if(map.getSource("search_highlight_source")){
+    map.removeSource("search_highlight_source");
+  }
   /* geojson wrapper */
   const geojson = {
     type:"FeatureCollection",
@@ -1782,7 +1812,7 @@ map.on("click", (e) => {
   const km_e = closestFeature.properties?.km_e;
   if (km_s == null || km_e == null) return;
   // =========================
-  // USUŃ POPRZEDNI MARKER
+  // USUŃ POPRZEDNI MARKER + POPUP
   // =========================
   if (CURRENT_KM_MARKER) {
     CURRENT_KM_MARKER.remove();
@@ -2039,6 +2069,9 @@ function UPDATE_KM_LABEL_VISIBILITY(){
       ["%", ["get","km"], step],
       0
     ]);
+  }
+  // skalowanie wielkości tekstu
+  if(map.getLayer("km_intermediate_labels")){
     map.setLayoutProperty(
       "km_intermediate_labels",
       "text-size",
