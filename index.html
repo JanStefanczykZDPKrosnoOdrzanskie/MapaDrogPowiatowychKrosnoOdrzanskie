@@ -1690,6 +1690,11 @@ function RENDER_PR_CHART(){
     CGNR: "Ciągniki rolne"
   };
   const row = PR_LAST_ROW;
+  if(!row){
+    document.getElementById("bpCharts").innerHTML =
+      "Brak danych PR (najpierw kliknij drogę na mapie)";
+    return;
+  }
   if(!row) return;
   let sum = 0;
   const data = {};
