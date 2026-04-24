@@ -613,9 +613,58 @@ BOTTOM PANEL
 
 <script>
 let PR_LAST_ROW = null;
+let PR_CSV_RAW = null;
 let CURRENT_KM_MARKER = null;
 let KM_MEASURE_ENABLED = false;
 let KM_INTERMEDIATE_LOADED = false
+// =========================
+// PARSER CSV (Pomiar_Ruchu)
+// =========================
+function parseCSV(text){
+  return text
+    .split(/\r?\n/)
+    .map(line => line.split(","))
+    .filter(row => row.length > 1);
+}
+const months = {
+  "sty":0, "lut":1, "mar":2, "kwi":3,
+  "maj":4, "cze":5, "lip":6, "sie":7,
+  "wrz":8, "paź":9, "lis":10, "gru":11
+};
+function parseDateSafe(v){
+  if(!v) return null;
+  v = v.toString().trim().replace(/\s+/g,' ');
+  let p = v.split(" ");
+  if(p.length < 4) return null;
+  let day = parseInt(p[0]);
+  let month = months[p[1].toLowerCase()];
+  let year = 2000 + parseInt(p[2]);
+  let t = p[3].split(":");
+  return new Date(year, month, day,
+    parseInt(t[0]),
+    parseInt(t[1]),
+    parseInt(t[2] || 0)
+  );
+}
+function num(v){
+  if(!v) return NaN;
+  return parseFloat(v.toString().replace(",",".").replace(/[^\d.]/g,""));
+}
+function bin30(date){
+  let m = date.getHours()*60 + date.getMinutes();
+  let b = Math.round(m/30)*30 % 1440;
+  return String(Math.floor(b/60)).padStart(2,'0') + ":" +
+         String(b%60).padStart(2,'0');
+}
+function generateTimeBins(){
+  let arr = [];
+  for(let m=0;m<1440;m+=30){
+    let h = String(Math.floor(m/60)).padStart(2,'0');
+    let min = String(m%60).padStart(2,'0');
+    arr.push(`${h}:${min}`);
+  }
+  return arr;
+}
 const NAW_DICT = {
   ASF: "Masa bitumiczna",
   GRU: "Grunt naturalny",
@@ -648,6 +697,8 @@ let PR_SELECTED_TYPES = {
 let PR_CHART_MODE = null; // "A" | "B" | "C"
 let PR_CHART_INSTANCE_MAIN = null;
 let PR_CHART_INSTANCE_SUB = null;
+let PR_SPEED_HIST = {};
+let PR_TIME_HIST = {};
 function ADD_PR_LABELS() {
   if (map.getLayer("pr_labels")) return;
   map.addLayer({
@@ -1626,6 +1677,7 @@ map.on("click", (e) => {
   } else {
     const prId = prFeature.properties.PR;
     const row = PR_CSV_DATA[prId];
+    await LOAD_PR_CSV(prId);
     PR_LAST_ROW = row; // <- zawsze ustaw wcześniej
     if(!row){
       document.getElementById("bpRuch").innerHTML = `Brak danych pomiaru ruchu`;
@@ -1681,70 +1733,90 @@ function RENDER_PR_CHART(){
   const mainCtx = document.getElementById("prMainChart");
   const subCtx = document.getElementById("prSubChart");
   if(!mainCtx || !subCtx) return;
-  const LABEL_MAP = {
-    MOTO: "Motocykle",
-    SOMB: "Sam. os. i Mikrobusy",
-    LSMC: "Lekkie Sam. Ciężarowe",
-    SCBP: "Sam. Ciężarowe bez przycz.",
-    SCZP: "Sam. Ciężarowe z przycz.",
-    ATBS: "Autobusy",
-    CGNR: "Ciągniki rolne"
-  };
-  const row = PR_LAST_ROW;
-  if(!row){
-    document.getElementById("bpCharts").innerHTML =
-      "Brak danych PR (najpierw kliknij drogę na mapie)";
+  CLEAR_PR_CHART();
+  // =========================
+  // TRYB A (PIE - bez zmian)
+  // =========================
+  if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
+    const LABEL_MAP = {
+      MOTO: "Motocykle",
+      SOMB: "Sam. os. i Mikrobusy",
+      LSMC: "Lekkie Sam. Ciężarowe",
+      SCBP: "Sam. Ciężarowe bez przycz.",
+      SCZP: "Sam. Ciężarowe z przycz.",
+      ATBS: "Autobusy",
+      CGNR: "Ciągniki rolne"
+    };
+    const row = PR_LAST_ROW;
+    if(!row){
+      document.getElementById("bpCharts").innerHTML =
+        "Brak danych PR";
+      return;
+    }
+    let sum = 0;
+    const data = {};
+    Object.keys(PR_SELECTED_TYPES).forEach(type => {
+      if(PR_SELECTED_TYPES[type] && row[type] != null){
+        sum += row[type];
+        data[type] = row[type];
+      }
+    });
+    const labels = Object.keys(data).map(k => LABEL_MAP[k] ?? k);
+    const values = Object.values(data);
+    PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
+      type: "pie",
+      data: { labels, datasets: [{ data: values }] }
+    });
+    PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
+      type: "doughnut",
+      data: { labels, datasets: [{ data: values }] }
+    });
     return;
   }
-  let sum = 0;
-  const data = {};
-  Object.keys(PR_SELECTED_TYPES).forEach(type => {
-    if(PR_SELECTED_TYPES[type] && row[type] != null){
-      sum += row[type];
-      data[type] = row[type];
-    }
-  });
-  const threshold = sum * 0.1;
-  const mainLabels = [];
-  const mainValues = [];
-  const subLabels = [];
-  const subValues = [];
-  let otherSum = 0;
-  Object.entries(data).forEach(([k,v])=>{
-    if(v >= threshold){
-      mainLabels.push(LABEL_MAP[k] ?? k);
-      mainValues.push(v);
-    } else {
-      subLabels.push(LABEL_MAP[k] ?? k);
-      subValues.push(v);
-      otherSum += v;
-    }
-  });
-  if(otherSum > 0){
-    mainLabels.push("Pozostałe");
-    mainValues.push(otherSum);
+  // =========================
+  // TRYB B - HISTOGRAM PRĘDKOŚCI
+  // =========================
+  if(PR_CHART_MODE === "B"){
+    const labels = Object.keys(PR_SPEED_HIST);
+    const values = Object.values(PR_SPEED_HIST);
+    PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{ label: "Prędkość (km/h)", data: values }]
+      }
+    });
+    PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{ label: "Prędkość (km/h)", data: values }]
+      }
+    });
+    return;
   }
-  CLEAR_PR_CHART();
-  PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
-    type: "pie",
-    data: {
-      labels: mainLabels,
-      datasets: [{ data: mainValues }]
-    },
-    options: {
-      plugins: { legend: { display: false } }
-    }
-  });
-  PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
-    type: "pie",
-    data: {
-      labels: subLabels,
-      datasets: [{ data: subValues }]
-    },
-    options: {
-      plugins: { legend: { display: false } }
-    }
-  });
+  // =========================
+  // TRYB C - ROZKŁAD CZASU
+  // =========================
+  if(PR_CHART_MODE === "C"){
+    const labels = Object.keys(PR_TIME_HIST);
+    const values = Object.values(PR_TIME_HIST);
+    PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{ label: "Ruch (30 min)", data: values }]
+      }
+    });
+    PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{ label: "Ruch (trend)", data: values }]
+      }
+    });
+    return;
+  }
 }
 /* ===============================
 STEROWANIE WYKRESAMI
@@ -1813,6 +1885,33 @@ function GET_NEAREST_FEATURE_BY_PROP(point, propName){
     }catch(e){}
   });
   return closest;
+}
+async function LOAD_PR_CSV(prId){
+  try{
+    const res = await fetch(`Pomiar_Ruchu/${prId}.csv`);
+    if(!res.ok) throw new Error("Brak pliku CSV");
+    const text = await res.text();
+    PR_CSV_RAW = parseCSV(text);
+    PR_SPEED_HIST = {};
+    PR_TIME_HIST = {};
+    PR_CSV_RAW.forEach(r => {
+      if(!r || r.length < 4) return;
+      if(r[0].includes("Data i czas")) return;
+      const t = parseDateSafe(r[0]);
+      const sp = num(r[3]);
+      if(!t || isNaN(sp)) return;
+      const sb = Math.floor(sp / 10) * 10;
+      const speedKey = `${sb}-${sb+9}`;
+      PR_SPEED_HIST[speedKey] = (PR_SPEED_HIST[speedKey] || 0) + 1;
+      const timeKey = bin30(t);
+      PR_TIME_HIST[timeKey] = (PR_TIME_HIST[timeKey] || 0) + 1;
+    });
+    return true;
+  }catch(e){
+    console.warn("CSV load error:", e);
+    PR_CSV_RAW = null;
+    return false;
+  }
 }
 function GET_NEAREST_PR(point, roadNr){
   const MAX_DISTANCE_PX = 20;
