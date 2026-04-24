@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP</title>
+<title>Mapa ZDP A</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -1688,25 +1688,40 @@ function RENDER_PR_CHART(){
   // TRYB C - ROZKŁAD CZASU
   // =========================
   if(PR_CHART_MODE === "C"){
-    const labels = Object.keys(PR_TIME_HIST);
-    const values = Object.values(PR_TIME_HIST);
+    const labels = generateTimeBins(); // stała oś czasu 00:00–23:30
+    const values = labels.map(l => PR_TIME_HIST[l] || 0);
     PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
       type: "bar",
       data: {
         labels,
-        datasets: [{ label: "Ruch (30 min)", data: values }]
+        datasets: [{
+          label: "Ruch (30 min)",
+          data: values
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
       }
     });
     PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
       type: "line",
       data: {
         labels,
-        datasets: [{ label: "Ruch (trend)", data: values }]
+        datasets: [{
+          label: "Ruch (trend)",
+          data: values,
+          tension: 0.3,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
       }
     });
     return;
   }
-}
 /* ===============================
 STEROWANIE WYKRESAMI
 =============================== */
