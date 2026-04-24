@@ -345,7 +345,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 2
+        Legenda
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -1752,11 +1752,6 @@ STEROWANIE WYKRESAMI
 function INIT_PR_BUTTONS(){
   const btnA = document.getElementById("prBtnA");
   btnA.addEventListener("click", () => {
-    if(PR_CHART_MODE === "A"){
-      PR_CHART_MODE = null;
-      CLEAR_PR_CHART();
-      return;
-    }
     PR_CHART_MODE = "A";
     document.getElementById("bpCharts").innerHTML = `
       <canvas id="prMainChart"></canvas>
@@ -1766,11 +1761,6 @@ function INIT_PR_BUTTONS(){
   });
   const btnB = document.getElementById("prBtnB");
   btnB.addEventListener("click", () => {
-    if(PR_CHART_MODE === "B"){
-      PR_CHART_MODE = null;
-      CLEAR_PR_CHART();
-      return;
-    }
     PR_CHART_MODE = "B";
     document.getElementById("bpCharts").innerHTML = `
       <canvas id="prMainChart"></canvas>
@@ -1780,11 +1770,6 @@ function INIT_PR_BUTTONS(){
   });
   const btnC = document.getElementById("prBtnC");
   btnC.addEventListener("click", () => {
-    if(PR_CHART_MODE === "C"){
-      PR_CHART_MODE = null;
-      CLEAR_PR_CHART();
-      return;
-    }
     PR_CHART_MODE = "C";
     document.getElementById("bpCharts").innerHTML = `
       <canvas id="prMainChart"></canvas>
