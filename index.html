@@ -345,7 +345,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda 1
+        Legenda 2
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -1748,34 +1748,43 @@ function INIT_PR_BUTTONS(){
   const btnA = document.getElementById("prBtnA");
   btnA.addEventListener("click", () => {
     if(PR_CHART_MODE === "A"){
-      // odkliknięcie = ukrycie
       PR_CHART_MODE = null;
       CLEAR_PR_CHART();
       return;
     }
     PR_CHART_MODE = "A";
+    document.getElementById("bpCharts").innerHTML = `
+      <canvas id="prMainChart"></canvas>
+      <canvas id="prSubChart"></canvas>
+    `;
     RENDER_PR_CHART();
   });
   const btnB = document.getElementById("prBtnB");
   btnB.addEventListener("click", () => {
     if(PR_CHART_MODE === "B"){
-      // odkliknięcie = ukrycie
       PR_CHART_MODE = null;
       CLEAR_PR_CHART();
       return;
     }
     PR_CHART_MODE = "B";
+    document.getElementById("bpCharts").innerHTML = `
+      <canvas id="prMainChart"></canvas>
+      <canvas id="prSubChart"></canvas>
+    `;
     RENDER_PR_CHART();
   });
   const btnC = document.getElementById("prBtnC");
   btnC.addEventListener("click", () => {
     if(PR_CHART_MODE === "C"){
-      // odkliknięcie = ukrycie
       PR_CHART_MODE = null;
       CLEAR_PR_CHART();
       return;
     }
     PR_CHART_MODE = "C";
+    document.getElementById("bpCharts").innerHTML = `
+      <canvas id="prMainChart"></canvas>
+      <canvas id="prSubChart"></canvas>
+    `;
     RENDER_PR_CHART();
   });
 }
