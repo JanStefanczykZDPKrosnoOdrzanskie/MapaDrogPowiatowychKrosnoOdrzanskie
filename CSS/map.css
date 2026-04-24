@@ -1,0 +1,81 @@
+body{
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  height:100vh
+}
+#map{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:1;
+}
+#basemapButtons{
+  position:absolute;
+  top:10px;
+  left:10px;
+  display:flex;
+  gap:10px;
+  z-index:60;
+}
+.basemap-btn{
+  padding:10px 18px;
+  background:white;
+  border-radius:6px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.3);
+  cursor:pointer;
+  font-family:Arial,sans-serif;
+  font-size:14px;
+  transition:all 0.2s ease;
+}
+.basemap-btn:hover{
+  background:#f2f2f2;
+}
+.basemap-btn.active{
+  background:#2c3e50;
+  color:white;
+}
+/* suwak */
+#zoomControl{
+  position:absolute;
+  top:60px;
+  left:10px;
+  height:200px;
+  width:40px;
+  z-index:70;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+}
+#zoomSlider{
+  height:150px;
+  margin-top:10px;
+}
+#zoomValue{
+  margin-top:8px;
+  font-size:13px;
+  font-family:Arial,sans-serif;
+  background:white;
+  padding:2px 6px;
+  border-radius:4px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.3);
+}
+/* kontrybucja */
+#mapAttribution{
+  position:absolute;
+  bottom:10px;
+  right:calc(var(--legend-width) + 10px);
+  z-index:200;
+  background:white;
+  padding:4px 8px;
+  font-size:12px;
+  border-radius:4px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.3);
+  transition:right 0.3s ease;
+}
+body.legend-collapsed #mapAttribution{
+  right:10px;
+}
