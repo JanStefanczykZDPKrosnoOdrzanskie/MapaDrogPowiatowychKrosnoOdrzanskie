@@ -644,7 +644,9 @@ let PR_SELECTED_TYPES = {
   ATBS: true,
   CGNR: true
 };
-
+let PR_CHART_MODE = null; // "A" | "B" | "C"
+let PR_CHART_INSTANCE_MAIN = null;
+let PR_CHART_INSTANCE_SUB = null;
 function ADD_PR_LABELS() {
   if (map.getLayer("pr_labels")) return;
   map.addLayer({
@@ -1240,6 +1242,7 @@ map.on('load',async()=>{
       map.setLayoutProperty("km_labels", "visibility", visible);
     }
   });
+  INIT_PR_BUTTONS();
 });
 /* ===============================
 INIT AFTER MAP LOAD
@@ -1614,6 +1617,7 @@ map.on("click", (e) => {
   // POMIAR RUCHU (PR)
   // =========================
   const prFeature = GET_NEAREST_PR(clickPoint, nr);
+  PR_LAST_ROW = null;
   if(!prFeature){
     document.getElementById("bpRuch").innerHTML = `
       Brak danych pomiaru ruchu
@@ -1621,6 +1625,7 @@ map.on("click", (e) => {
   } else {
     const prId = prFeature.properties.PR;
     const row = PR_CSV_DATA[prId];
+    PR_LAST_ROW = row;
     if(!row){
       document.getElementById("bpRuch").innerHTML = `
         Brak danych pomiaru ruchu
@@ -1643,81 +1648,6 @@ map.on("click", (e) => {
       }
       // ===== GENERUJ WYKRES (canvas) =====
       const canvasId = "prChart";
-      setTimeout(() => {
-        const mainCtx = document.getElementById("prMainChart");
-        const subCtx = document.getElementById("prSubChart");
-        if(!mainCtx || !subCtx) return;
-        const LABEL_MAP = {
-          MOTO: "Motocykle",
-          SOMB: "Sam. os. i Mikrobusy",
-          LSMC: "Lekkie Sam. Ciężarowe",
-          SCBP: "Sam. Ciężarowe bez przycz.",
-          SCZP: "Sam. Ciężarowe z przycz.",
-          ATBS: "Autobusy",
-          CGNR: "Ciągniki rolne"
-        };
-        // prosta logika: małe wartości do "OTHER"
-        const threshold = sum * 0.1;
-        const mainLabels = [];
-        const mainValues = [];
-        const subLabels = [];
-        const subValues = [];
-        let otherSum = 0;
-        Object.entries(data).forEach(([k,v])=>{
-          if(v >= threshold){
-            mainLabels.push(LABEL_MAP[k] ?? k);
-            mainValues.push(v);
-          } else {
-            subLabels.push(LABEL_MAP[k] ?? k);
-            subValues.push(v);
-            otherSum += v;
-          }
-        });
-        if(otherSum > 0){
-          mainLabels.push("Pozostałe");
-          mainValues.push(otherSum);
-        }
-        // MAIN PIE
-        new Chart(mainCtx, {
-          type: "pie",
-          data: {
-            labels: mainLabels,
-            datasets: [{ data: mainValues }]
-          },
-          options: {
-            plugins: {
-              legend: {
-                display: false,
-                position: "right",
-                labels: {
-                  padding: 2,
-                  font: {size: 8}
-                }
-              }
-            }
-          }
-        });
-        // SUB PIE (wyodrębnione małe wartości)
-        new Chart(subCtx, {
-          type: "pie",
-          data: {
-            labels: subLabels,
-            datasets: [{ data: subValues }]
-          },
-          options: {
-            plugins: {
-              legend: { 
-                display:  false,
-                position: "right",
-                labels: {
-                  padding: 2,
-                  font: {size: 8}
-                }
-              }
-            }
-          }
-        });
-      }, 0);
       document.getElementById("bpRuch").innerHTML = `
         <b>SDR:</b> ${sum}<br><br>
       `;
@@ -1747,6 +1677,117 @@ function INIT_KM_TOGGLE(){
     updateUI();
   });
   updateUI(); // start OFF
+}
+function RENDER_PR_CHART(){
+  const mainCtx = document.getElementById("prMainChart");
+  const subCtx = document.getElementById("prSubChart");
+  if(!mainCtx || !subCtx) return;
+  const LABEL_MAP = {
+    MOTO: "Motocykle",
+    SOMB: "Sam. os. i Mikrobusy",
+    LSMC: "Lekkie Sam. Ciężarowe",
+    SCBP: "Sam. Ciężarowe bez przycz.",
+    SCZP: "Sam. Ciężarowe z przycz.",
+    ATBS: "Autobusy",
+    CGNR: "Ciągniki rolne"
+  };
+  const row = PR_LAST_ROW;
+  if(!row) return;
+  let sum = 0;
+  const data = {};
+  Object.keys(PR_SELECTED_TYPES).forEach(type => {
+    if(PR_SELECTED_TYPES[type] && row[type] != null){
+      sum += row[type];
+      data[type] = row[type];
+    }
+  });
+  const threshold = sum * 0.1;
+  const mainLabels = [];
+  const mainValues = [];
+  const subLabels = [];
+  const subValues = [];
+  let otherSum = 0;
+  Object.entries(data).forEach(([k,v])=>{
+    if(v >= threshold){
+      mainLabels.push(LABEL_MAP[k] ?? k);
+      mainValues.push(v);
+    } else {
+      subLabels.push(LABEL_MAP[k] ?? k);
+      subValues.push(v);
+      otherSum += v;
+    }
+  });
+  if(otherSum > 0){
+    mainLabels.push("Pozostałe");
+    mainValues.push(otherSum);
+  }
+  CLEAR_PR_CHART();
+  PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
+    type: "pie",
+    data: {
+      labels: mainLabels,
+      datasets: [{ data: mainValues }]
+    },
+    options: {
+      plugins: { legend: { display: false } }
+    }
+  });
+  PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
+    type: "pie",
+    data: {
+      labels: subLabels,
+      datasets: [{ data: subValues }]
+    },
+    options: {
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+/* ===============================
+STEROWANIE WYKRESAMI
+=============================== */
+function INIT_PR_BUTTONS(){
+  const btnA = document.getElementById("prBtnA");
+  btnA.addEventListener("click", () => {
+    if(PR_CHART_MODE === "A"){
+      // odkliknięcie = ukrycie
+      PR_CHART_MODE = null;
+      CLEAR_PR_CHART();
+      return;
+    }
+    PR_CHART_MODE = "A";
+    RENDER_PR_CHART();
+  });
+  const btnB = document.getElementById("prBtnB");
+  btnB.addEventListener("click", () => {
+    if(PR_CHART_MODE === "B"){
+      // odkliknięcie = ukrycie
+      PR_CHART_MODE = null;
+      CLEAR_PR_CHART();
+      return;
+    }
+    PR_CHART_MODE = "B";
+    RENDER_PR_CHART();
+  });
+  const btnC = document.getElementById("prBtnC");
+  btnC.addEventListener("click", () => {
+    if(PR_CHART_MODE === "C"){
+      // odkliknięcie = ukrycie
+      PR_CHART_MODE = null;
+      CLEAR_PR_CHART();
+      return;
+    }
+    PR_CHART_MODE = "C";
+    RENDER_PR_CHART();
+  });
+}
+
+function CLEAR_PR_CHART(){
+  if(PR_CHART_INSTANCE_MAIN) PR_CHART_INSTANCE_MAIN.destroy();
+  if(PR_CHART_INSTANCE_SUB) PR_CHART_INSTANCE_SUB.destroy();
+  PR_CHART_INSTANCE_MAIN = null;
+  PR_CHART_INSTANCE_SUB = null;
+  document.getElementById("bpCharts").innerHTML = "";
 }
 function GET_NEAREST_FEATURE_BY_PROP(point, propName){
   const MAX_DISTANCE_PX = 20;
