@@ -345,7 +345,7 @@ BOTTOM PANEL
     <div id="updateOverlay">Aktualizacja: --
     </div>
       <h2>
-        Legenda
+        Legenda 1
       </h2>
     <div class="legend-section collapsed">
       <h3>
@@ -1625,11 +1625,10 @@ map.on("click", (e) => {
   } else {
     const prId = prFeature.properties.PR;
     const row = PR_CSV_DATA[prId];
-    PR_LAST_ROW = row;
+    PR_LAST_ROW = row; // <- zawsze ustaw wcześniej
     if(!row){
-      document.getElementById("bpRuch").innerHTML = `
-        Brak danych pomiaru ruchu
-      `;
+      document.getElementById("bpRuch").innerHTML = `Brak danych pomiaru ruchu`;
+      return;
     } else {
       // ===== SUMA =====
       let sum = 0;
@@ -1641,9 +1640,8 @@ map.on("click", (e) => {
         }
       });
       if(sum === 0){
-        document.getElementById("bpRuch").innerHTML = `
-          Brak danych pomiaru ruchu
-        `;
+        document.getElementById("bpRuch").innerHTML = `Brak danych pomiaru ruchu`;
+        document.getElementById("bpCharts").innerHTML = "";
         return;
       }
       // ===== GENERUJ WYKRES (canvas) =====
