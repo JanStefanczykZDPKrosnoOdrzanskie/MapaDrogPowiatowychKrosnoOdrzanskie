@@ -1665,23 +1665,51 @@ function RENDER_PR_CHART(){
   // =========================
   // TRYB B - HISTOGRAM PRĘDKOŚCI
   // =========================
-  if(PR_CHART_MODE === "B"){
-    const labels = Object.keys(PR_SPEED_HIST);
-    const values = Object.values(PR_SPEED_HIST);
+  if (PR_CHART_MODE === "B") {
+    const parseRange = (key) => {
+      const m = key.match(/(\d+)-(\d+)/);
+      return m ? parseInt(m[1]) : 0;
+    };
+    const sortedLabels = Object.keys(PR_SPEED_HIST)
+      .sort((a, b) => parseRange(a) - parseRange(b));
+    const values = sortedLabels.map(k => PR_SPEED_HIST[k]);
     PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
       type: "bar",
       data: {
-        labels,
-        datasets: [{ label: "Prędkość (km/h)", data: values }]
+        labels: sortedLabels,
+        datasets: [{
+          label: "Prędkość (km/h)",
+          data: values,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: "Przedziały prędkości"
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: "Liczba pomiarów"
+            },
+            beginAtZero: true
+          }
+        }
       }
     });
-    PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [{ label: "Prędkość (km/h)", data: values }]
-      }
-    });
+    if (PR_CHART_INSTANCE_SUB) {
+      PR_CHART_INSTANCE_SUB.destroy();
+      PR_CHART_INSTANCE_SUB = null;
+    }
     return;
   }
   // =========================
