@@ -1559,7 +1559,7 @@ map.on('zoom', () => {
 /* ===============================
 CLICK → KILOMETR W PUNKCIE
 =============================== */
-map.on("click", (e) => {
+map.on("click", async (e) => {
   if(!KM_MEASURE_ENABLED) return;
   const MAX_CLICK_DISTANCE_PX = 20;
   const clickPoint = turf.point([e.lngLat.lng, e.lngLat.lat]);
