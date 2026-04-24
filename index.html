@@ -384,14 +384,20 @@ BOTTOM PANEL
   flex: 1;
   min-width: 0;
 }
+#bpCharts canvas{
+  height: 100% !important;
+}
+#prMainChart{
+  width: 33.333%;
+  margin-left: 16.666%;
+}
+#prSubChart{
+  width: 33.333%;
+}
 #bpCharts{
-  display:flex;
-  flex-direction:row;
-  align-items:center;
-  justify-content:center;
+  display: flex;
   width: 100%;
   height: 100%;
-  position: relative;
 }
 #bpCharts canvas{
   margin: 0;
@@ -1937,6 +1943,7 @@ map.on("click", (e) => {
         const mainValues = [];
         const subLabels = [];
         const subValues = [];
+        let otherSum = 0;
         Object.entries(data).forEach(([k,v])=>{
           if(v >= threshold){
             mainLabels.push(LABEL_MAP[k] ?? k);
@@ -1944,8 +1951,13 @@ map.on("click", (e) => {
           } else {
             subLabels.push(LABEL_MAP[k] ?? k);
             subValues.push(v);
+            otherSum += v;
           }
         });
+        if(otherSum > 0){
+          mainLabels.push("Pozostałe");
+          mainValues.push(otherSum);
+        }
         // MAIN PIE
         new Chart(mainCtx, {
           type: "pie",
