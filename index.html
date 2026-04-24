@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP</title>
+<title>Mapa ZDP A</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -612,6 +612,7 @@ BOTTOM PANEL
 <script src="JS/map.js"></script>
 
 <script>
+let PR_LAST_ROW = null;
 let CURRENT_KM_MARKER = null;
 let KM_MEASURE_ENABLED = false;
 let KM_INTERMEDIATE_LOADED = false
@@ -1695,7 +1696,6 @@ function RENDER_PR_CHART(){
       "Brak danych PR (najpierw kliknij drogę na mapie)";
     return;
   }
-  if(!row) return;
   let sum = 0;
   const data = {};
   Object.keys(PR_SELECTED_TYPES).forEach(type => {
@@ -1784,7 +1784,6 @@ function CLEAR_PR_CHART(){
   if(PR_CHART_INSTANCE_SUB) PR_CHART_INSTANCE_SUB.destroy();
   PR_CHART_INSTANCE_MAIN = null;
   PR_CHART_INSTANCE_SUB = null;
-  document.getElementById("bpCharts").innerHTML = "";
 }
 function GET_NEAREST_FEATURE_BY_PROP(point, propName){
   const MAX_DISTANCE_PX = 20;
