@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP A</title>
+<title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -1289,7 +1289,7 @@ function RENDER_PR_CHART(){
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: true }
+          legend: { display: false }
         },
         scales: {
           x: {
@@ -1332,24 +1332,14 @@ function RENDER_PR_CHART(){
       options: {
         responsive: true,
         maintainAspectRatio: false
+        plugins: {
+          legend: { display: false }
       }
     });
-    PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [{
-          label: "Ruch (trend)",
-          data: values,
-          tension: 0.3,
-          fill: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
-      }
-    });
+    if (PR_CHART_INSTANCE_SUB) {
+      PR_CHART_INSTANCE_SUB.destroy();
+      PR_CHART_INSTANCE_SUB = null;
+    }
     return;
   }
 }
