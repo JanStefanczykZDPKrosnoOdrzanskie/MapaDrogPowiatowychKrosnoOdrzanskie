@@ -177,7 +177,7 @@ function UPDATE_KM_LABEL_VISIBILITY(){
     );
   }
 }
-function INIT_KM_MODULE(map){
+function INIT_KM_LAYER(map){
   ADD_KM_LABELS();
   map.on("zoom", UPDATE_KM_LABEL_VISIBILITY);
   UPDATE_KM_LABEL_VISIBILITY();
