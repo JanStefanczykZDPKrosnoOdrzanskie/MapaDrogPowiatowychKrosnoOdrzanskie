@@ -126,3 +126,13 @@ function UPDATE_BASEMAP_ATTRIBUTION(){
   }
   document.getElementById("mapAttribution").innerHTML = html;
 }
+/* ===============================
+INIT
+=============================== */
+function INIT_MAP_UI(){
+  CREATE_BASEMAP_BUTTONS(map);
+  document.getElementById("updateOverlay").innerText =
+    "Aktualizacja: " + new Date().toLocaleString("pl-PL");
+  UPDATE_BASEMAP_ATTRIBUTION();
+}
+
