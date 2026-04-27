@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP A</title>
+<title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -775,6 +775,7 @@ PIPELINE LOAD
 =============================== */
 map.on('load',async()=>{
   await ZDP_LOAD_GEO_SOURCES(map);
+  INIT_MAP_UI();
   INIT_KM_MODULE(map);
   ZDP_RENDER_ROAD_STYLES(map);
   ADD_PR_LABELS();
@@ -786,14 +787,8 @@ map.on('load',async()=>{
   map.on("zoom", UPDATE_EW_LABELS_DEBOUNCED);
   ADD_LABEL_LAYER(map);
   ZDP_LEGEND_INIT();
-  CREATE_BASEMAP_BUTTONS(map);
   INIT_SEARCH();
   INIT_KM_TOGGLE();
-  /* timestamp */
-  document.getElementById("updateOverlay").innerText =
-  "Aktualizacja: " + new Date().toLocaleString("pl-PL");
-  /* kontrybucja */
-  UPDATE_BASEMAP_ATTRIBUTION();
   INIT_PR_BUTTONS();
 });
 /* ===============================
