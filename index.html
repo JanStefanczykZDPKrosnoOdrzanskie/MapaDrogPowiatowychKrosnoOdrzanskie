@@ -527,15 +527,24 @@ function parseDateSafe(v){
   if(!v) return null;
   v = v.toString().trim().replace(/\s+/g,' ');
   let p = v.split(" ");
-  if(p.length < 4) return null;
+  if(p.length < 3) return null;
   let day = parseInt(p[0]);
   let month = months[p[1].toLowerCase()];
   let year = 2000 + parseInt(p[2]);
-  let t = p[3].split(":");
-  return new Date(year, month, day,
-    parseInt(t[0]),
-    parseInt(t[1]),
-    parseInt(t[2] || 0)
+  // normalizacja czasu
+  let timeRaw = p[3] || "00:00:00";
+  // jeśli HH:MM → zamień na HH:MM:00
+  if (timeRaw.split(":").length === 2) {
+    timeRaw = timeRaw + ":00";
+  }
+  let t = timeRaw.split(":");
+  return new Date(
+    year,
+    month,
+    day,
+    parseInt(t[0]) || 0,
+    parseInt(t[1]) || 0,
+    parseInt(t[2]) || 0
   );
 }
 function num(v){
