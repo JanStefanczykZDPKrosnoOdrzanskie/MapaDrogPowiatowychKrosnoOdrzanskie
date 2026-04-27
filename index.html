@@ -609,7 +609,7 @@ let PR_SELECTED_TYPES = {
   ATBS: true,
   CGNR: true
 };
-let PR_CHART_MODE = null; // "A" | "B" | "C"
+let PR_CHART_MODE = "A"; // "A" | "B" | "C"
 let PR_CHART_INSTANCE_MAIN = null;
 let PR_CHART_INSTANCE_SUB = null;
 let PR_SPEED_HIST = {};
@@ -857,6 +857,7 @@ map.on("click", async (e) => {
         <canvas id="prMainChart"></canvas>
         <canvas id="prSubChart"></canvas>
       `;
+      RENDER_PR_CHART();
     }
   }
 });
@@ -1016,35 +1017,19 @@ function RENDER_PR_CHART(){
 STEROWANIE WYKRESAMI
 =============================== */
 function INIT_PR_BUTTONS(){
-  const btnA = document.getElementById("prBtnA");
-  btnA.addEventListener("click", () => {
-    PR_CHART_MODE = "A";
+  const setChartMode = (mode) => {
+    PR_CHART_MODE = mode;
+    if(!PR_LAST_ROW) return;
     document.getElementById("bpCharts").innerHTML = `
       <canvas id="prMainChart"></canvas>
       <canvas id="prSubChart"></canvas>
     `;
     RENDER_PR_CHART();
-  });
-  const btnB = document.getElementById("prBtnB");
-  btnB.addEventListener("click", () => {
-    PR_CHART_MODE = "B";
-    document.getElementById("bpCharts").innerHTML = `
-      <canvas id="prMainChart"></canvas>
-      <canvas id="prSubChart"></canvas>
-    `;
-    RENDER_PR_CHART();
-  });
-  const btnC = document.getElementById("prBtnC");
-  btnC.addEventListener("click", () => {
-    PR_CHART_MODE = "C";
-    document.getElementById("bpCharts").innerHTML = `
-      <canvas id="prMainChart"></canvas>
-      <canvas id="prSubChart"></canvas>
-    `;
-    RENDER_PR_CHART();
-  });
+  };
+  document.getElementById("prBtnA").addEventListener("click", () => setChartMode("A"));
+  document.getElementById("prBtnB").addEventListener("click", () => setChartMode("B"));
+  document.getElementById("prBtnC").addEventListener("click", () => setChartMode("C"));
 }
-
 function CLEAR_PR_CHART(){
   if(PR_CHART_INSTANCE_MAIN) PR_CHART_INSTANCE_MAIN.destroy();
   if(PR_CHART_INSTANCE_SUB) PR_CHART_INSTANCE_SUB.destroy();
