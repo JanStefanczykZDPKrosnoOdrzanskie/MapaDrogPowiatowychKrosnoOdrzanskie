@@ -87,3 +87,7 @@ function ADD_LABEL_LAYER(map){
     }
   });
 }
+function INIT_ROADS_LAYER(map){
+  ZDP_RENDER_ROAD_STYLES(map);
+  ADD_LABEL_LAYER(map);
+}
