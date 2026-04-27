@@ -28,7 +28,7 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     fetch("GEOJSON/ADM_i_NR/DP.geojson").then(r=>r.json()),
     fetch("GEOJSON/ADM_i_NR/DG.geojson").then(r=>r.json()),
     fetch("GEOJSON/ADM_i_NR/DWew.geojson").then(r=>r.json()),
-    fetch("PR.geojson").then(r=>r.json()),
+    fetch("GEOJSON/PR.geojson").then(r=>r.json()),
     fetch("GEOJSON/ZUD/ZUD_2025.geojson").then(r=>r.json()),
     fetch("GEOJSON/DP_NAW.geojson").then(r=>r.json()),
     fetch("GEOJSON/DP_KL.geojson").then(r=>r.json())
