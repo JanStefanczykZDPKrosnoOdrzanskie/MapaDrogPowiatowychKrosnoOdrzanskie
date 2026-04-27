@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP</title>
+<title>Mapa ZDP A</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -928,6 +928,10 @@ function RENDER_PR_CHART(){
   // TRYB B - HISTOGRAM PRĘDKOŚCI
   // =========================
   if (PR_CHART_MODE === "B") {
+    if (Object.keys(PR_SPEED_HIST).length === 0) {
+      document.getElementById("bpCharts").innerHTML = "brak pomiaru";
+      return;
+    }
     const parseRange = (key) => {
       const m = key.match(/(\d+)-(\d+)/);
       return m ? parseInt(m[1]) : 0;
@@ -978,6 +982,10 @@ function RENDER_PR_CHART(){
   // TRYB C - ROZKŁAD CZASU
   // =========================
   if(PR_CHART_MODE === "C"){
+    if (Object.keys(PR_TIME_HIST).length === 0) {
+      document.getElementById("bpCharts").innerHTML = "brak pomiaru";
+      return;
+    }
     const labels = generateTimeBins(); // stała oś czasu 00:00–23:30
     const values = labels.map(l => PR_TIME_HIST[l] || 0);
     PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
@@ -1096,6 +1104,8 @@ async function LOAD_PR_CSV(prId){
   }catch(e){
     console.warn("CSV load error:", e);
     PR_CSV_RAW = null;
+    PR_SPEED_HIST = {};
+    PR_TIME_HIST = {};
     return false;
   }
 }
