@@ -215,16 +215,35 @@ BOTTOM PANEL
   flex: 1;
   height: 100%;
   min-width: 0;
+  align-items: stretch;
 }
-#prLegendA{
+#prLegendMain,
+#prLegendSub{
   width: 220px;
-  margin-left: 10px;
   background: white;
-  border-left: 1px solid #ddd;
   padding: 10px;
   font-family: Arial, sans-serif;
   font-size: 12px;
   overflow-y: auto;
+  box-sizing: border-box;
+}
+#prLegendMain{
+  border-right: 1px solid #ddd;
+}
+#prLegendSub{
+  border-left: 1px solid #ddd;
+}
+#bpCharts{
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+}
+#prMainChart{
+  width: 33.333%;
+}
+#prSubChart{
+  width: 33.333%;
 }
 .bp-column + .bp-chart-column{
   margin-left: -10px;
@@ -506,8 +525,9 @@ BOTTOM PANEL
     </div>
     <div class="bp-column bp-chart-column">
       <div id="bpChartsWrapper">
+        <div id="prLegendMain"></div>
         <div id="bpCharts"></div>
-        <div id="prLegendA"></div>
+        <div id="prLegendSub"></div>
       </div>
     </div>
   </div>
@@ -900,7 +920,7 @@ function INIT_KM_TOGGLE(){
   });
   updateUI(); // start OFF
 }
-function RENDER_PR_LEGEND_A(entries){
+function RENDER_PR_LEGEND(containerId, entries){
   const LABEL_MAP = {
     MOTO: "Motocykle",
     SOMB: "Sam. os. i Mikrobusy",
@@ -908,7 +928,8 @@ function RENDER_PR_LEGEND_A(entries){
     SCBP: "Sam. Ciężarowe bez przycz.",
     SCZP: "Sam. Ciężarowe z przycz.",
     ATBS: "Autobusy",
-    CGNR: "Ciągniki rolne"
+    CGNR: "Ciągniki rolne",
+    OTHER: "Pozostałe"
   };
   const colors = {
     MOTO: "#1f77b4",
@@ -920,22 +941,24 @@ function RENDER_PR_LEGEND_A(entries){
     CGNR: "#e377c2",
     OTHER: "#7f7f7f"
   };
-  const container = document.getElementById("prLegendA");
+  const container = document.getElementById(containerId);
+  if(!container) return;
   container.innerHTML = "";
   entries.forEach(e => {
-    const name = LABEL_MAP[e.type] ?? e.type;
     const el = document.createElement("div");
     el.style.display = "flex";
     el.style.alignItems = "center";
     el.style.marginBottom = "6px";
     el.innerHTML = `
       <div style="
-        width:12px;height:12px;
+        width:12px;
+        height:12px;
         background:${colors[e.type] ?? colors.OTHER};
         margin-right:8px;
         border-radius:2px;
+        flex-shrink:0;
       "></div>
-      <div style="flex:1">${name}</div>
+      <div style="flex:1">${LABEL_MAP[e.type] ?? e.type}</div>
       <div>${e.val}</div>
     `;
     container.appendChild(el);
@@ -976,7 +999,6 @@ if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
       entries.push({ type, val });
     }
   });
-  RENDER_PR_LEGEND_A(entries);
   if(total === 0){
     document.getElementById("bpCharts").innerHTML = "Brak danych PR";
     return;
@@ -985,6 +1007,8 @@ if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
   // 2. podział 8%
   // =========================
   const threshold = total * 0.08;
+  const mainLegendEntries = [];
+  const subLegendEntries = [];
   const mainLabels = [];
   const mainValues = [];
   const otherLabels = [];
@@ -995,15 +1019,22 @@ if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
       otherLabels.push(LABEL_MAP[e.type] ?? e.type);
       otherValues.push(e.val);
       otherSum += e.val;
+      subLegendEntries.push(e);
     } else {
       mainLabels.push(LABEL_MAP[e.type] ?? e.type);
       mainValues.push(e.val);
+      mainLegendEntries.push(e);
     }
   });
   if(otherSum > 0){
     mainLabels.push("Pozostałe");
     mainValues.push(otherSum);
   }
+  if(otherSum > 0){
+    mainLegendEntries.push({ type: "OTHER", val: otherSum });
+  }
+  RENDER_PR_LEGEND("prLegendMain", mainLegendEntries);
+  RENDER_PR_LEGEND("prLegendSub", subLegendEntries);
   // =========================
   // 3. MAIN CHART (z "Pozostałe")
   // =========================
@@ -1128,7 +1159,8 @@ if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
     return;
   }
   if(PR_CHART_MODE !== "A"){
-    document.getElementById("prLegendA").innerHTML = "";
+    document.getElementById("prLegendMain").innerHTML = "";
+    document.getElementById("prLegendSub").innerHTML = "";
   }
 }
 /* ===============================
