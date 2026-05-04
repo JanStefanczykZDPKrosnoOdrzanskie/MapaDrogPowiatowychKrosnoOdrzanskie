@@ -649,6 +649,16 @@ let PR_SELECTED_TYPES = {
   ATBS: true,
   CGNR: true
 };
+const PR_TYPE_META = {
+  MOTO: { label: "Motocykle", color: "#1f77b4" },
+  SOMB: { label: "Sam. os. i Mikrobusy", color: "#ff7f0e" },
+  LSMC: { label: "Lekkie Sam. Ciężarowe", color: "#2ca02c" },
+  SCBP: { label: "Sam. Ciężarowe bez przycz.", color: "#d62728" },
+  SCZP: { label: "Sam. Ciężarowe z przycz.", color: "#9467bd" },
+  ATBS: { label: "Autobusy", color: "#8c564b" },
+  CGNR: { label: "Ciągniki rolne", color: "#e377c2" },
+  OTHER:{ label: "Pozostałe", color: "#7f7f7f" }
+};
 let PR_CHART_MODE = "A"; // "A" | "B" | "C"
 let PR_CHART_INSTANCE_MAIN = null;
 let PR_CHART_INSTANCE_SUB = null;
@@ -922,30 +932,11 @@ function INIT_KM_TOGGLE(){
   updateUI(); // start OFF
 }
 function RENDER_PR_LEGEND(containerId, entries){
-  const LABEL_MAP = {
-    MOTO: "Motocykle",
-    SOMB: "Sam. os. i Mikrobusy",
-    LSMC: "Lekkie Sam. Ciężarowe",
-    SCBP: "Sam. Ciężarowe bez przycz.",
-    SCZP: "Sam. Ciężarowe z przycz.",
-    ATBS: "Autobusy",
-    CGNR: "Ciągniki rolne",
-    OTHER: "Pozostałe"
-  };
-  const colors = {
-    MOTO: "#1f77b4",
-    SOMB: "#ff7f0e",
-    LSMC: "#2ca02c",
-    SCBP: "#d62728",
-    SCZP: "#9467bd",
-    ATBS: "#8c564b",
-    CGNR: "#e377c2",
-    OTHER: "#7f7f7f"
-  };
   const container = document.getElementById(containerId);
   if(!container) return;
   container.innerHTML = "";
   entries.forEach(e => {
+    const meta = PR_TYPE_META[e.type] || PR_TYPE_META.OTHER;
     const el = document.createElement("div");
     el.style.display = "flex";
     el.style.alignItems = "center";
@@ -954,12 +945,12 @@ function RENDER_PR_LEGEND(containerId, entries){
       <div style="
         width:12px;
         height:12px;
-        background:${colors[e.type] ?? colors.OTHER};
+        background:${meta.color};
         margin-right:8px;
         border-radius:2px;
         flex-shrink:0;
       "></div>
-      <div style="flex:1">${LABEL_MAP[e.type] ?? e.type}</div>
+      <div style="flex:1">${meta.label}</div>
       <div>${e.val}</div>
     `;
     container.appendChild(el);
@@ -1043,6 +1034,12 @@ function RENDER_PR_CHART(){
     // =========================
     // 3. MAIN CHART (z "Pozostałe")
     // =========================
+    const mainColors = mainLabels.map(l => {
+      const type = Object.keys(PR_TYPE_META).find(
+        k => PR_TYPE_META[k].label === l
+      );
+      return PR_TYPE_META[type]?.color || PR_TYPE_META.OTHER.color;
+    });
     PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
       type: "pie",
       data: {
@@ -1060,12 +1057,16 @@ function RENDER_PR_CHART(){
     // =========================
     // 4. SUB CHART (tylko "pozostałe")
     // =========================
+    const subColors = otherLabels.map(() =>
+      PR_TYPE_META.OTHER.color
+    );
     PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
       type: "doughnut",
       data: {
         labels: otherLabels,
         datasets: [{
-          data: otherValues
+          data: otherValues,
+          backgroundColor: subColors
         }]
       },
       options: {
