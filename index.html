@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP</title>
+<title>Mapa ZDP A</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -1133,9 +1133,7 @@ const bottomPanel = document.getElementById("bottomPanel");
 const bottomPanelHeader = document.getElementById("bottomPanelHeader");
 bottomPanelHeader.addEventListener("click", () => {
   bottomPanel.classList.toggle("open");
-  requestAnimationFrame(() => {
-    UPDATE_ATTRIBUTION_POSITION();
-  });
+  UPDATE_ATTRIBUTION_POSITION();
 });
 window.addEventListener("resize", UPDATE_ATTRIBUTION_POSITION);
 </script>
