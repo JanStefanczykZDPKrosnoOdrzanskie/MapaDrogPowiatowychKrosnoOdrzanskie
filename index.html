@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP</title>
+<title>Mapa ZDP A</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -209,6 +209,22 @@ BOTTOM PANEL
   margin: 0;
   width: auto !important;
   height: 100% !important;
+}
+#bpChartsWrapper{
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+}
+#prLegendA{
+  width: 220px;
+  margin-left: 10px;
+  background: white;
+  border-left: 1px solid #ddd;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  overflow-y: auto;
 }
 .bp-column + .bp-chart-column{
   margin-left: -10px;
@@ -489,7 +505,10 @@ BOTTOM PANEL
       <div id="bpRuch">-</div>
     </div>
     <div class="bp-column bp-chart-column">
-      <div id="bpCharts"></div>
+      <div id="bpChartsWrapper">
+        <div id="bpCharts"></div>
+        <div id="prLegendA"></div>
+      </div>
     </div>
   </div>
   <div id="bottomPanelLogo">
@@ -881,6 +900,47 @@ function INIT_KM_TOGGLE(){
   });
   updateUI(); // start OFF
 }
+function RENDER_PR_LEGEND_A(entries){
+  const LABEL_MAP = {
+    MOTO: "Motocykle",
+    SOMB: "Sam. os. i Mikrobusy",
+    LSMC: "Lekkie Sam. Ciężarowe",
+    SCBP: "Sam. Ciężarowe bez przycz.",
+    SCZP: "Sam. Ciężarowe z przycz.",
+    ATBS: "Autobusy",
+    CGNR: "Ciągniki rolne"
+  };
+  const colors = {
+    MOTO: "#1f77b4",
+    SOMB: "#ff7f0e",
+    LSMC: "#2ca02c",
+    SCBP: "#d62728",
+    SCZP: "#9467bd",
+    ATBS: "#8c564b",
+    CGNR: "#e377c2",
+    OTHER: "#7f7f7f"
+  };
+  const container = document.getElementById("prLegendA");
+  container.innerHTML = "";
+  entries.forEach(e => {
+    const name = LABEL_MAP[e.type] ?? e.type;
+    const el = document.createElement("div");
+    el.style.display = "flex";
+    el.style.alignItems = "center";
+    el.style.marginBottom = "6px";
+    el.innerHTML = `
+      <div style="
+        width:12px;height:12px;
+        background:${colors[e.type] ?? colors.OTHER};
+        margin-right:8px;
+        border-radius:2px;
+      "></div>
+      <div style="flex:1">${name}</div>
+      <div>${e.val}</div>
+    `;
+    container.appendChild(el);
+  });
+}
 function RENDER_PR_CHART(){
   const mainCtx = document.getElementById("prMainChart");
   const subCtx = document.getElementById("prSubChart");
@@ -916,6 +976,7 @@ if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
       entries.push({ type, val });
     }
   });
+  RENDER_PR_LEGEND_A(entries);
   if(total === 0){
     document.getElementById("bpCharts").innerHTML = "Brak danych PR";
     return;
@@ -1065,6 +1126,9 @@ if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
       PR_CHART_INSTANCE_SUB = null;
     }
     return;
+  }
+  if(PR_CHART_MODE !== "A"){
+    document.getElementById("prLegendA").innerHTML = "";
   }
 }
 /* ===============================
