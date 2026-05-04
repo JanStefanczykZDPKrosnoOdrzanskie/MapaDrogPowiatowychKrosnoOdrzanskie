@@ -1036,8 +1036,8 @@ function RENDER_PR_CHART(){
     if(otherSum > 0){
       mainLegendEntries.push({ type: "OTHER", val: otherSum });
     }
-    legendMain.style.display = "block";
-    legendSub.style.display = "block";
+    document.getElementById("prLegendMain").style.display = "block";
+    document.getElementById("prLegendSub").style.display  = "block";
     RENDER_PR_LEGEND("prLegendMain", mainLegendEntries);
     RENDER_PR_LEGEND("prLegendSub", subLegendEntries);
     // =========================
