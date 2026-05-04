@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP</title>
+<title>Mapa ZDP A</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -226,6 +226,7 @@ BOTTOM PANEL
   font-size: 12px;
   overflow-y: auto;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 #prLegendMain{
   border-right: 1px solid #ddd;
@@ -1035,6 +1036,8 @@ function RENDER_PR_CHART(){
     if(otherSum > 0){
       mainLegendEntries.push({ type: "OTHER", val: otherSum });
     }
+    legendMain.style.display = "block";
+    legendSub.style.display = "block";
     RENDER_PR_LEGEND("prLegendMain", mainLegendEntries);
     RENDER_PR_LEGEND("prLegendSub", subLegendEntries);
     // =========================
@@ -1172,6 +1175,15 @@ function INIT_PR_BUTTONS(){
       <canvas id="prMainChart"></canvas>
       <canvas id="prSubChart"></canvas>
     `;
+    const legendMain = document.getElementById("prLegendMain");
+    const legendSub  = document.getElementById("prLegendSub");
+    if(mode === "A"){
+      legendMain.style.display = "block";
+      legendSub.style.display = "block";
+    } else {
+      legendMain.style.display = "none";
+      legendSub.style.display = "none";
+    }
     RENDER_PR_CHART();
   };
   document.getElementById("prBtnA").addEventListener("click", () => setChartMode("A"));
