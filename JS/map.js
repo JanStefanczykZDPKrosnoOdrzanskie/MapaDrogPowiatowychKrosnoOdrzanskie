@@ -130,9 +130,13 @@ function UPDATE_ATTRIBUTION_POSITION(){
   const attribution = document.getElementById("mapAttribution");
   const bottomPanel = document.getElementById("bottomPanel");
   if(!attribution || !bottomPanel) return;
-  const panelRect = bottomPanel.getBoundingClientRect();
-  const visibleHeight = window.innerHeight - panelRect.top;
-  attribution.style.bottom = `${visibleHeight + 5}px`;
+  const css = getComputedStyle(document.documentElement);
+  const headerHeight = parseFloat(css.getPropertyValue("--bottom-header-height")) || 0;
+  const logoHeight = parseFloat(css.getPropertyValue("--legend-logo-height")) || 0;
+  const bottomOffset = bottomPanel.classList.contains("open")
+    ? headerHeight + logoHeight
+    : headerHeight;
+  attribution.style.bottom = `${bottomOffset + 5}px`;
 }
 /* ===============================
 INIT
