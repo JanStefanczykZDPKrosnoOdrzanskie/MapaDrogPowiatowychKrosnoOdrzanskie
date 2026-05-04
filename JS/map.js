@@ -126,6 +126,14 @@ function UPDATE_BASEMAP_ATTRIBUTION(){
   }
   document.getElementById("mapAttribution").innerHTML = html;
 }
+function UPDATE_ATTRIBUTION_POSITION(){
+  const attribution = document.getElementById("mapAttribution");
+  const bottomPanel = document.getElementById("bottomPanel");
+  if(!attribution || !bottomPanel) return;
+  const panelRect = bottomPanel.getBoundingClientRect();
+  const visibleHeight = window.innerHeight - panelRect.top;
+  attribution.style.bottom = `${visibleHeight + 5}px`;
+}
 /* ===============================
 INIT
 =============================== */
@@ -134,5 +142,6 @@ function INIT_MAP_UI(){
   document.getElementById("updateOverlay").innerText =
     "Aktualizacja: " + new Date().toLocaleString("pl-PL");
   UPDATE_BASEMAP_ATTRIBUTION();
+  UPDATE_ATTRIBUTION_POSITION();
 }
 
