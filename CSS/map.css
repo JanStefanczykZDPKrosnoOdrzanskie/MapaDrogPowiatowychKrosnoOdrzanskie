@@ -74,7 +74,7 @@ body{
   font-size:12px;
   border-radius:4px;
   box-shadow:0 1px 4px rgba(0,0,0,0.3);
-  transition:right 0.3s ease;
+  transition:right 0.3s ease, bottom 0.3s ease;
 }
 body.legend-collapsed #mapAttribution{
   right:10px;
