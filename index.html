@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP A</title>
+<title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -969,108 +969,110 @@ function RENDER_PR_CHART(){
   const subCtx = document.getElementById("prSubChart");
   if(!mainCtx || !subCtx) return;
   CLEAR_PR_CHART();
+  document.getElementById("prLegendMain").innerHTML = "";
+  document.getElementById("prLegendSub").innerHTML = "";
   // =========================
   // TRYB A (PIE - bez zmian)
   // =========================
-if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
-  const LABEL_MAP = {
-    MOTO: "Motocykle",
-    SOMB: "Sam. os. i Mikrobusy",
-    LSMC: "Lekkie Sam. Ciężarowe",
-    SCBP: "Sam. Ciężarowe bez przycz.",
-    SCZP: "Sam. Ciężarowe z przycz.",
-    ATBS: "Autobusy",
-    CGNR: "Ciągniki rolne"
-  };
-  const row = PR_LAST_ROW;
-  if(!row){
-    document.getElementById("bpCharts").innerHTML = "Brak danych PR";
+  if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
+    const LABEL_MAP = {
+      MOTO: "Motocykle",
+      SOMB: "Sam. os. i Mikrobusy",
+      LSMC: "Lekkie Sam. Ciężarowe",
+      SCBP: "Sam. Ciężarowe bez przycz.",
+      SCZP: "Sam. Ciężarowe z przycz.",
+      ATBS: "Autobusy",
+      CGNR: "Ciągniki rolne"
+    };
+    const row = PR_LAST_ROW;
+    if(!row){
+      document.getElementById("bpCharts").innerHTML = "Brak danych PR";
+      return;
+    }
+    // =========================
+    // 1. zbierz dane
+    // =========================
+    const entries = [];
+    let total = 0;
+    Object.keys(PR_SELECTED_TYPES).forEach(type => {
+      if(PR_SELECTED_TYPES[type] && row[type] != null){
+        const val = row[type];
+        total += val;
+        entries.push({ type, val });
+      }
+    });
+    if(total === 0){
+      document.getElementById("bpCharts").innerHTML = "Brak danych PR";
+      return;
+    }
+    // =========================
+    // 2. podział 8%
+    // =========================
+    const threshold = total * 0.08;
+    const mainLegendEntries = [];
+    const subLegendEntries = [];
+    const mainLabels = [];
+    const mainValues = [];
+    const otherLabels = [];
+    const otherValues = [];
+    let otherSum = 0;
+    entries.forEach(e => {
+      if(e.val < threshold){
+        otherLabels.push(LABEL_MAP[e.type] ?? e.type);
+        otherValues.push(e.val);
+        otherSum += e.val;
+        subLegendEntries.push(e);
+      } else {
+        mainLabels.push(LABEL_MAP[e.type] ?? e.type);
+        mainValues.push(e.val);
+        mainLegendEntries.push(e);
+      }
+    });
+    if(otherSum > 0){
+      mainLabels.push("Pozostałe");
+      mainValues.push(otherSum);
+    }
+    if(otherSum > 0){
+      mainLegendEntries.push({ type: "OTHER", val: otherSum });
+    }
+    RENDER_PR_LEGEND("prLegendMain", mainLegendEntries);
+    RENDER_PR_LEGEND("prLegendSub", subLegendEntries);
+    // =========================
+    // 3. MAIN CHART (z "Pozostałe")
+    // =========================
+    PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
+      type: "pie",
+      data: {
+        labels: mainLabels,
+        datasets: [{
+          data: mainValues
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+    // =========================
+    // 4. SUB CHART (tylko "pozostałe")
+    // =========================
+    PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
+      type: "doughnut",
+      data: {
+        labels: otherLabels,
+        datasets: [{
+          data: otherValues
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
     return;
   }
-  // =========================
-  // 1. zbierz dane
-  // =========================
-  const entries = [];
-  let total = 0;
-  Object.keys(PR_SELECTED_TYPES).forEach(type => {
-    if(PR_SELECTED_TYPES[type] && row[type] != null){
-      const val = row[type];
-      total += val;
-      entries.push({ type, val });
-    }
-  });
-  if(total === 0){
-    document.getElementById("bpCharts").innerHTML = "Brak danych PR";
-    return;
-  }
-  // =========================
-  // 2. podział 8%
-  // =========================
-  const threshold = total * 0.08;
-  const mainLegendEntries = [];
-  const subLegendEntries = [];
-  const mainLabels = [];
-  const mainValues = [];
-  const otherLabels = [];
-  const otherValues = [];
-  let otherSum = 0;
-  entries.forEach(e => {
-    if(e.val < threshold){
-      otherLabels.push(LABEL_MAP[e.type] ?? e.type);
-      otherValues.push(e.val);
-      otherSum += e.val;
-      subLegendEntries.push(e);
-    } else {
-      mainLabels.push(LABEL_MAP[e.type] ?? e.type);
-      mainValues.push(e.val);
-      mainLegendEntries.push(e);
-    }
-  });
-  if(otherSum > 0){
-    mainLabels.push("Pozostałe");
-    mainValues.push(otherSum);
-  }
-  if(otherSum > 0){
-    mainLegendEntries.push({ type: "OTHER", val: otherSum });
-  }
-  RENDER_PR_LEGEND("prLegendMain", mainLegendEntries);
-  RENDER_PR_LEGEND("prLegendSub", subLegendEntries);
-  // =========================
-  // 3. MAIN CHART (z "Pozostałe")
-  // =========================
-  PR_CHART_INSTANCE_MAIN = new Chart(mainCtx, {
-    type: "pie",
-    data: {
-      labels: mainLabels,
-      datasets: [{
-        data: mainValues
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  });
-  // =========================
-  // 4. SUB CHART (tylko "pozostałe")
-  // =========================
-  PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
-    type: "doughnut",
-    data: {
-      labels: otherLabels,
-      datasets: [{
-        data: otherValues
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  });
-  return;
-}
   // =========================
   // TRYB B - HISTOGRAM PRĘDKOŚCI
   // =========================
@@ -1157,10 +1159,6 @@ if(PR_CHART_MODE === "A" || !PR_CHART_MODE){
       PR_CHART_INSTANCE_SUB = null;
     }
     return;
-  }
-  if(PR_CHART_MODE !== "A"){
-    document.getElementById("prLegendMain").innerHTML = "";
-    document.getElementById("prLegendSub").innerHTML = "";
   }
 }
 /* ===============================
