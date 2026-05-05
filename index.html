@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP A</title>
+<title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -968,6 +968,17 @@ function RENDER_PR_LEGEND(containerId, entries){
   const container = document.getElementById(containerId);
   if(!container) return;
   container.innerHTML = "";
+  const title = document.createElement("div");
+  title.style.fontWeight = "bold";
+  title.style.marginBottom = "10px";
+  title.style.paddingBottom = "6px";
+  title.style.borderBottom = "1px solid #ddd";
+  title.style.fontSize = "12px";
+  title.innerText =
+    containerId === "prLegendMain"
+      ? "Udział rodzaju pojazdów"
+      : "Pozostałe";
+  container.appendChild(title);
   entries.forEach(e => {
     const meta = PR_TYPE_META[e.type] || PR_TYPE_META.OTHER;
     const el = document.createElement("div");
