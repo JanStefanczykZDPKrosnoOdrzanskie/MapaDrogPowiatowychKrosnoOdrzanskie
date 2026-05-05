@@ -1188,11 +1188,16 @@ STEROWANIE WYKRESAMI
 function INIT_PR_BUTTONS(){
   const setChartMode = (mode) => {
     PR_CHART_MODE = mode;
-    if(!PR_LAST_ROW) return;
-    document.getElementById("bpCharts").innerHTML = `
-      <canvas id="prMainChart"></canvas>
-      <canvas id="prSubChart"></canvas>
-    `;
+    if(mode === "A"){
+      document.getElementById("bpCharts").innerHTML = `
+        <canvas id="prMainChart"></canvas>
+        <canvas id="prSubChart"></canvas>
+      `;
+    } else {
+      document.getElementById("bpCharts").innerHTML = `
+        <canvas id="prMainChart"></canvas>
+      `;
+    }
     const legendMain = document.getElementById("prLegendMain");
     const legendSub  = document.getElementById("prLegendSub");
     if(mode === "A"){
