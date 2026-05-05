@@ -971,7 +971,7 @@ function RENDER_PR_LEGEND(containerId, entries){
 function RENDER_PR_CHART(){
   const mainCtx = document.getElementById("prMainChart");
   const subCtx = document.getElementById("prSubChart");
-  if(!mainCtx || !subCtx) return;
+  if(!mainCtx) return;
   CLEAR_PR_CHART();
   document.getElementById("prLegendMain").innerHTML = "";
   document.getElementById("prLegendSub").innerHTML = "";
@@ -1074,25 +1074,27 @@ function RENDER_PR_CHART(){
     // =========================
     // 4. SUB CHART (tylko "pozostałe")
     // =========================
-    const subColors = subLegendEntries.map(e =>
-      (PR_TYPE_META[e.type] || PR_TYPE_META.OTHER).color
-    );
-    PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
-      type: "doughnut",
-      data: {
-        labels: otherLabels,
-        datasets: [{
-          data: otherValues,
-          backgroundColor: subColors
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false }
+    if(subCtx){
+      const subColors = subLegendEntries.map(e =>
+        (PR_TYPE_META[e.type] || PR_TYPE_META.OTHER).color
+      );
+    
+      PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
+        type: "doughnut",
+        data: {
+          labels: otherLabels,
+          datasets: [{
+            data: otherValues,
+            backgroundColor: subColors
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: false }
+          }
         }
-      }
-    });
-    return;
+      });
+    }
   }
   // =========================
   // TRYB B - HISTOGRAM PRĘDKOŚCI
