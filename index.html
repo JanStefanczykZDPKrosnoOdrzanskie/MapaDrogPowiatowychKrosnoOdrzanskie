@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP</title>
+<title>Mapa ZDP A</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -226,10 +226,25 @@ BOTTOM PANEL
   border-left: 1px solid #ddd;
 }
 #bpCharts.mode-a{
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   flex: 1;
   height: 100%;
   min-width: 0;
+}
+#bpCharts.mode-a .pr-chart-slot{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 100%;
+}
+#bpCharts.mode-a .pr-chart-slot canvas{
+  display: block;
+  width: 100% !important;
+  max-width: 320px;
+  height: auto !important;
+  aspect-ratio: 1 / 1;
 }
 #bpCharts.mode-bc{
   display: flex;
@@ -237,18 +252,9 @@ BOTTOM PANEL
   height: 100%;
   min-width: 0;
 }
-#bpCharts.mode-a #prMainChart{
-  width: 33.333%;
-  margin-left: 16.666%;
-}
-
-#bpCharts.mode-a #prSubChart{
-  width: 33.333%;
-}
 
 #bpCharts.mode-bc #prMainChart{
   width: 66.666%;
-  margin-left: 16.666%;
 }
 
 #bpCharts.mode-bc #prSubChart{
@@ -922,8 +928,12 @@ map.on("click", async (e) => {
       `;
       document.getElementById("bpCharts").className = "mode-a";
       document.getElementById("bpCharts").innerHTML = `
-        <canvas id="prMainChart"></canvas>
-        <canvas id="prSubChart"></canvas>
+        <div class="pr-chart-slot">
+          <canvas id="prMainChart"></canvas>
+        </div>
+        <div class="pr-chart-slot">
+          <canvas id="prSubChart"></canvas>
+        </div>
       `;
       RENDER_PR_CHART();
     }
@@ -1197,10 +1207,21 @@ function INIT_PR_BUTTONS(){
     if(!PR_LAST_ROW) return;
     const chartWrap = document.getElementById("bpCharts");
     chartWrap.className = (mode === "A") ? "mode-a" : "mode-bc";
-    chartWrap.innerHTML = `
-      <canvas id="prMainChart"></canvas>
-      <canvas id="prSubChart"></canvas>
-    `;
+    if(mode === "A"){
+      chartWrap.innerHTML = `
+        <div class="pr-chart-slot">
+          <canvas id="prMainChart"></canvas>
+        </div>
+        <div class="pr-chart-slot">
+          <canvas id="prSubChart"></canvas>
+        </div>
+      `;
+    } else {
+      chartWrap.innerHTML = `
+        <canvas id="prMainChart"></canvas>
+        <canvas id="prSubChart"></canvas>
+      `;
+    }
     const legendMain = document.getElementById("prLegendMain");
     const legendSub  = document.getElementById("prLegendSub");
     if(mode === "A"){
