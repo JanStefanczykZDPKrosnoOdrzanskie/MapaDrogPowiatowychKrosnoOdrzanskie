@@ -194,21 +194,25 @@ BOTTOM PANEL
   height: 100% !important;
 }
 #prMainChart{
-  width: 33.333%;
-  margin-left: 16.666%;
+  flex: 1;
 }
 #prSubChart{
-  width: 33.333%;
+  flex: 1;
 }
 #bpCharts{
   display: flex;
-  width: 100%;
+  flex: 1;
   height: 100%;
+  min-width: 0;
 }
 #bpCharts canvas{
-  margin: 0;
-  width: auto !important;
+  flex: 1;
+  min-width: 0;
   height: 100% !important;
+}
+#bpCharts canvas{
+  display: block;
+  max-width: 100%;
 }
 #bpChartsWrapper{
   display: flex;
