@@ -1045,7 +1045,8 @@ function RENDER_PR_CHART(){
       data: {
         labels: mainLabels,
         datasets: [{
-          data: mainValues
+          data: mainValues,
+          backgroundColor: mainColors
         }]
       },
       options: {
@@ -1057,8 +1058,8 @@ function RENDER_PR_CHART(){
     // =========================
     // 4. SUB CHART (tylko "pozostałe")
     // =========================
-    const subColors = otherLabels.map(() =>
-      PR_TYPE_META.OTHER.color
+    const subColors = subLegendEntries.map(e =>
+      (PR_TYPE_META[e.type] || PR_TYPE_META.OTHER).color
     );
     PR_CHART_INSTANCE_SUB = new Chart(subCtx, {
       type: "doughnut",
