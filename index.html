@@ -875,6 +875,9 @@ map.on("click", async (e) => {
     document.getElementById("bpRuch").innerHTML = `
       Brak danych pomiaru ruchu
     `;
+    document.getElementById("bpCharts").innerHTML = "";
+    document.getElementById("prLegendMain").style.display = "none";
+    document.getElementById("prLegendSub").style.display = "none";
   } else {
     const prId = prFeature.properties.PR;
     const row = PR_CSV_DATA[prId];
@@ -882,6 +885,9 @@ map.on("click", async (e) => {
     PR_LAST_ROW = row; // <- zawsze ustaw wcześniej
     if(!row){
       document.getElementById("bpRuch").innerHTML = `Brak danych pomiaru ruchu`;
+      document.getElementById("bpCharts").innerHTML = "";
+      document.getElementById("prLegendMain").style.display = "none";
+      document.getElementById("prLegendSub").style.display = "none";
       return;
     } else {
       // ===== SUMA =====
@@ -896,6 +902,8 @@ map.on("click", async (e) => {
       if(sum === 0){
         document.getElementById("bpRuch").innerHTML = `Brak danych pomiaru ruchu`;
         document.getElementById("bpCharts").innerHTML = "";
+        document.getElementById("prLegendMain").style.display = "none";
+        document.getElementById("prLegendSub").style.display = "none";
         return;
       }
       // ===== GENERUJ WYKRES (canvas) =====
@@ -979,6 +987,8 @@ function RENDER_PR_CHART(){
     const row = PR_LAST_ROW;
     if(!row){
       document.getElementById("bpCharts").innerHTML = "Brak danych PR";
+      document.getElementById("prLegendMain").style.display = "none";
+      document.getElementById("prLegendSub").style.display = "none";
       return;
     }
     // =========================
@@ -995,6 +1005,8 @@ function RENDER_PR_CHART(){
     });
     if(total === 0){
       document.getElementById("bpCharts").innerHTML = "Brak danych PR";
+      document.getElementById("prLegendMain").style.display = "none";
+      document.getElementById("prLegendSub").style.display = "none";
       return;
     }
     // =========================
