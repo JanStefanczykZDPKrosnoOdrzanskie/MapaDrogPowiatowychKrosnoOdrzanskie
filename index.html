@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP A</title>
+<title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -193,17 +193,8 @@ BOTTOM PANEL
 #bpCharts canvas{
   height: 100% !important;
 }
-#prMainChart{
-  width: 33.333%;
-  margin-left: 16.666%;
-}
 #prSubChart{
   width: 33.333%;
-}
-#bpCharts{
-  display: flex;
-  width: 100%;
-  height: 100%;
 }
 #bpCharts canvas{
   margin: 0;
@@ -234,17 +225,35 @@ BOTTOM PANEL
 #prLegendSub{
   border-left: 1px solid #ddd;
 }
-#bpCharts{
+#bpCharts.mode-a{
   display: flex;
   flex: 1;
   height: 100%;
   min-width: 0;
 }
-#prMainChart{
+#bpCharts.mode-bc{
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+}
+#bpCharts.mode-a #prMainChart{
+  width: 33.333%;
+  margin-left: 16.666%;
+}
+
+#bpCharts.mode-a #prSubChart{
   width: 33.333%;
 }
-#prSubChart{
-  width: 33.333%;
+
+#bpCharts.mode-bc #prMainChart{
+  width: 66.666%;
+  margin-left: 16.666%;
+}
+
+#bpCharts.mode-bc #prSubChart{
+  width: 0;
+  display: none;
 }
 .bp-column + .bp-chart-column{
   margin-left: -10px;
@@ -911,6 +920,7 @@ map.on("click", async (e) => {
       document.getElementById("bpRuch").innerHTML = `
         <b>SDR:</b> ${sum}<br><br>
       `;
+      document.getElementById("bpCharts").className = "mode-a";
       document.getElementById("bpCharts").innerHTML = `
         <canvas id="prMainChart"></canvas>
         <canvas id="prSubChart"></canvas>
@@ -1185,7 +1195,9 @@ function INIT_PR_BUTTONS(){
   const setChartMode = (mode) => {
     PR_CHART_MODE = mode;
     if(!PR_LAST_ROW) return;
-    document.getElementById("bpCharts").innerHTML = `
+    const chartWrap = document.getElementById("bpCharts");
+    chartWrap.className = (mode === "A") ? "mode-a" : "mode-bc";
+    chartWrap.innerHTML = `
       <canvas id="prMainChart"></canvas>
       <canvas id="prSubChart"></canvas>
     `;
