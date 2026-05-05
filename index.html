@@ -239,9 +239,17 @@ BOTTOM PANEL
   min-width: 0;
   height: 100%;
 }
+#bpCharts.mode-a .pr-chart-slot:first-child{
+  justify-content: flex-end;
+  padding-right: 8%;
+}
+#bpCharts.mode-a .pr-chart-slot:last-child{
+  justify-content: flex-start;
+  padding-left: 8%;
+}
 #bpCharts.mode-a .pr-chart-slot canvas{
   display: block;
-  height: var(--legend-logo-height) !important;
+  height: calc(var(--legend-logo-height) - 10px) !important;
   width: auto !important;
   aspect-ratio: 1 / 1;
 }
@@ -251,11 +259,9 @@ BOTTOM PANEL
   height: 100%;
   min-width: 0;
 }
-
 #bpCharts.mode-bc #prMainChart{
   width: 66.666%;
 }
-
 #bpCharts.mode-bc #prSubChart{
   width: 0;
   display: none;
