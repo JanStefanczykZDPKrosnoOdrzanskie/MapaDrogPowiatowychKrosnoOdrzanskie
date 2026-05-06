@@ -311,6 +311,7 @@
 <script src="JS/map.js"></script>
 <script src="JS/ui/legend.js"></script>
 <script src="JS/ui/search.js"></script>
+<script src="JS/ui/bottomPanel.js"></script>
 <script src="JS/layers/roads.js"></script>
 <script src="JS/layers/admin.js"></script>
 <script src="JS/layers/km.js"></script>
@@ -449,6 +450,7 @@ map.on('load',async()=>{
   
   ZDP_LEGEND_INIT();
   INIT_SEARCH();
+  INIT_BOTTOM_PANEL();
   INIT_KM_TOGGLE();
   INIT_PR_BUTTONS();
 });
@@ -596,10 +598,6 @@ map.on("click", async (e) => {
    DOLNY PANEL
   ========================= */
   const nr = closestFeature.properties?.nr;
-  document.getElementById("selectedRoad").innerText =
-    `Wybrana droga: ${nr ?? "-"}`;
-  document.getElementById("selectedKm").innerText =
-    `KM: ${kmInt}+${String(m).padStart(3, "0")}`;
   const startKm = Math.min(km_s, km_e);
   const endKm = Math.max(km_s, km_e);
   const formatKm = (v) => {
@@ -608,11 +606,6 @@ map.on("click", async (e) => {
     return `${kmPart}+${String(mPart).padStart(3, "0")}`;
   };
   const lengthKm = Math.abs(km_e - km_s) / 1000;
-  document.getElementById("bpGeometry").innerHTML = `
-    <b>Początek:</b> ${formatKm(startKm)}<br>
-    <b>Koniec:</b> ${formatKm(endKm)}<br>
-    <b>Długość:</b> ${lengthKm.toFixed(3)} km
-  `;
   // =========================
   // POBRANIE NAJBLIŻSZYCH FEATURE
   // =========================
@@ -628,36 +621,34 @@ map.on("click", async (e) => {
   const klValue  = KL_DICT[klRaw]  ?? klRaw  ?? "-";
   const nawValue = NAW_DICT[nawRaw] ?? nawRaw ?? "-";
   const zudValue = ZUD_DICT[zudRaw] ?? zudRaw ?? "-";
-  // =========================
-  // PANEL
-  // =========================
-  document.getElementById("bpParams").innerHTML = `
-    <b>Klasa drogi:</b> ${klValue}<br>
-    <b>Nawierzchnia:</b> ${nawValue}<br>
-    <b>ZUD:</b> ${zudValue}<br>
-  `;
+  UPDATE_BOTTOM_PANEL_BASIC({
+    roadNr: nr,
+    kmText: `${kmInt}+${String(m).padStart(3, "0")}`,
+    geometryHtml: `
+      <b>Początek:</b> ${formatKm(startKm)}<br>
+      <b>Koniec:</b> ${formatKm(endKm)}<br>
+      <b>Długość:</b> ${lengthKm.toFixed(3)} km
+    `,
+    paramsHtml: `
+      <b>Klasa drogi:</b> ${klValue}<br>
+      <b>Nawierzchnia:</b> ${nawValue}<br>
+      <b>ZUD:</b> ${zudValue}<br>
+    `
+  });
   // =========================
   // POMIAR RUCHU (PR)
   // =========================
   const prFeature = GET_NEAREST_PR(clickPoint, nr);
   PR_LAST_ROW = null;
   if(!prFeature){
-    document.getElementById("bpRuch").innerHTML = `
-      Brak danych pomiaru ruchu
-    `;
-    document.getElementById("bpCharts").innerHTML = "";
-    document.getElementById("prLegendMain").style.display = "none";
-    document.getElementById("prLegendSub").style.display = "none";
+    UPDATE_BOTTOM_PANEL_PR_EMPTY();
   } else {
     const prId = prFeature.properties.PR;
     const row = PR_CSV_DATA[prId];
     await LOAD_PR_CSV(prId);
     PR_LAST_ROW = row; // <- zawsze ustaw wcześniej
     if(!row){
-      document.getElementById("bpRuch").innerHTML = `Brak danych pomiaru ruchu`;
-      document.getElementById("bpCharts").innerHTML = "";
-      document.getElementById("prLegendMain").style.display = "none";
-      document.getElementById("prLegendSub").style.display = "none";
+      UPDATE_BOTTOM_PANEL_PR_EMPTY();
       return;
     } else {
       // ===== SUMA =====
@@ -670,26 +661,11 @@ map.on("click", async (e) => {
         }
       });
       if(sum === 0){
-        document.getElementById("bpRuch").innerHTML = `Brak danych pomiaru ruchu`;
-        document.getElementById("bpCharts").innerHTML = "";
-        document.getElementById("prLegendMain").style.display = "none";
-        document.getElementById("prLegendSub").style.display = "none";
+        UPDATE_BOTTOM_PANEL_PR_EMPTY();
         return;
       }
       // ===== GENERUJ WYKRES (canvas) =====
-      const canvasId = "prChart";
-      document.getElementById("bpRuch").innerHTML = `
-        <b>SDR:</b> ${sum}<br><br>
-      `;
-      document.getElementById("bpCharts").className = "mode-a";
-      document.getElementById("bpCharts").innerHTML = `
-        <div class="pr-chart-slot">
-          <canvas id="prMainChart"></canvas>
-        </div>
-        <div class="pr-chart-slot">
-          <canvas id="prSubChart"></canvas>
-        </div>
-      `;
+      UPDATE_BOTTOM_PANEL_PR(sum);
       RENDER_PR_CHART();
     }
   }
@@ -1099,16 +1075,6 @@ function GET_NEAREST_PR(point, roadNr){
   }
   return closest;
 }
-/* ===============================
-BOTTOM PANEL TOGGLE
-=============================== */
-const bottomPanel = document.getElementById("bottomPanel");
-const bottomPanelHeader = document.getElementById("bottomPanelHeader");
-bottomPanelHeader.addEventListener("click", () => {
-  bottomPanel.classList.toggle("open");
-  UPDATE_ATTRIBUTION_POSITION();
-});
-window.addEventListener("resize", UPDATE_ATTRIBUTION_POSITION);
 </script>
 </body>
 </html>
