@@ -5,8 +5,8 @@ const DZ_SELECTED_TYPES = {};
 function ZDP_LEGEND_INIT(){
   document.querySelectorAll('#legend input').forEach(chk=>{
     chk.addEventListener('change',e=>{
-      if(e.target.dataset.dzEgib){
-        const type = e.target.dataset.dzEgib;
+      if(e.target.dataset.dzType){
+        const type = e.target.dataset.dzType;
         DZ_SELECTED_TYPES[type] = e.target.checked;
         UPDATE_DZ_VISIBILITY();
         return;
@@ -94,26 +94,17 @@ function UPDATE_DZ_VISIBILITY(){
     map.setFilter("dz_labels", ["==", ["get","DZ_EGIB"], "__none__"]);
     return;
   }
-  map.setFilter("dz_fill", [
-    "any",
-    // DZIALKI DROGOWE
-    showRoad
-      ? [">=", ["index-of", "dr", ["get","DZ_EGIB"]], 0]
-      : false,
-    // POZOSTAŁE (brak dr)
-    showOther
-      ? ["==", ["index-of", "dr", ["get","DZ_EGIB"]], -1]
-      : false
-  ]);
-  map.setFilter("dz_labels", [
-    "any",
-    showRoad
-      ? [">=", ["index-of", "dr", ["get","DZ_EGIB"]], 0]
-      : false,
-    showOther
-      ? ["==", ["index-of", "dr", ["get","DZ_EGIB"]], -1]
-      : false
-  ]);
+  const filters = [];
+  // drogi = zawiera "dr"
+  if(showRoad){
+    filters.push([">=", ["index-of", "dr", ["get","DZ_EGIB"]], 0]);
+  }
+  // pozostałe = NIE zawiera "dr"
+  if(showOther){
+    filters.push(["==", ["index-of", "dr", ["get","DZ_EGIB"]], -1]);
+  }
+  map.setFilter("dz_fill", ["any", ...filters]);
+  map.setFilter("dz_labels", ["any", ...filters]);
 }
 /* ===============================
 LEGEND COLAPSE
@@ -162,8 +153,8 @@ document.querySelectorAll(".section-toggle").forEach(toggle=>{
   });
 });
 // ===== INIT DZ STATE =====
-document.querySelectorAll('input[data-dz-egib]').forEach(chk=>{
-  const type = chk.dataset.dzEgib;
+document.querySelectorAll('input[data-dz-type]').forEach(chk=>{
+  const type = chk.dataset.dzType;
   DZ_SELECTED_TYPES[type] = chk.checked;
 });
 UPDATE_DZ_VISIBILITY();
