@@ -1,0 +1,85 @@
+#bpCharts canvas{
+  height: 100% !important;
+}
+#prSubChart{
+  width: 33.333%;
+}
+#bpCharts canvas{
+  margin: 0;
+  width: auto !important;
+  height: 100% !important;
+}
+#bpChartsWrapper{
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  align-items: stretch;
+}
+#prLegendMain,
+#prLegendSub{
+  width: 220px;
+  background: white;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+#prLegendMain{
+  border-right: 1px solid #ddd;
+}
+#prLegendSub{
+  border-left: 1px solid #ddd;
+}
+#bpCharts.mode-a{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+}
+#bpCharts.mode-a .pr-chart-slot{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 100%;
+}
+#bpCharts.mode-a .pr-chart-slot:first-child{
+  justify-content: flex-end;
+  padding-right: 8%;
+}
+#bpCharts.mode-a .pr-chart-slot:last-child{
+  justify-content: flex-start;
+  padding-left: 8%;
+}
+#bpCharts.mode-a .pr-chart-slot canvas{
+  display: block;
+  height: calc(var(--legend-logo-height) - 10px) !important;
+  width: auto !important;
+  aspect-ratio: 1 / 1;
+}
+#bpCharts.mode-bc{
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+}
+#bpCharts.mode-bc #prMainChart{
+  width: 66.666%;
+}
+#bpCharts.mode-bc #prSubChart{
+  width: 0;
+  display: none;
+}
+.bp-column + .bp-chart-column{
+  margin-left: -10px;
+}
+.bp-column h4{
+  margin-top: 0;
+  font-size: 14px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
