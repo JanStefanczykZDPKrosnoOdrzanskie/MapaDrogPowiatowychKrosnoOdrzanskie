@@ -87,15 +87,33 @@ function UPDATE_EW_LABELS_VISIBILITY(){
 }
 function UPDATE_DZ_VISIBILITY(){
   if(!map.getLayer("dz_fill")) return;
-  const active = Object.keys(DZ_SELECTED_TYPES)
-    .filter(k => DZ_SELECTED_TYPES[k]);
-  if(active.length === 0){
+  const showRoad = DZ_SELECTED_TYPES["dr"] === true;
+  const showOther = DZ_SELECTED_TYPES["other"] === true;
+  if(!showRoad && !showOther){
     map.setFilter("dz_fill", ["==", ["get","DZ_EGIB"], "__none__"]);
     map.setFilter("dz_labels", ["==", ["get","DZ_EGIB"], "__none__"]);
     return;
   }
-  map.setFilter("dz_fill", ["in", ["get","DZ_EGIB"], ["literal", active]]);
-  map.setFilter("dz_labels", ["in", ["get","DZ_EGIB"], ["literal", active]]);
+  map.setFilter("dz_fill", [
+    "any",
+    // DZIALKI DROGOWE
+    showRoad
+      ? [">=", ["index-of", "dr", ["get","DZ_EGIB"]], 0]
+      : false,
+    // POZOSTAŁE (brak dr)
+    showOther
+      ? ["==", ["index-of", "dr", ["get","DZ_EGIB"]], -1]
+      : false
+  ]);
+  map.setFilter("dz_labels", [
+    "any",
+    showRoad
+      ? [">=", ["index-of", "dr", ["get","DZ_EGIB"]], 0]
+      : false,
+    showOther
+      ? ["==", ["index-of", "dr", ["get","DZ_EGIB"]], -1]
+      : false
+  ]);
 }
 /* ===============================
 LEGEND COLAPSE
