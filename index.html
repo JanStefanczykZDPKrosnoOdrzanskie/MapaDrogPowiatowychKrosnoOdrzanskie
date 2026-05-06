@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP A</title>
+<title>Mapa ZDP B</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -20,104 +20,9 @@
 <link rel="stylesheet" href="CSS/map.css">
 <link rel="stylesheet" href="CSS/legend.css">
 <link rel="stylesheet" href="CSS/controls.css">
+<link rel="stylesheet" href="CSS/bottom-panel.css">
 
 <style>
-/* ===============================
-BOTTOM PANEL
-=============================== */
-#bottomPanel{
-  position:absolute;
-  left:0;
-  bottom:0;
-  width:100%;
-  height: calc(var(--legend-logo-height) + var(--bottom-header-height));
-  background:white;
-  box-shadow:0 -3px 10px rgba(0,0,0,0.3);
-  transform:translateY(var(--legend-logo-height));
-  transition:transform 0.3s ease;
-  z-index:90;
-  display:flex;
-  flex-direction:column;
-  font-family:Arial,sans-serif;
-}
-#bottomPanel.open{
-  transform:translateY(0);
-}
-#bottomPanelHandle{
-  height:40px;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-#bottomPanelHandle::before{
-  content:"";
-  width:60px;
-  height:6px;
-  background:#ccc;
-  border-radius:3px;
-}
-#bottomPanelLogo{
-  position: absolute;
-  right: 0;
-  top: var(--bottom-header-height);
-  width: var(--legend-width);
-  height: var(--legend-logo-height);
-  border-left: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-}
-#bottomPanelHeader{
-  position: relative;
-  height: var(--bottom-header-height);
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-  background: white;
-  font-weight: bold;
-  border-bottom: 1px solid #ddd;
-  z-index: 2;
-  cursor: pointer;
-  user-select: none;
-}
-#bottomPanelHeader::before{
-  content:"";
-  position:absolute;
-  left:50%;
-  top:6px;
-  transform:translateX(-50%);
-  width:60px;
-  height:6px;
-  background:#ccc;
-  border-radius:3px;
-}
-#bottomPanelContent{
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  padding: 10px;
-  padding-right: calc(var(--legend-width) + 10px);
-  height: calc(100% - 40px);
-  box-sizing: border-box;
-}
-/* kolumny */
-.bp-column{
-  min-width: 200px;
-  background: #f7f7f7;
-  padding: 10px;
-  border-radius: 6px;
-}
-.bp-chart-column{
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  display: flex;
-  align-items: stretch;
-  flex: 1;
-  min-width: 0;
-}
 #bpCharts canvas{
   height: 100% !important;
 }
