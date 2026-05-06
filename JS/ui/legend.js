@@ -143,3 +143,9 @@ document.querySelectorAll(".section-toggle").forEach(toggle=>{
     UPDATE_BASEMAP_ATTRIBUTION();
   });
 });
+// ===== INIT DZ STATE =====
+document.querySelectorAll('input[data-dz-egib]').forEach(chk=>{
+  const type = chk.dataset.dzEgib;
+  DZ_SELECTED_TYPES[type] = chk.checked;
+});
+UPDATE_DZ_VISIBILITY();
