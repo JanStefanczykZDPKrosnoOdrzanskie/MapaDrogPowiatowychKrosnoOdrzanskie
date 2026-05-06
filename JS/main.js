@@ -1,0 +1,16 @@
+map.on('load',async()=>{
+  await ZDP_LOAD_GEO_SOURCES(map);
+  INIT_MAP_UI();
+  INIT_ZOOM_UI();
+  INIT_ROADS_LAYER(map);
+  INIT_ADMIN_LAYER(map);
+  INIT_KM_LAYER(map);
+  INIT_PR_LAYER(map);
+  
+  ZDP_LEGEND_INIT();
+  INIT_SEARCH();
+  INIT_BOTTOM_PANEL();
+  INIT_KM_TOGGLE();
+  INIT_KM_MEASURE();
+  INIT_PR_BUTTONS();
+});
