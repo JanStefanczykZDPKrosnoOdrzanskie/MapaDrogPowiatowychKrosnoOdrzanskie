@@ -6,6 +6,47 @@ function ZDP_RENDER_ADMIN_STYLES(map){
   ADD_FILTER_LAYER(map,"layer_grn_2","admin_boundaries",["==",["get","GRN"],2],"#555555",1,false);
   ADD_FILTER_LAYER(map,"layer_grn_1","admin_boundaries",["==",["get","GRN"],1],"#000000",2, true);
 }
+function ZDP_RENDER_DZ_STYLES(map){
+  // --- WYPEŁNIENIE POLIGONÓW ---
+  if(!map.getLayer("dz_fill")){
+    map.addLayer({
+      id: "dz_fill",
+      type: "fill",
+      source: "dz_parcels",
+      paint: {
+        "fill-color": [
+          "match",
+          ["get", "DZ_EGIB"],
+          "dr", "rgba(0, 102, 204, 0.25)",
+          "rl", "rgba(102, 178, 255, 0.25)",
+          "ls", "rgba(153, 153, 153, 0.25)",
+          "rgba(0,0,0,0.15)"
+        ],
+        "fill-outline-color": "rgba(0,0,0,0.2)"
+      }
+    });
+  }
+  // --- LABEL DZ_NR ---
+  if(!map.getLayer("dz_labels")){
+    map.addLayer({
+      id: "dz_labels",
+      type: "symbol",
+      source: "dz_parcels",
+      minzoom: 16,
+      layout: {
+        "text-field": ["get", "DZ_NR"],
+        "text-size": 11,
+        "text-anchor": "center",
+        "text-allow-overlap": false
+      },
+      paint: {
+        "text-color": "#000000",
+        "text-halo-color": "#FFFFFF",
+        "text-halo-width": 2
+      }
+    });
+  }
+}
 function ADD_EW_LABELS(map){
   if(map.getLayer("ew_labels")) return;
   map.addSource("ew_labels_source", {
@@ -146,6 +187,7 @@ function UPDATE_EW_LABELS_DEBOUNCED(){
 }
 function INIT_ADMIN_LAYER(map){
   ZDP_RENDER_ADMIN_STYLES(map);
+  ZDP_RENDER_DZ_STYLES(map);
   ADD_EW_LABELS(map);
   UPDATE_EW_LABELS_VISIBILITY();
   map.on("move", UPDATE_EW_LABELS_DEBOUNCED);
