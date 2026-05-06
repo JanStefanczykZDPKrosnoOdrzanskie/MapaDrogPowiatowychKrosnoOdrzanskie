@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP B</title>
+<title>Mapa ZDP C</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -311,6 +311,7 @@
 <script src="JS/map.js"></script>
 <script src="JS/ui/legend.js"></script>
 <script src="JS/ui/search.js"></script>
+<script src="JS/ui/zoom.js"></script>
 <script src="JS/ui/bottomPanel.js"></script>
 <script src="JS/km-measure.js"></script>
 <script src="JS/pr-csv.js"></script>
@@ -353,6 +354,7 @@ PIPELINE LOAD
 map.on('load',async()=>{
   await ZDP_LOAD_GEO_SOURCES(map);
   INIT_MAP_UI();
+  INIT_ZOOM_UI();
   INIT_ROADS_LAYER(map);
   INIT_ADMIN_LAYER(map);
   INIT_KM_LAYER(map);
@@ -405,37 +407,6 @@ function STOP_PULSE_ANIMATION(){
     map.removeLayer("search_pulse_layer");
   }
 }
-/* ===============================
-ZOOM SLIDER (noUiSlider)
-=============================== */
-const zoomSlider = document.getElementById('zoomSlider');
-const zoomValue = document.getElementById('zoomValue');
-let isSyncingZoom = false;
-noUiSlider.create(zoomSlider, {
-  start: map.getZoom(),
-  orientation: 'vertical',
-  direction: 'rtl',
-  step: 0.1,
-  range: {
-    min: 9.5,
-    max: 22
-  }
-});
-/* slider -> mapa */
-zoomSlider.noUiSlider.on('slide', function(values){
-  const zoom = parseFloat(values[0]);
-  map.setZoom(zoom);
-  zoomValue.innerText = "Zoom: " + zoom.toFixed(1);
-});
-/* mapa -> slider */
-map.on('zoom', () => {
-  if (isSyncingZoom) return;
-  isSyncingZoom = true;
-  const z = map.getZoom();
-  zoomSlider.noUiSlider.set(z);
-  zoomValue.innerText = "Zoom: " + z.toFixed(1);
-  isSyncingZoom = false;
-});
 </script>
 </body>
 </html>
