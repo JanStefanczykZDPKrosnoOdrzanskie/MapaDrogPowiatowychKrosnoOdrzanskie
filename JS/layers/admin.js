@@ -15,12 +15,12 @@ function ZDP_RENDER_DZ_STYLES(map){
       source: "dz_parcels",
       paint: {
         "fill-color": [
-          "match",
-          ["get", "DZ_EGIB"],
-          "dr", "rgba(0, 102, 204, 0.25)",
-          "rl", "rgba(102, 178, 255, 0.25)",
-          "ls", "rgba(153, 153, 153, 0.25)",
-          "rgba(0,0,0,0.15)"
+          "case",
+          // === DROGOWE (dr występuje gdziekolwiek) ===
+          [">=", ["index-of", "dr", ["get", "DZ_EGIB"]], 0],
+          "rgba(0, 102, 204, 0.25)",
+          // === POZOSTAŁE ===
+          "rgba(153, 153, 153, 0.25)"
         ],
         "fill-outline-color": "rgba(0,0,0,0.2)"
       }
