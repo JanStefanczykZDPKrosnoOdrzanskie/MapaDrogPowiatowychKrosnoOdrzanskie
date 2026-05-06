@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP C</title>
+<title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -321,6 +321,7 @@
   </div>
 </div>
 
+<script src="JS/state/app-state.js"></script> 
 <script src="JS/geo-loader.js"></script>
 <script src="JS/map.js"></script>
 <script src="JS/ui/legend.js"></script>
@@ -336,8 +337,6 @@
 <script src="JS/layers/pr.js"></script>
   
 <script>
-let PR_CSV_RAW = null;
-
 const NAW_DICT = {
   ASF: "Masa bitumiczna",
   GRU: "Grunt naturalny",
@@ -358,9 +357,6 @@ const ZUD_DICT = {
   4: "Standard 4",
   6: "Standard 6"
 };
-let PR_SPEED_HIST = {};
-let PR_TIME_HIST = {};
-
 
 /* ===============================
 PIPELINE LOAD
