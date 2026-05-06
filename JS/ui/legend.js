@@ -1,9 +1,16 @@
 /* ===============================
 LEGEND CONTROL
 =============================== */
+const DZ_SELECTED_TYPES = {};
 function ZDP_LEGEND_INIT(){
   document.querySelectorAll('#legend input').forEach(chk=>{
     chk.addEventListener('change',e=>{
+      if(e.target.dataset.dzEgeb){
+        const type = e.target.dataset.dzEgeb;
+        DZ_SELECTED_TYPES[type] = e.target.checked;
+        UPDATE_DZ_VISIBILITY();
+        return;
+      }
       // ===== PR KALKULACJA LABELA =====
       if(e.target.dataset.prType){
         const type = e.target.dataset.prType;
@@ -77,6 +84,18 @@ function UPDATE_EW_LABELS_VISIBILITY(){
     "visibility",
     ewCheckbox.checked ? "visible" : "none"
   );
+}
+function UPDATE_DZ_VISIBILITY(){
+  if(!map.getLayer("dz_fill")) return;
+  const active = Object.keys(DZ_SELECTED_TYPES)
+    .filter(k => DZ_SELECTED_TYPES[k]);
+  if(active.length === 0){
+    map.setFilter("dz_fill", ["==", ["get","DZ_EGIB"], "__none__"]);
+    map.setFilter("dz_labels", ["==", ["get","DZ_EGIB"], "__none__"]);
+    return;
+  }
+  map.setFilter("dz_fill", ["in", ["get","DZ_EGIB"], ["literal", active]]);
+  map.setFilter("dz_labels", ["in", ["get","DZ_EGIB"], ["literal", active]]);
 }
 /* ===============================
 LEGEND COLAPSE
