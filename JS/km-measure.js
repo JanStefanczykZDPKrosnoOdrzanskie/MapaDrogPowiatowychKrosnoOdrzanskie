@@ -1,6 +1,3 @@
-let CURRENT_KM_MARKER = null;
-let KM_MEASURE_ENABLED = false;
-
 function INIT_KM_TOGGLE(){
   const btn = document.getElementById("kmToggle");
 
