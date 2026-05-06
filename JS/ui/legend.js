@@ -5,8 +5,8 @@ const DZ_SELECTED_TYPES = {};
 function ZDP_LEGEND_INIT(){
   document.querySelectorAll('#legend input').forEach(chk=>{
     chk.addEventListener('change',e=>{
-      if(e.target.dataset.dzEgeb){
-        const type = e.target.dataset.dzEgeb;
+      if(e.target.dataset.dzEgib){
+        const type = e.target.dataset.dzEgib;
         DZ_SELECTED_TYPES[type] = e.target.checked;
         UPDATE_DZ_VISIBILITY();
         return;
