@@ -56,6 +56,12 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     data:merged_roads
   });
   try{
+    const manifest = await fetch("GEOJSON/EW/DZ/manifest.json").then(r => r.json());
+    const dz_files = await Promise.all(
+      manifest.files.map(file =>
+        fetch(`GEOJSON/EW/DZ/${file}`).then(r => r.json())
+      )
+    );
     const admin_files = await Promise.all([
       fetch("GEOJSON/GRN/GRN_Powiat.geojson").then(r=>r.json()),
       fetch("GEOJSON/GRN/GRN_Gminy.geojson").then(r=>r.json()),
@@ -75,6 +81,17 @@ async function ZDP_LOAD_GEO_SOURCES(map){
     map.addSource("admin_boundaries",{
       type:"geojson",
       data:admin_merged
+    });
+    const dz_merged = {
+      type: "FeatureCollection",
+      features: dz_files.flatMap(f => f.features || [])
+    };
+    if(map.getSource("dz_parcels")){
+      map.removeSource("dz_parcels");
+    }
+    map.addSource("dz_parcels", {
+      type: "geojson",
+      data: dz_merged
     });
   }
   catch(e){
