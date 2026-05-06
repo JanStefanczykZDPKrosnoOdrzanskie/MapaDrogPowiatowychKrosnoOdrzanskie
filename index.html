@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP CD</title>
+<title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -312,6 +312,7 @@
 <script src="JS/ui/legend.js"></script>
 <script src="JS/ui/search.js"></script>
 <script src="JS/ui/bottomPanel.js"></script>
+<script src="JS/km-measure.js"></script>
 <script src="JS/layers/roads.js"></script>
 <script src="JS/layers/admin.js"></script>
 <script src="JS/layers/km.js"></script>
@@ -320,8 +321,6 @@
 <script>
 let PR_LAST_ROW = null;
 let PR_CSV_RAW = null;
-let CURRENT_KM_MARKER = null;
-let KM_MEASURE_ENABLED = false;
 // =========================
 // PARSER CSV (Pomiar_Ruchu)
 // =========================
@@ -452,6 +451,7 @@ map.on('load',async()=>{
   INIT_SEARCH();
   INIT_BOTTOM_PANEL();
   INIT_KM_TOGGLE();
+  INIT_KM_MEASURE();
   INIT_PR_BUTTONS();
 });
 /* ===============================
@@ -529,167 +529,6 @@ map.on('zoom', () => {
   zoomValue.innerText = "Zoom: " + z.toFixed(1);
   isSyncingZoom = false;
 });
-/* ===============================
-CLICK → KILOMETR W PUNKCIE
-=============================== */
-map.on("click", async (e) => {
-  if(!KM_MEASURE_ENABLED) return;
-  const MAX_CLICK_DISTANCE_PX = 20;
-  const clickPoint = turf.point([e.lngLat.lng, e.lngLat.lat]);
-  let closestFeature = null;
-  let closestPoint = null;
-  let minDist = Infinity;
-  ZDP_ALL_FEATURES.forEach(f => {
-    if (f.properties?.adm !== "P") return;
-    if (!f.geometry) return;
-    try {
-      const snapped = turf.nearestPointOnLine(f.geometry, clickPoint, {
-        units: "kilometers"
-      });
-      const snappedLngLat = snapped.geometry.coordinates;
-      const clickPixel = map.project([e.lngLat.lng, e.lngLat.lat]);
-      const snappedPixel = map.project(snappedLngLat);
-      const dx = clickPixel.x - snappedPixel.x;
-      const dy = clickPixel.y - snappedPixel.y;
-      const distPx = Math.sqrt(dx * dx + dy * dy);
-      if (distPx > MAX_CLICK_DISTANCE_PX) return;
-      if (distPx < minDist) {
-        minDist = distPx;
-        closestFeature = f;
-        closestPoint = snapped;
-      }
-    } catch (e) {}
-  });
-  if (!closestFeature || !closestPoint) return;
-  const km_s = closestFeature.properties?.km_s;
-  const km_e = closestFeature.properties?.km_e;
-  if (km_s == null || km_e == null) return;
-  // =========================
-  // USUŃ POPRZEDNI MARKER + POPUP
-  // =========================
-  if (CURRENT_KM_MARKER) {
-    CURRENT_KM_MARKER.remove();
-    CURRENT_KM_MARKER = null;
-  }
-  // =========================
-  // MARKER NA DRODZE (SNAP)
-  // =========================
-  CURRENT_KM_MARKER = new maplibregl.Marker({
-    color: "#ff0000"
-  })
-    .setLngLat(closestPoint.geometry.coordinates)
-    .addTo(map);
-  // =========================
-  // OBLICZENIE KM
-  // =========================
-  const distFromStart = turf.length(
-    turf.lineSlice(
-      turf.point(closestFeature.geometry.coordinates[0]),
-      closestPoint,
-      closestFeature.geometry
-    ),
-    { units: "kilometers" }
-  );
-  const direction = km_e >= km_s ? 1 : -1;
-  const kmValue = km_s + (distFromStart * 1000 * direction);
-  const kmInt = Math.floor(kmValue / 1000);
-  const m = Math.round(kmValue % 1000);
-  /* =========================
-   DOLNY PANEL
-  ========================= */
-  const nr = closestFeature.properties?.nr;
-  const startKm = Math.min(km_s, km_e);
-  const endKm = Math.max(km_s, km_e);
-  const formatKm = (v) => {
-    const kmPart = Math.floor(v / 1000);
-    const mPart = v % 1000;
-    return `${kmPart}+${String(mPart).padStart(3, "0")}`;
-  };
-  const lengthKm = Math.abs(km_e - km_s) / 1000;
-  // =========================
-  // POBRANIE NAJBLIŻSZYCH FEATURE
-  // =========================
-  const klFeature  = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "kl");
-  const nawFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "naw");
-  const zudFeature = GET_NEAREST_FEATURE_BY_PROP(clickPoint, "ZUD");
-  // =========================
-  // WARTOŚCI
-  // =========================
-  const klRaw  = klFeature?.properties?.kl;
-  const nawRaw = nawFeature?.properties?.naw;
-  const zudRaw = zudFeature?.properties?.ZUD;
-  const klValue  = KL_DICT[klRaw]  ?? klRaw  ?? "-";
-  const nawValue = NAW_DICT[nawRaw] ?? nawRaw ?? "-";
-  const zudValue = ZUD_DICT[zudRaw] ?? zudRaw ?? "-";
-  UPDATE_BOTTOM_PANEL_BASIC({
-    roadNr: nr,
-    kmText: `${kmInt}+${String(m).padStart(3, "0")}`,
-    geometryHtml: `
-      <b>Początek:</b> ${formatKm(startKm)}<br>
-      <b>Koniec:</b> ${formatKm(endKm)}<br>
-      <b>Długość:</b> ${lengthKm.toFixed(3)} km
-    `,
-    paramsHtml: `
-      <b>Klasa drogi:</b> ${klValue}<br>
-      <b>Nawierzchnia:</b> ${nawValue}<br>
-      <b>ZUD:</b> ${zudValue}<br>
-    `
-  });
-  // =========================
-  // POMIAR RUCHU (PR)
-  // =========================
-  const prFeature = GET_NEAREST_PR(clickPoint, nr);
-  PR_LAST_ROW = null;
-  if(!prFeature){
-    UPDATE_BOTTOM_PANEL_PR_EMPTY();
-  } else {
-    const prId = prFeature.properties.PR;
-    const row = PR_CSV_DATA[prId];
-    await LOAD_PR_CSV(prId);
-    PR_LAST_ROW = row; // <- zawsze ustaw wcześniej
-    if(!row){
-      UPDATE_BOTTOM_PANEL_PR_EMPTY();
-      return;
-    } else {
-      // ===== SUMA =====
-      let sum = 0;
-      let data = {};
-      Object.keys(PR_SELECTED_TYPES).forEach(type => {
-        if(PR_SELECTED_TYPES[type] && row[type] != null){
-          sum += row[type];
-          data[type] = row[type];
-        }
-      });
-      if(sum === 0){
-        UPDATE_BOTTOM_PANEL_PR_EMPTY();
-        return;
-      }
-      // ===== GENERUJ WYKRES (canvas) =====
-      UPDATE_BOTTOM_PANEL_PR(sum);
-      RENDER_PR_CHART();
-    }
-  }
-});
-function INIT_KM_TOGGLE(){
-  const btn = document.getElementById("kmToggle");
-  function updateUI(){
-    btn.innerText = KM_MEASURE_ENABLED ? "KM: ON" : "KM: OFF";
-    btn.style.background = KM_MEASURE_ENABLED ? "#2c3e50" : "white";
-    btn.style.color = KM_MEASURE_ENABLED ? "white" : "black";
-  }
-  btn.addEventListener("click", () => {
-    KM_MEASURE_ENABLED = !KM_MEASURE_ENABLED;
-    if(!KM_MEASURE_ENABLED){
-      // czyszczenie po wyłączeniu
-      if(CURRENT_KM_MARKER){
-        CURRENT_KM_MARKER.remove();
-        CURRENT_KM_MARKER = null;
-      }
-    }
-    updateUI();
-  });
-  updateUI(); // start OFF
-}
 function RENDER_PR_LEGEND(containerId, entries){
   const container = document.getElementById(containerId);
   if(!container) return;
@@ -985,35 +824,6 @@ function CLEAR_PR_CHART(){
   PR_CHART_INSTANCE_MAIN = null;
   PR_CHART_INSTANCE_SUB = null;
 }
-function GET_NEAREST_FEATURE_BY_PROP(point, propName){
-  const MAX_DISTANCE_PX = 20;
-  let closest = null;
-  let minDist = Infinity;
-  ZDP_ALL_FEATURES.forEach(f => {
-    if(!f.geometry) return;
-    // filtr: tylko feature który ma daną właściwość
-    if(f.properties?.[propName] == null) return;
-    try{
-      const snapped = turf.nearestPointOnLine(
-        f.geometry,
-        point,
-        {units:"kilometers"}
-      );
-      const snappedLngLat = snapped.geometry.coordinates;
-      const clickPixel = map.project(point.geometry.coordinates);
-      const snappedPixel = map.project(snappedLngLat);
-      const dx = clickPixel.x - snappedPixel.x;
-      const dy = clickPixel.y - snappedPixel.y;
-      const distPx = Math.sqrt(dx*dx + dy*dy);
-      if(distPx > MAX_DISTANCE_PX) return;
-      if(distPx < minDist){
-        minDist = distPx;
-        closest = f;
-      }
-    }catch(e){}
-  });
-  return closest;
-}
 async function LOAD_PR_CSV(prId){
   try{
     const res = await fetch(`Pomiar_Ruchu/${prId}.csv`);
@@ -1042,38 +852,6 @@ async function LOAD_PR_CSV(prId){
     PR_TIME_HIST = {};
     return false;
   }
-}
-function GET_NEAREST_PR(point, roadNr){
-  const MAX_DISTANCE_PX = 20;
-  let closest = null;
-  let minDist = Infinity;
-  ZDP_ALL_FEATURES.forEach(f => {
-    if(!f.geometry) return;
-    if(!f.properties?.PR) return; // tylko PR
-    try{
-      const snapped = turf.nearestPointOnLine(
-        f.geometry,
-        point,
-        {units:"kilometers"}
-      );
-      const snappedLngLat = snapped.geometry.coordinates;
-      const clickPixel = map.project(point.geometry.coordinates);
-      const snappedPixel = map.project(snappedLngLat);
-      const dx = clickPixel.x - snappedPixel.x;
-      const dy = clickPixel.y - snappedPixel.y;
-      const distPx = Math.sqrt(dx*dx + dy*dy);
-      if(distPx > MAX_DISTANCE_PX) return;
-      if(distPx < minDist){
-        minDist = distPx;
-        closest = f;
-      }
-    }catch(e){}
-  });
-  if(!closest) return null;
-  if(closest.properties?.nr !== roadNr){
-    return null;
-  }
-  return closest;
 }
 </script>
 </body>
