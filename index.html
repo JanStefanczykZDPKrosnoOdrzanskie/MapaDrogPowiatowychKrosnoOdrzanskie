@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP</title>
+<title>Mapa ZDP A</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -335,6 +335,7 @@
 <script src="JS/layers/admin.js"></script>
 <script src="JS/layers/km.js"></script>
 <script src="JS/layers/pr.js"></script>
+<script src="JS/main.js"></script>
   
 <script>
 const NAW_DICT = {
@@ -357,26 +358,6 @@ const ZUD_DICT = {
   4: "Standard 4",
   6: "Standard 6"
 };
-
-/* ===============================
-PIPELINE LOAD
-=============================== */
-map.on('load',async()=>{
-  await ZDP_LOAD_GEO_SOURCES(map);
-  INIT_MAP_UI();
-  INIT_ZOOM_UI();
-  INIT_ROADS_LAYER(map);
-  INIT_ADMIN_LAYER(map);
-  INIT_KM_LAYER(map);
-  INIT_PR_LAYER(map);
-  
-  ZDP_LEGEND_INIT();
-  INIT_SEARCH();
-  INIT_BOTTOM_PANEL();
-  INIT_KM_TOGGLE();
-  INIT_KM_MEASURE();
-  INIT_PR_BUTTONS();
-});
 /* ===============================
 PULSE HIGHLIGHT ANIMATION
 =============================== */
