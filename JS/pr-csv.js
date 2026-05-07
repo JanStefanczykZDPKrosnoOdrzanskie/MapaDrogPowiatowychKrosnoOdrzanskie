@@ -186,6 +186,7 @@ async function LOAD_PR_CSV(prId){
     });
     
     const perDayTimeHist = {};
+    const perDaySpeedHist = {};
 
     const useAverageMode =
       finalRange.duration > (40 * 60 * 60 * 1000);
@@ -207,19 +208,19 @@ async function LOAD_PR_CSV(prId){
 
       const sb = Math.floor(sp / 10) * 10;
       const speedKey = `${sb}-${sb+9}`;
-
-      PR_SPEED_HIST[speedKey] =
-        (PR_SPEED_HIST[speedKey] || 0) + 1;
-
+      
       const timeKey = bin30(t);
-
+      
       if(!useAverageMode){
+        PR_SPEED_HIST[speedKey] =
+          (PR_SPEED_HIST[speedKey] || 0) + 1;
+      
         PR_TIME_HIST[timeKey] =
           (PR_TIME_HIST[timeKey] || 0) + 1;
-
+      
         return;
       }
-
+      
       let dayIndex = getMeasurementDayIndex(
         t,
         finalRange.start
@@ -227,6 +228,13 @@ async function LOAD_PR_CSV(prId){
       
       if(dayIndex < 0) dayIndex = 0;
       if(dayIndex > 1) dayIndex = 1;
+      
+      if(!perDaySpeedHist[speedKey]){
+        perDaySpeedHist[speedKey] = {};
+      }
+      
+      perDaySpeedHist[speedKey][dayIndex] =
+        (perDaySpeedHist[speedKey][dayIndex] || 0) + 1;
 
       if(!perDayTimeHist[timeKey]){
         perDayTimeHist[timeKey] = {};
@@ -239,17 +247,33 @@ async function LOAD_PR_CSV(prId){
     if(useAverageMode){
       Object.keys(perDayTimeHist).forEach(timeKey => {
         const dayData = perDayTimeHist[timeKey];
-
+    
         const values = Object.values(dayData);
-
+    
         if(values.length === 0){
           PR_TIME_HIST[timeKey] = 0;
           return;
         }
-
+    
         const sum = values.reduce((a, b) => a + b, 0);
-
+    
         PR_TIME_HIST[timeKey] =
+          Math.round(sum / values.length);
+      });
+    
+      Object.keys(perDaySpeedHist).forEach(speedKey => {
+        const dayData = perDaySpeedHist[speedKey];
+    
+        const values = Object.values(dayData);
+    
+        if(values.length === 0){
+          PR_SPEED_HIST[speedKey] = 0;
+          return;
+        }
+    
+        const sum = values.reduce((a, b) => a + b, 0);
+    
+        PR_SPEED_HIST[speedKey] =
           Math.round(sum / values.length);
       });
     }
