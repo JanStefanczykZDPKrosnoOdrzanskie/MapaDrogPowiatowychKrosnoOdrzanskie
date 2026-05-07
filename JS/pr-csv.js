@@ -61,7 +61,7 @@ function num(v){
 
 function bin30(date){
   let m = date.getHours() * 60 + date.getMinutes();
-  let b = Math.round(m / 30) * 30 % 1440;
+  let b = Math.floor(m / 30) * 30 % 1440;
 
   return String(Math.floor(b / 60)).padStart(2, "0") +
     ":" +
@@ -79,19 +79,124 @@ function generateTimeBins(){
 
   return arr;
 }
+const H24 = 24 * 60 * 60 * 1000;
+const H48 = 48 * 60 * 60 * 1000;
 
+function getMeasurementRange(rows){
+  let min = null;
+  let max = null;
+
+  rows.forEach(r => {
+    if(!r || r.length < 1) return;
+    if(r[0].includes("Data i czas")) return;
+
+    const t = parseDateSafe(r[0]);
+    if(!t) return;
+
+    const ts = t.getTime();
+
+    if(min === null || ts < min) min = ts;
+    if(max === null || ts > max) max = ts;
+  });
+
+  if(min === null || max === null){
+    return null;
+  }
+
+  return {
+    start: new Date(min),
+    end: new Date(max),
+    duration: max - min
+  };
+}
+
+function filterRowsToCentralWindow(rows, targetMs){
+  const range = getMeasurementRange(rows);
+
+  if(!range) return [];
+
+  if(range.duration <= targetMs){
+    return rows;
+  }
+
+  const excess = range.duration - targetMs;
+
+  const cutStart = range.start.getTime() + excess / 2;
+  const cutEnd = range.end.getTime() - excess / 2;
+
+  return rows.filter(r => {
+    if(!r || r.length < 1) return false;
+    if(r[0].includes("Data i czas")) return false;
+
+    const t = parseDateSafe(r[0]);
+    if(!t) return false;
+
+    const ts = t.getTime();
+
+    return ts >= cutStart && ts <= cutEnd;
+  });
+}
+
+function getMeasurementDayIndex(date, measurementStart){
+  const diff = date.getTime() - measurementStart.getTime();
+
+  return Math.floor(diff / H24);
+}
 async function LOAD_PR_CSV(prId){
   try{
     const res = await fetch(`Pomiar_Ruchu/${prId}.csv`);
     if(!res.ok) throw new Error("Brak pliku CSV");
 
     const text = await res.text();
-    PR_CSV_RAW = parseCSV(text);
+
+    const rawRows = parseCSV(text);
+
+    const initialRange = getMeasurementRange(rawRows);
+
+    if(!initialRange){
+      throw new Error("Brak poprawnych danych czasowych");
+    }
+
+    let filteredRows = rawRows;
+
+    if(
+      initialRange.duration > H24 &&
+      initialRange.duration <= (40 * 60 * 60 * 1000)
+    ){
+      filteredRows = filterRowsToCentralWindow(rawRows, H24);
+    }
+    
+    if(initialRange.duration > H48){
+      filteredRows = filterRowsToCentralWindow(rawRows, H48);
+    }
+
+    const finalRange = getMeasurementRange(filteredRows);
+
+    PR_MEASUREMENT_START = finalRange.start;
+    PR_MEASUREMENT_END = finalRange.end;
+    PR_MEASUREMENT_DURATION = finalRange.duration;
+
+    PR_CSV_RAW = filteredRows;
 
     PR_SPEED_HIST = {};
     PR_TIME_HIST = {};
 
-    PR_CSV_RAW.forEach(r => {
+    generateTimeBins().forEach(bin => {
+      PR_TIME_HIST[bin] = 0;
+    });
+    
+    const perDayTimeHist = {};
+
+    const useAverageMode =
+      finalRange.duration > (40 * 60 * 60 * 1000);
+
+    if(useAverageMode){
+      PR_MEASUREMENT_MODE = "48H_AVG";
+    }else{
+      PR_MEASUREMENT_MODE = "24H";
+    }
+
+    filteredRows.forEach(r => {
       if(!r || r.length < 4) return;
       if(r[0].includes("Data i czas")) return;
 
@@ -102,19 +207,66 @@ async function LOAD_PR_CSV(prId){
 
       const sb = Math.floor(sp / 10) * 10;
       const speedKey = `${sb}-${sb+9}`;
-      PR_SPEED_HIST[speedKey] = (PR_SPEED_HIST[speedKey] || 0) + 1;
+
+      PR_SPEED_HIST[speedKey] =
+        (PR_SPEED_HIST[speedKey] || 0) + 1;
 
       const timeKey = bin30(t);
-      PR_TIME_HIST[timeKey] = (PR_TIME_HIST[timeKey] || 0) + 1;
+
+      if(!useAverageMode){
+        PR_TIME_HIST[timeKey] =
+          (PR_TIME_HIST[timeKey] || 0) + 1;
+
+        return;
+      }
+
+      let dayIndex = getMeasurementDayIndex(
+        t,
+        finalRange.start
+      );
+      
+      if(dayIndex < 0) dayIndex = 0;
+      if(dayIndex > 1) dayIndex = 1;
+
+      if(!perDayTimeHist[timeKey]){
+        perDayTimeHist[timeKey] = {};
+      }
+
+      perDayTimeHist[timeKey][dayIndex] =
+        (perDayTimeHist[timeKey][dayIndex] || 0) + 1;
     });
 
+    if(useAverageMode){
+      Object.keys(perDayTimeHist).forEach(timeKey => {
+        const dayData = perDayTimeHist[timeKey];
+
+        const values = Object.values(dayData);
+
+        if(values.length === 0){
+          PR_TIME_HIST[timeKey] = 0;
+          return;
+        }
+
+        const sum = values.reduce((a, b) => a + b, 0);
+
+        PR_TIME_HIST[timeKey] =
+          Math.round(sum / values.length);
+      });
+    }
+
     return true;
+
   }catch(e){
     console.warn("CSV load error:", e);
 
     PR_CSV_RAW = null;
+
     PR_SPEED_HIST = {};
     PR_TIME_HIST = {};
+
+    PR_MEASUREMENT_START = null;
+    PR_MEASUREMENT_END = null;
+    PR_MEASUREMENT_DURATION = null;
 
     return false;
   }
