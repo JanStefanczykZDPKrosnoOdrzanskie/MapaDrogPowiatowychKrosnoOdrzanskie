@@ -1,5 +1,7 @@
 map.on('load',async()=>{
+  await LOAD_HTML("legendMount", "html/legend.html");
   await ZDP_LOAD_GEO_SOURCES(map);
+  
   INIT_MAP_UI();
   INIT_ZOOM_UI();
   INIT_ROADS_LAYER(map);
