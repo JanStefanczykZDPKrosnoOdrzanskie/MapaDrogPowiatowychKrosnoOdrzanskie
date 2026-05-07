@@ -1,6 +1,4 @@
 map.on('load',async()=>{
-  await LOAD_HTML("legendMount", "html/legend.html");
-  await LOAD_HTML("map-controls-container", "html/map-controls.html");
   await ZDP_LOAD_GEO_SOURCES(map);
   
   INIT_MAP_UI();
