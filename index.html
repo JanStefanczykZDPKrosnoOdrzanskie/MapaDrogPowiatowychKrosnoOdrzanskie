@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP A</title>
+<title>Mapa ZDP</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -33,9 +33,255 @@
 </head>
 
 <body>
-<div id="legendMount"></div>
-<div id="map"></div>
+<div id="legend">
+  <button id="legendToggle">⮞</button>
+  <div id="legendContent"> 
+    <div id="updateOverlay">Aktualizacja: --
+    </div>
+      <h2>
+        Legenda
+      </h2>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="adm">
+        Administracja Dróg
+      </h3>
+      <div class="legend-items">
+        <label>
+          <input type="checkbox" data-layers="layer_adm_1" data-group="adm" checked>
+          <span class="legend-line" style="background:#FF0000"></span>
+          Droga Krajowa
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_adm_2" data-group="adm" checked>
+          <span class="legend-line" style="background:#08FF00"></span>
+          Droga Wojewódzka
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_adm_3" data-group="adm" checked>
+          <span class="legend-line" style="background:#A500AD"></span>
+         Droga Powiatowa
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_adm_4" data-group="adm">
+          <span class="legend-line" style="background:#808080"></span>
+          Droga Gminna
+        </label>
+          <label>
+          <input type="checkbox" data-layers="layer_adm_5" data-group="adm">
+          <span class="legend-line" style="background:#808080"></span>
+          Droga Wewnętrzna
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="naw">
+        Nawierzchnia
+      </h3>
+      <div class="legend-items">
+        <label>
+          <input type="checkbox" data-layers="layer_dp_asf" data-group="naw">
+          <span class="legend-line" style="background:#000000"></span>
+          Masa bitumiczna
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_gru" data-group="naw">
+          <span class="legend-line" style="background:#A0522D"></span>
+          Grunt Naturalny
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_kam" data-group="naw">
+          <span class="legend-line" style="background:#666666"></span>
+          Kostka kamienna
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_bru" data-group="naw">
+          <span class="legend-line" style="background:#8B4513"></span>
+          Bruk
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_tlu" data-group="naw">
+          <span class="legend-line" style="background:#C2B280"></span>
+          Tłuczeń
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_zwr" data-group="naw">
+          <span class="legend-line" style="background:#FFD700"></span>
+          Żwir
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_dp_prf" data-group="naw">
+          <span class="legend-line" style="background:#00FFFF"></span>
+          Kostka prefabrykowana
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="kl">
+        Klasa dróg
+      </h3>
+      <div class="legend-items">
+        <label>
+          <input type="checkbox" data-layers="layer_kl_g" data-group="kl">
+          <span class="legend-line" style="background:#520000"></span>
+          G - Główna
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_kl_z" data-group="kl">
+          <span class="legend-line" style="background:#4c5200"></span>
+          Z - zbiorcza
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_kl_l" data-group="kl">
+          <span class="legend-line" style="background:#005218"></span>
+          L - lokalna
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-pr-section="true">
+        Pomiar Ruchu
+      </h3>
+      <div class="legend-items">
+        <label>
+          <input type="checkbox" data-pr-type="MOTO" checked>
+          Motocykle
+        </label>
+        <label>
+          <input type="checkbox" data-pr-type="SOMB" checked>
+          Sam. os. i Mikrobusy
+        </label>
+        <label>
+          <input type="checkbox" data-pr-type="LSMC" checked>
+           Lekkie Sam. Ciężarowe
+        </label>
+        <label>
+          <input type="checkbox" data-pr-type="SCBP" checked>
+          Sam. Ciężarowe bez przycz.
+        </label>
+        <label>
+          <input type="checkbox" data-pr-type="SCZP" checked>
+          Sam. Ciężarowe z przycz.
+        </label>
+        <label>
+          <input type="checkbox" data-pr-type="ATBS" checked>
+          Autobusy
+        </label>
+        <label>
+          <input type="checkbox" data-pr-type="CGNR" checked>
+          Ciągniki rolne
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="zud">
+        Zimowe Utrzymanie Dróg
+      </h3>
+      <div class="legend-items">  
+        <label>
+          <input type="checkbox" data-layers="layer_zud_2" data-group="zud">
+          <span class="legend-line" style="background:#FFEE00"></span>
+          Standard 2
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_zud_3" data-group="zud">
+          <span class="legend-line" style="background:#00FFFF"></span>
+          Standard 3
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_zud_4" data-group="zud">
+          <span class="legend-line" style="background:#FA9EFF"></span>
+          Standard 4
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_zud_6" data-group="zud">
+          <span class="legend-line" style="background:#A1A1A1"></span>
+          Standard 6
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="grn">
+        Granice administracyjne
+      </h3>
+      <div class="legend-items">
+        <label>
+          <input type="checkbox" data-layers="layer_grn_1" data-group="grn" checked>
+          <span class="legend-line" style="background:#000000"></span>
+          Granica Powiatu
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_grn_2" data-group="grn">
+          <span class="legend-line" style="background:#555555"></span>
+          Granica Gminy
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_grn_3" data-group="grn">
+          <span class="legend-line" style="background:#999999"></span>
+          Granica Miasta
+        </label>
+      </div>
+    </div>
+    <div class="legend-section collapsed">
+      <h3>
+        <input type="checkbox" class="section-toggle" data-group="ew">
+        Ewidencja Gruntów
+      </h3>
+      <div class="legend-items">  
+        <label>
+          <input type="checkbox" data-layers="layer_ew_1" data-group="ew">
+          <span class="legend-line" style="background:#0066CC"></span>
+          Jednostki Ewidencyjne
+        </label>
+        <label>
+          <input type="checkbox" data-layers="layer_ew_2" data-group="ew">
+          <span class="legend-line" style="background:#66B2FF"></span>
+          Obręby Ewidencyjne
+        </label>
+        <div class="legend-section collapsed">
+          <h3>
+            Działki (EGiB)
+          </h3>
+          <div class="legend-items">        
+            <label>
+              <input type="checkbox" data-dz-type="dr" checked>
+              drogowe
+            </label>
+            <label>
+              <input type="checkbox" data-dz-type="other" checked>
+              pozostałe
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <label>
+  <input type="checkbox" id="kmIntermediateToggle">
+    Kilometraż pośredni
+  </label>
+  </div>
+  <div id="legendLogo">
+    <img src="Logo ZDP.png" alt="ZDP Logo">
+  </div>
+</div> <!-- KONIEC legend -->
 
+<div id="map"></div>
+<div id="zoomControl">
+  <div id="zoomSlider"></div>
+  <div id="zoomValue">Zoom: 10.0</div>
+</div>
+<div id="mapAttribution"></div>
+<div id="searchButton">🔍</div>
+<div id="kmToggle">KM: OFF</div>
+<div id="searchPanel">
+  <input type="text" id="searchInput" placeholder="Wpisz ID drogi...">
+  <button id="searchSubmit">Szukaj</button>
+</div>
 
 <div id="bottomPanel">
     <!-- HEADER -->
@@ -74,13 +320,12 @@
     <img src="Logo ZDP.png" alt="ZDP Logo">
   </div>
 </div>
-  
+
 <script src="JS/state/app-state.js"></script> 
 <script src="JS/state/Dictionary.js"></script>
 <script src="JS/geo-loader.js"></script>
 <script src="JS/map.js"></script>
 <script src="JS/ui/legend.js"></script>
-<script src="JS/ui/html-loader.js"></script>
 <script src="JS/ui/search.js"></script>
 <script src="JS/ui/searchPulse.js"></script>
 <script src="JS/ui/zoom.js"></script>
