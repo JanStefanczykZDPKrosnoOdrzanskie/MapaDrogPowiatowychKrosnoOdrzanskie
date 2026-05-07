@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Mapa ZDP</title>
+<title>Mapa ZDP A</title>
 
 <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="icon" href="data:,">
@@ -34,19 +34,8 @@
 
 <body>
 <div id="legendMount"></div>
-
 <div id="map"></div>
-<div id="zoomControl">
-  <div id="zoomSlider"></div>
-  <div id="zoomValue">Zoom: 10.0</div>
-</div>
-<div id="mapAttribution"></div>
-<div id="searchButton">🔍</div>
-<div id="kmToggle">KM: OFF</div>
-<div id="searchPanel">
-  <input type="text" id="searchInput" placeholder="Wpisz ID drogi...">
-  <button id="searchSubmit">Szukaj</button>
-</div>
+
 
 <div id="bottomPanel">
     <!-- HEADER -->
@@ -86,12 +75,12 @@
   </div>
 </div>
   
-<script src="JS/ui/html-loader.js"></script>
 <script src="JS/state/app-state.js"></script> 
 <script src="JS/state/Dictionary.js"></script>
 <script src="JS/geo-loader.js"></script>
 <script src="JS/map.js"></script>
 <script src="JS/ui/legend.js"></script>
+<script src="JS/ui/html-loader.js"></script>
 <script src="JS/ui/search.js"></script>
 <script src="JS/ui/searchPulse.js"></script>
 <script src="JS/ui/zoom.js"></script>
@@ -103,7 +92,6 @@
 <script src="JS/layers/admin.js"></script>
 <script src="JS/layers/km.js"></script>
 <script src="JS/layers/pr.js"></script>
-<script src="JS/ui/html-loader.js"></script>
 <script src="JS/main.js"></script>
 
 </body>
