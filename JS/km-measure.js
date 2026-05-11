@@ -486,7 +486,7 @@ async function RENDER_ROAD_SIGNS(map, feature, signs){
 
   const features = [];
 
-  signs.forEach(s => {
+  for(const s of signs){
 
     const km = PARSE_KM_TO_METERS(s.kilometraż);
     if(km == null) return;
@@ -567,7 +567,7 @@ async function RENDER_ROAD_SIGNS(map, feature, signs){
         icon: ""
       }
     });
-  });
+  }
 
   const src = map.getSource("road-signs");
   if(src){
