@@ -442,6 +442,35 @@ function INIT_ROAD_SIGNS_LAYER(map){
   });
 }
 
+async function ENSURE_SIGN_ICON(map, signCode){
+  const iconId = signCode && signCode.trim()
+    ? signCode.trim()
+    : "PH";
+
+  if(map.hasImage(iconId)) return iconId;
+
+  const path = GET_SIGN_ICON_PATH(iconId);
+
+  return new Promise(resolve => {
+    map.loadImage(path, (error, image) => {
+      if(error || !image){
+        if(iconId !== "PH"){
+          ENSURE_SIGN_ICON(map, "PH").then(() => resolve("PH"));
+        }else{
+          resolve(null);
+        }
+        return;
+      }
+
+      if(!map.hasImage(iconId)){
+        map.addImage(iconId, image);
+      }
+
+      resolve(iconId);
+    });
+  });
+}
+
 function GET_SIGN_ICON_PATH(signCode){
   if(!signCode) return "Graphics/Znaki/PH.BMP";
 
