@@ -443,14 +443,14 @@ function INIT_ROAD_SIGNS_LAYER(map){
 }
 
 function GET_SIGN_ICON_PATH(signCode){
-  if(!signCode) return "Graphics/Znaki/PH.bmp";
+  if(!signCode) return "Graphics/Znaki/PH.BMP";
 
   const code = signCode.trim();
-  if(!code) return "Graphics/Znaki/PH.bmp";
+  if(!code) return "Graphics/Znaki/PH.BMP";
 
   const group = code.charAt(0).toUpperCase();
 
-  return `Graphics/Znaki/${group}/${code}.bmp`;
+  return `Graphics/Znaki/${group}/${code}.BMP`;
 }
 
 function RENDER_ROAD_SIGNS(map, feature, signs){
@@ -517,7 +517,7 @@ function RENDER_ROAD_SIGNS(map, feature, signs){
           km: s.kilometraż,
           type: s["rodzaj zdarzenia"],
           side: s.strona,
-          icon: "Graphics/Znaki/PH.bmp",
+          icon: "Graphics/Znaki/PH.BMP",
           iconOffset: [0, -25]
         }
       });
