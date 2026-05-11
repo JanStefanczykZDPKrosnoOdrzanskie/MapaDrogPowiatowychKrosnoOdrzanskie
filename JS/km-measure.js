@@ -313,3 +313,31 @@ function GET_POINT_ON_ROAD(feature, kmMeters){
 
   return point;
 }
+
+function INIT_ROAD_SIGNS_LAYER(map){
+
+  if(map.getSource("road-signs")){
+    map.removeLayer("road-signs-layer");
+    map.removeSource("road-signs");
+  }
+
+  map.addSource("road-signs", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: []
+    }
+  });
+
+  map.addLayer({
+    id: "road-signs-layer",
+    type: "circle",
+    source: "road-signs",
+    paint: {
+      "circle-radius": 5,
+      "circle-color": "#ff0000",
+      "circle-stroke-width": 1,
+      "circle-stroke-color": "#000000"
+    }
+  });
+}
