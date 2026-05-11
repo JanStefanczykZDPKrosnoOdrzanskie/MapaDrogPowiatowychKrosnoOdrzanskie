@@ -1,5 +1,6 @@
 let CURRENT_KM_MARKER = null;
 let KM_MEASURE_ENABLED = false;
+let ROAD_SIGNS_CACHE = {};
 
 function INIT_KM_TOGGLE(){
   const btn = document.getElementById("kmToggle");
@@ -24,6 +25,57 @@ function INIT_KM_TOGGLE(){
   });
 
   updateUI();
+}
+
+function PARSE_KM_TO_METERS(kmText){
+  if(!kmText) return null;
+
+  const parts = kmText.split("+");
+  if(parts.length !== 2) return null;
+
+  const km = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+
+  if(isNaN(km) || isNaN(m)) return null;
+
+  return km * 1000 + m;
+}
+
+function PARSE_CSV(text){
+  const lines = text
+    .split("\n")
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+
+  const headers = lines[0].split(",");
+
+  return lines.slice(1).map(line => {
+    const cols = line.split(",");
+
+    const obj = {};
+    headers.forEach((h, i) => obj[h.trim()] = (cols[i] ?? "").trim());
+
+    return obj;
+  });
+}
+
+async function LOAD_ROAD_SIGNS(nr){
+  if(ROAD_SIGNS_CACHE[nr]) return ROAD_SIGNS_CACHE[nr];
+
+  try{
+    const res = await fetch(`Ewid/${nr}.csv`);
+    if(!res.ok) return null;
+
+    const text = await res.text();
+    const parsed = PARSE_CSV(text);
+
+    ROAD_SIGNS_CACHE[nr] = parsed;
+    return parsed;
+
+  }catch(e){
+    console.error("CSV load error:", e);
+    return null;
+  }
 }
 
 function INIT_KM_MEASURE(){
@@ -97,6 +149,7 @@ function INIT_KM_MEASURE(){
     const m = Math.round(kmValue % 1000);
 
     const nr = closestFeature.properties?.nr;
+    await LOAD_ROAD_SIGNS(nr);
     const startKm = Math.min(km_s, km_e);
     const endKm = Math.max(km_s, km_e);
 
@@ -241,4 +294,22 @@ function GET_NEAREST_PR(point, roadNr){
   if(closest.properties?.nr !== roadNr) return null;
 
   return closest;
+}
+
+function GET_POINT_ON_ROAD(feature, kmMeters){
+  const km_s = feature.properties.km_s;
+  const km_e = feature.properties.km_e;
+
+  const start = Math.min(km_s, km_e);
+  const end = Math.max(km_s, km_e);
+
+  const t = (kmMeters - start) / (end - start);
+
+  const line = turf.lineString(feature.geometry.coordinates);
+
+  const point = turf.along(line, t * (end - start) / 1000, {
+    units: "kilometers"
+  });
+
+  return point;
 }
