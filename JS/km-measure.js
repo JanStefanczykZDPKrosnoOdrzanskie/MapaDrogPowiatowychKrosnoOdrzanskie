@@ -300,22 +300,91 @@ function GET_NEAREST_PR(point, roadNr){
   return closest;
 }
 
-function GET_POINT_ON_ROAD(feature, kmMeters){
+function GET_POINT_ON_ROAD(feature, kmMeters, side){
   const km_s = feature.properties.km_s;
   const km_e = feature.properties.km_e;
 
-  const start = Math.min(km_s, km_e);
-  const end = Math.max(km_s, km_e);
+  if(km_s == null || km_e == null) return null;
 
-  const t = (kmMeters - start) / (end - start);
+  const totalMeters = Math.abs(km_e - km_s);
+  if(totalMeters === 0) return null;
 
   const line = turf.lineString(feature.geometry.coordinates);
 
-  const point = turf.along(line, t * (end - start) / 1000, {
+  /*
+    Odległość od początku geometrii.
+    Początek geometrii odpowiada km_s.
+  */
+  const distFromStartMeters = Math.abs(kmMeters - km_s);
+
+  const point = turf.along(
+    line,
+    distFromStartMeters / 1000,
+    { units: "kilometers" }
+  );
+
+  if(!point) return null;
+
+  /*
+    Lokalny kierunek linii.
+  */
+  const delta = 1; // 1 metr
+  const beforeDist = Math.max(0, distFromStartMeters - delta);
+  const afterDist = Math.min(
+    turf.length(line, { units: "kilometers" }) * 1000,
+    distFromStartMeters + delta
+  );
+
+  const ptBefore = turf.along(line, beforeDist / 1000, {
     units: "kilometers"
   });
 
-  return point;
+  const ptAfter = turf.along(line, afterDist / 1000, {
+    units: "kilometers"
+  });
+
+  if(!ptBefore || !ptAfter) return point;
+
+  const c1 = ptBefore.geometry.coordinates;
+  const c2 = ptAfter.geometry.coordinates;
+
+  let bearing = turf.bearing(
+    turf.point(c1),
+    turf.point(c2)
+  );
+
+  /*
+    Jeżeli kilometraż maleje (km_e < km_s),
+    to kierunek przyrostu kilometraża jest przeciwny
+    do kierunku geometrii.
+  */
+  if(km_e < km_s){
+    bearing += 180;
+  }
+
+  /*
+    Strona względem kierunku przyrostu kilometraża.
+  */
+  let offsetMeters = 0;
+
+  if(side === "prawa"){
+    offsetMeters = 5;
+  }else if(side === "lewa"){
+    offsetMeters = -5;
+  }
+
+  /*
+    Dodatnia wartość = prawa strona,
+    ujemna wartość = lewa strona.
+  */
+  const shifted = turf.destination(
+    point,
+    Math.abs(offsetMeters) / 1000,
+    bearing + (offsetMeters > 0 ? 90 : -90),
+    { units: "kilometers" }
+  );
+
+  return shifted;
 }
 
 function INIT_ROAD_SIGNS_LAYER(map){
@@ -355,7 +424,7 @@ function RENDER_ROAD_SIGNS(map, feature, signs){
     const km = PARSE_KM_TO_METERS(s.kilometraż);
     if(km == null) return;
 
-    const point = GET_POINT_ON_ROAD(feature, km);
+    const point = GET_POINT_ON_ROAD(feature, km, s.strona);
     if(!point) return;
 
     features.push({
