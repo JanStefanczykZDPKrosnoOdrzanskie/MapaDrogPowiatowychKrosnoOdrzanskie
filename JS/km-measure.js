@@ -482,7 +482,7 @@ function GET_SIGN_ICON_PATH(signCode){
   return `Graphics/Znaki/${group}/${code}.BMP`;
 }
 
-function RENDER_ROAD_SIGNS(map, feature, signs){
+async function RENDER_ROAD_SIGNS(map, feature, signs){
 
   const features = [];
 
@@ -503,11 +503,15 @@ function RENDER_ROAD_SIGNS(map, feature, signs){
 
     let hasAnyIcon = false;
 
-    signColumns.forEach((signCode, index) => {
-      if(!signCode) return;
-
+    for(let index = 0; index < signColumns.length; index++){
+      const signCode = signColumns[index];
+      if(!signCode) continue;
+    
+      const iconId = await ENSURE_SIGN_ICON(map, signCode);
+      if(!iconId) continue;
+    
       hasAnyIcon = true;
-
+    
       features.push({
         type: "Feature",
         geometry: {
@@ -519,17 +523,11 @@ function RENDER_ROAD_SIGNS(map, feature, signs){
           km: s.kilometraż,
           type: s["rodzaj zdarzenia"],
           side: s.strona,
-          icon: GET_SIGN_ICON_PATH(signCode),
-
-          /*
-            25 px nad punktem.
-            Kolejne znaki układane pionowo.
-          */
+          icon: iconId,
           iconOffset: [0, -(25 + index * 30)]
         }
       });
-    });
-
+    }
     /*
       Jeżeli nie znaleziono żadnego znaku,
       użyj placeholdera.
