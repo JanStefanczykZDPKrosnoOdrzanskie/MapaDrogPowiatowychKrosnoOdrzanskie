@@ -389,8 +389,15 @@ function GET_POINT_ON_ROAD(feature, kmMeters, side){
 
 function INIT_ROAD_SIGNS_LAYER(map){
 
-  if(map.getSource("road-signs")){
+  if(map.getLayer("road-signs-icons-layer")){
+    map.removeLayer("road-signs-icons-layer");
+  }
+
+  if(map.getLayer("road-signs-layer")){
     map.removeLayer("road-signs-layer");
+  }
+
+  if(map.getSource("road-signs")){
     map.removeSource("road-signs");
   }
 
@@ -402,6 +409,9 @@ function INIT_ROAD_SIGNS_LAYER(map){
     }
   });
 
+  /*
+    Warstwa punktów referencyjnych.
+  */
   map.addLayer({
     id: "road-signs-layer",
     type: "circle",
@@ -413,6 +423,34 @@ function INIT_ROAD_SIGNS_LAYER(map){
       "circle-stroke-color": "#000000"
     }
   });
+
+  /*
+    Warstwa ikon znaków.
+  */
+  map.addLayer({
+    id: "road-signs-icons-layer",
+    type: "symbol",
+    source: "road-signs",
+    layout: {
+      "icon-image": ["get", "icon"],
+      "icon-anchor": "bottom",
+      "icon-offset": ["get", "iconOffset"],
+      "icon-size": 1,
+      "icon-allow-overlap": false,
+      "icon-ignore-placement": false
+    }
+  });
+}
+
+function GET_SIGN_ICON_PATH(signCode){
+  if(!signCode) return "Graphics/Znaki/PH.bmp";
+
+  const code = signCode.trim();
+  if(!code) return "Graphics/Znaki/PH.bmp";
+
+  const group = code.charAt(0).toUpperCase();
+
+  return `Graphics/Znaki/${group}/${code}.bmp`;
 }
 
 function RENDER_ROAD_SIGNS(map, feature, signs){
@@ -427,6 +465,67 @@ function RENDER_ROAD_SIGNS(map, feature, signs){
     const point = GET_POINT_ON_ROAD(feature, km, s.strona);
     if(!point) return;
 
+    const signColumns = [
+      s["1 znak"],
+      s["2 znak"],
+      s["3 znak"],
+      s["4 znak"]
+    ];
+
+    let hasAnyIcon = false;
+
+    signColumns.forEach((signCode, index) => {
+      if(!signCode) return;
+
+      hasAnyIcon = true;
+
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: point.geometry.coordinates
+        },
+        properties: {
+          road: feature.properties?.nr,
+          km: s.kilometraż,
+          type: s["rodzaj zdarzenia"],
+          side: s.strona,
+          icon: GET_SIGN_ICON_PATH(signCode),
+
+          /*
+            25 px nad punktem.
+            Kolejne znaki układane pionowo.
+          */
+          iconOffset: [0, -(25 + index * 30)]
+        }
+      });
+    });
+
+    /*
+      Jeżeli nie znaleziono żadnego znaku,
+      użyj placeholdera.
+    */
+    if(!hasAnyIcon){
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: point.geometry.coordinates
+        },
+        properties: {
+          road: feature.properties?.nr,
+          km: s.kilometraż,
+          type: s["rodzaj zdarzenia"],
+          side: s.strona,
+          icon: "Graphics/Znaki/PH.bmp",
+          iconOffset: [0, -25]
+        }
+      });
+    }
+
+    /*
+      Punkt referencyjny.
+    */
     features.push({
       type: "Feature",
       geometry: {
@@ -437,7 +536,8 @@ function RENDER_ROAD_SIGNS(map, feature, signs){
         road: feature.properties?.nr,
         km: s.kilometraż,
         type: s["rodzaj zdarzenia"],
-        side: s.strona
+        side: s.strona,
+        icon: ""
       }
     });
   });
