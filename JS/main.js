@@ -14,4 +14,5 @@ map.on('load',async()=>{
   INIT_KM_TOGGLE();
   INIT_KM_MEASURE();
   INIT_PR_BUTTONS();
+  INIT_ROAD_SIGNS_LAYER(map);
 });
