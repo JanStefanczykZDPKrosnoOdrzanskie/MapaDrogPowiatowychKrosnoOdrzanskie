@@ -63,7 +63,7 @@ async function LOAD_ROAD_SIGNS(nr){
   if(ROAD_SIGNS_CACHE[nr]) return ROAD_SIGNS_CACHE[nr];
 
   try{
-    const res = await fetch(`Ewid/${nr}.csv`);
+    const res = await fetch(`Ewidr/${nr}.csv`);
     if(!res.ok) return null;
 
     const text = await res.text();
