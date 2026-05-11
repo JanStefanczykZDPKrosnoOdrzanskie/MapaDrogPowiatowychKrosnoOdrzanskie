@@ -150,6 +150,10 @@ function INIT_KM_MEASURE(){
 
     const nr = closestFeature.properties?.nr;
     await LOAD_ROAD_SIGNS(nr);
+    const signs = ROAD_SIGNS_CACHE[nr];
+    if(signs){
+      RENDER_ROAD_SIGNS(map, closestFeature, signs);
+    }
     const startKm = Math.min(km_s, km_e);
     const endKm = Math.max(km_s, km_e);
 
@@ -340,4 +344,40 @@ function INIT_ROAD_SIGNS_LAYER(map){
       "circle-stroke-color": "#000000"
     }
   });
+}
+
+function RENDER_ROAD_SIGNS(map, feature, signs){
+
+  const features = [];
+
+  signs.forEach(s => {
+
+    const km = PARSE_KM_TO_METERS(s.kilometraż);
+    if(km == null) return;
+
+    const point = GET_POINT_ON_ROAD(feature, km);
+    if(!point) return;
+
+    features.push({
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: point.geometry.coordinates
+      },
+      properties: {
+        road: feature.properties?.nr,
+        km: s.kilometraż,
+        type: s["rodzaj zdarzenia"],
+        side: s.strona
+      }
+    });
+  });
+
+  const src = map.getSource("road-signs");
+  if(src){
+    src.setData({
+      type: "FeatureCollection",
+      features
+    });
+  }
 }
