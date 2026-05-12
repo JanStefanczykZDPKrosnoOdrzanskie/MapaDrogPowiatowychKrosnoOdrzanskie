@@ -482,6 +482,83 @@ function GET_SIGN_ICON_PATH(signCode){
   return `Graphics/Znaki/${group}/${code}.BMP`;
 }
 
+function GET_SIGN_PIXEL_OFFSET(feature, kmMeters, side, stackIndex = 0){
+    const km_s = feature.properties.km_s;
+    const km_e = feature.properties.km_e;
+
+    if(km_s == null || km_e == null){
+        return [0, -(15 + stackIndex * 30)];
+    }
+
+    const distFromStartMeters = Math.abs(kmMeters - km_s);
+
+    const line = turf.lineString(feature.geometry.coordinates);
+    const lineLengthMeters =
+        turf.length(line, { units: "kilometers" }) * 1000;
+
+    const delta = 1; // 1 metr
+
+    const beforeDist = Math.max(0, distFromStartMeters - delta);
+    const afterDist = Math.min(lineLengthMeters, distFromStartMeters + delta);
+
+    const ptBefore = turf.along(
+        line,
+        beforeDist / 1000,
+        { units: "kilometers" }
+    );
+
+    const ptAfter = turf.along(
+        line,
+        afterDist / 1000,
+        { units: "kilometers" }
+    );
+
+    if(!ptBefore || !ptAfter){
+        return [0, -(15 + stackIndex * 30)];
+    }
+
+    const p1 = map.project(ptBefore.geometry.coordinates);
+    const p2 = map.project(ptAfter.geometry.coordinates);
+
+    let dx = p2.x - p1.x;
+    let dy = p2.y - p1.y;
+
+    const len = Math.sqrt(dx * dx + dy * dy);
+
+    if(len === 0){
+        return [0, -(15 + stackIndex * 30)];
+    }
+
+    dx /= len;
+    dy /= len;
+
+    // Normalna w prawo względem kierunku linii
+    let nx = dy;
+    let ny = -dx;
+
+    // Jeśli kilometraż maleje, odwróć kierunek
+    if(km_e < km_s){
+        nx = -nx;
+        ny = -ny;
+    }
+
+    // Lewa strona = odwrócenie normalnej
+    if(side === "lewa"){
+        nx = -nx;
+        ny = -ny;
+    }
+
+    const baseOffset = 15;
+    const stackSpacing = 30;
+
+    const distance = baseOffset + stackIndex * stackSpacing;
+
+    return [
+        nx * distance,
+        ny * distance
+    ];
+}
+
 async function RENDER_ROAD_SIGNS(map, feature, signs){
 
   const features = [];
