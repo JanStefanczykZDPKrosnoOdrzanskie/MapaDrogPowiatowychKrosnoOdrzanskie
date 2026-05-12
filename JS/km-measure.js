@@ -433,7 +433,7 @@ function INIT_ROAD_SIGNS_LAYER(map){
     source: "road-signs",
     layout: {
       "icon-image": ["get", "icon"],
-      "icon-anchor": "bottom",
+      "icon-anchor": "center",
       "icon-offset": ["get", "iconOffset"],
       "icon-size": 1,
       "icon-allow-overlap": false,
