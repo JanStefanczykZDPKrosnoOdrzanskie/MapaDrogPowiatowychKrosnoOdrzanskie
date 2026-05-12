@@ -548,7 +548,7 @@ function GET_SIGN_PIXEL_OFFSET(feature, kmMeters, side, stackIndex = 0){
         ny = -ny;
     }
 
-    const baseOffset = 15;
+    const baseOffset = 30;
     const stackSpacing = 30;
 
     const distance = baseOffset + stackIndex * stackSpacing;
@@ -627,7 +627,12 @@ async function RENDER_ROAD_SIGNS(map, feature, signs){
           type: s["rodzaj zdarzenia"],
           side: s.strona,
           icon: "Graphics/Znaki/PH.BMP",
-          iconOffset: [0, -25]
+          iconOffset: GET_SIGN_PIXEL_OFFSET(
+            feature,
+            km,
+            s.strona,
+            0
+          )
         }
       });
     }
