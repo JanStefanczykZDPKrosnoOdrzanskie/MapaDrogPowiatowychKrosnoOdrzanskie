@@ -483,80 +483,41 @@ function GET_SIGN_ICON_PATH(signCode){
 }
 
 function GET_SIGN_PIXEL_OFFSET(feature, kmMeters, side, stackIndex = 0){
-    const km_s = feature.properties.km_s;
-    const km_e = feature.properties.km_e;
+  // Punkt na osi drogi (bez przesunięcia)
+  const roadPoint = GET_POINT_ON_ROAD(feature, kmMeters, null);
 
-    if(km_s == null || km_e == null){
-        return [0, -(15 + stackIndex * 30)];
-    }
+  // Punkt odsunięty o 5 m od drogi
+  const signPoint = GET_POINT_ON_ROAD(feature, kmMeters, side);
 
-    const distFromStartMeters = Math.abs(kmMeters - km_s);
+  if(!roadPoint || !signPoint){
+    return [0, -(30 + stackIndex * 30)];
+  }
 
-    const line = turf.lineString(feature.geometry.coordinates);
-    const lineLengthMeters =
-        turf.length(line, { units: "kilometers" }) * 1000;
+  const pRoad = map.project(roadPoint.geometry.coordinates);
+  const pSign = map.project(signPoint.geometry.coordinates);
 
-    const delta = 1; // 1 metr
+  let dx = pSign.x - pRoad.x;
+  let dy = pSign.y - pRoad.y;
 
-    const beforeDist = Math.max(0, distFromStartMeters - delta);
-    const afterDist = Math.min(lineLengthMeters, distFromStartMeters + delta);
+  const len = Math.sqrt(dx * dx + dy * dy);
 
-    const ptBefore = turf.along(
-        line,
-        beforeDist / 1000,
-        { units: "kilometers" }
-    );
+  if(len === 0){
+    return [0, -(30 + stackIndex * 30)];
+  }
 
-    const ptAfter = turf.along(
-        line,
-        afterDist / 1000,
-        { units: "kilometers" }
-    );
+  // Wektor jednostkowy od drogi do znaku
+  dx /= len;
+  dy /= len;
 
-    if(!ptBefore || !ptAfter){
-        return [0, -(15 + stackIndex * 30)];
-    }
+  const baseOffset = 30;     // pierwsza ikona 30 px dalej
+  const stackSpacing = 30;   // kolejne ikony co 30 px
 
-    const p1 = map.project(ptBefore.geometry.coordinates);
-    const p2 = map.project(ptAfter.geometry.coordinates);
+  const distance = baseOffset + stackIndex * stackSpacing;
 
-    let dx = p2.x - p1.x;
-    let dy = p2.y - p1.y;
-
-    const len = Math.sqrt(dx * dx + dy * dy);
-
-    if(len === 0){
-        return [0, -(15 + stackIndex * 30)];
-    }
-
-    dx /= len;
-    dy /= len;
-
-    // Normalna w prawo względem kierunku linii
-    let nx = dy;
-    let ny = -dx;
-
-    // Jeśli kilometraż maleje, odwróć kierunek
-    if(km_e < km_s){
-        nx = -nx;
-        ny = -ny;
-    }
-
-    // Lewa strona = odwrócenie normalnej
-    if(side === "lewa"){
-        nx = -nx;
-        ny = -ny;
-    }
-
-    const baseOffset = 30;
-    const stackSpacing = 30;
-
-    const distance = baseOffset + stackIndex * stackSpacing;
-
-    return [
-        nx * distance,
-        ny * distance
-    ];
+  return [
+    dx * distance,
+    dy * distance
+  ];
 }
 
 async function RENDER_ROAD_SIGNS(map, feature, signs){
