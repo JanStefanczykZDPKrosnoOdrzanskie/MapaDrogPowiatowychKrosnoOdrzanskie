@@ -509,7 +509,7 @@ function GET_SIGN_PIXEL_OFFSET(feature, kmMeters, side, stackIndex = 0){
   dx /= len;
   dy /= len;
 
-  const baseOffset = 30;     // pierwsza ikona 30 px dalej
+  const baseOffset = 80;     // pierwsza ikona 30 px dalej
   const stackSpacing = 30;   // kolejne ikony co 30 px
 
   const distance = baseOffset + stackIndex * stackSpacing;
