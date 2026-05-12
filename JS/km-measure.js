@@ -601,7 +601,12 @@ async function RENDER_ROAD_SIGNS(map, feature, signs){
           type: s["rodzaj zdarzenia"],
           side: s.strona,
           icon: iconId,
-          iconOffset: [0, -(25 + index * 30)]
+          iconOffset: GET_SIGN_PIXEL_OFFSET(
+            feature,
+            km,
+            s.strona,
+            index
+          )
         }
       });
     }
