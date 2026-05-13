@@ -416,7 +416,6 @@ function INIT_ROAD_SIGNS_LAYER(map){
     id: "road-signs-layer",
     type: "circle",
     source: "road-signs",
-    filter: ["==", ["get", "featureType"], "point"],
     paint: {
       "circle-radius": 5,
       "circle-color": "#ff0000",
@@ -424,21 +423,7 @@ function INIT_ROAD_SIGNS_LAYER(map){
       "circle-stroke-color": "#000000"
     }
   });
-/*
-  Warstwa linii odniesienia pomiędzy punktem referencyjnym
-  a ikoną znaku.
-*/
-map.addLayer({
-  id: "road-signs-connectors-layer",
-  type: "line",
-  source: "road-signs",
-  filter: ["==", ["get", "featureType"], "connector"],
-  paint: {
-    "line-color": "#000000",
-    "line-width": 1
-  }
-});
-  
+
   /*
     Warstwa ikon znaków.
   */
@@ -446,7 +431,6 @@ map.addLayer({
     id: "road-signs-icons-layer",
     type: "symbol",
     source: "road-signs",
-    filter: ["==", ["get", "featureType"], "icon"],
     layout: {
       "icon-image": ["get", "icon"],
       "icon-anchor": "center",
@@ -525,7 +509,7 @@ function GET_SIGN_PIXEL_OFFSET(feature, kmMeters, side, stackIndex = 0){
   dx /= len;
   dy /= len;
 
-  const baseOffset = 80;     // pierwsza ikona 30 px dalej
+  const baseOffset = 60;     // pierwsza ikona 30 px dalej
   const stackSpacing = 30;   // kolejne ikony co 30 px
 
   const distance = baseOffset + stackIndex * stackSpacing;
@@ -565,14 +549,7 @@ async function RENDER_ROAD_SIGNS(map, feature, signs){
       if(!iconId) continue;
     
       hasAnyIcon = true;
-
-      const iconOffset = GET_SIGN_PIXEL_OFFSET(
-        feature,
-        km,
-        s.strona,
-        index
-      );
-      
+    
       features.push({
         type: "Feature",
         geometry: {
@@ -580,40 +557,20 @@ async function RENDER_ROAD_SIGNS(map, feature, signs){
           coordinates: point.geometry.coordinates
         },
         properties: {
-          featureType: "icon",
           road: feature.properties?.nr,
           km: s.kilometraż,
           type: s["rodzaj zdarzenia"],
           side: s.strona,
           icon: iconId,
-          iconOffset: iconOffset
+          iconOffset: GET_SIGN_PIXEL_OFFSET(
+            feature,
+            km,
+            s.strona,
+            index
+          )
         }
       });
     }
-    const pRoad = map.project(point.geometry.coordinates);
-    
-    const pIcon = {
-      x: pRoad.x + iconOffset[0],
-      y: pRoad.y + iconOffset[1]
-    };
-    
-    const iconLngLat = map.unproject([pIcon.x, pIcon.y]);
-    
-    features.push({
-      type: "Feature",
-      geometry: {
-        type: "LineString",
-        coordinates: [
-          point.geometry.coordinates,
-          [iconLngLat.lng, iconLngLat.lat]
-        ]
-      },
-      properties: {
-        featureType: "connector",
-        road: feature.properties?.nr,
-        km: s.kilometraż
-      }
-    });
     /*
       Jeżeli nie znaleziono żadnego znaku,
       użyj placeholdera.
@@ -626,13 +583,17 @@ async function RENDER_ROAD_SIGNS(map, feature, signs){
           coordinates: point.geometry.coordinates
         },
         properties: {
-          featureType: "icon",
           road: feature.properties?.nr,
           km: s.kilometraż,
           type: s["rodzaj zdarzenia"],
           side: s.strona,
           icon: "Graphics/Znaki/PH.BMP",
-          iconOffset: iconOffset
+          iconOffset: GET_SIGN_PIXEL_OFFSET(
+            feature,
+            km,
+            s.strona,
+            0
+          )
         }
       });
     }
@@ -647,7 +608,6 @@ async function RENDER_ROAD_SIGNS(map, feature, signs){
         coordinates: point.geometry.coordinates
       },
       properties: {
-        featureType: "point",
         road: feature.properties?.nr,
         km: s.kilometraż,
         type: s["rodzaj zdarzenia"],
