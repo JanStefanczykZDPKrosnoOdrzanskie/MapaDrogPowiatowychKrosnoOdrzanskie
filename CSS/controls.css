@@ -21,7 +21,7 @@ body.legend-collapsed #searchButton{
 }
 #searchPanel{
   position:absolute;
-  top:60px;
+  top:10px;
   right:calc(var(--legend-width) + 10px);
   z-index:60;
   width:260px;
@@ -68,3 +68,4 @@ body.legend-collapsed #searchPanel{
 body.legend-collapsed #kmToggle{
   right:10px;
 }
+
